@@ -64,9 +64,9 @@ local user_opts = {
     visibility = 'auto',        -- only used at init to set visibility_mode(...)
     windowcontrols = 'auto',    -- whether to show window controls
     greenandgrumpy = false,     -- disable santa hat
-    volumecontrol = true,       -- whether to show mute button and volumne slider
+    volumecontrol = true,       -- whether to show mute button and volume slider
     keyboardnavigation = false, -- enable directional keyboard navigation
-    chapter_fmt = "Chapter: %s"-- chapter print format for seekbar-hover. "no" to disable
+    chapter_fmt = "Chapter: %s" -- chapter print format for seekbar-hover. "no" to disable
 }
 
 -- Icons for jump button depending on jumpamount 
@@ -112,6 +112,8 @@ local language = {
 		nolist = 'Empty playlist.',
 		chapter = 'Chapter',
 		nochapter = 'No chapters.',
+        ontop = 'Enable stay on top',
+        ontopdisable = 'Disable stay on top'
 	},
 	['chs'] = {
 		welcome = '{\\1c&H00\\bord0\\fs30\\fn微软雅黑 light\\fscx125}MPV{\\fscx100} 播放器',  -- this text appears when mpv starts
@@ -128,6 +130,8 @@ local language = {
 		nolist = '无列表信息',
 		chapter = '章节',
 		nochapter = '无章节信息',
+        ontop = '启用窗口停留在顶层',  -- please check these translations
+        ontopdisable = '禁用停留在顶层的窗口'  -- please check these translations
 	},
 	['pl'] = {
 	    welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}Upuść plik lub łącze URL do odtworzenia.',  -- this text appears when mpv starts
@@ -144,6 +148,8 @@ local language = {
 		nolist = 'Lista odtwarzania pusta.',
 		chapter = 'Rozdział',
 		nochapter = 'Brak rozdziałów.',
+        ontop = 'Umożliwić pozostawienie okna na górze',
+        ontopdisable = 'Wyłączenie pozostawania okna na górze'
 	},
     ['jp'] = {
 	    welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}ファイルやURLのリンクをここにドロップすると再生されます。',  -- this text appears when mpv starts
@@ -160,6 +166,8 @@ local language = {
 		nolist = '空のプレイリスト.',
 		chapter = 'チャプター',
 		nochapter = '利用可能なチャプターはありません.',
+        ontop = 'ウィンドウが上に表示されるようにする',
+        ontopdisable = 'ウィンドウが上に表示されないようにする'
     }
 }
 -- read options from config and command-line
@@ -290,6 +298,7 @@ function build_keyboard_controls()
     if user_opts.showinfo then
         table.insert(bottom_button_line, 'tog_info')
     end
+    table.insert(bottom_button_line, 'tog_ontop')
     if user_opts.showloop then
         table.insert(bottom_button_line, 'tog_loop')
     end
@@ -1399,6 +1408,11 @@ layouts = function ()
     lo.style = osc_styles.Ctrl3
     lo.visible = (osc_param.playresx >= 250)    
 
+    lo = add_layout('ontop')
+    lo.geometry = {x = osc_geo.w - 137, y = refY - 40, an = 5, w = 24, h = 24}
+    lo.style = osc_styles.Ctrl3
+    lo.visible = (osc_param.playresx >= 700 - outeroffset)
+
     if showloop then
         lo = add_layout('tog_loop')
         lo.geometry = {x = osc_geo.w - 87, y = refY - 40, an = 5, w = 24, h = 24}
@@ -1409,12 +1423,12 @@ layouts = function ()
     if showinfo then
         lo = add_layout('tog_info')
         if showloop then
-            lo.geometry = {x = osc_geo.w - 137, y = refY - 40, an = 5, w = 24, h = 24}
+            lo.geometry = {x = osc_geo.w - 187, y = refY - 40, an = 5, w = 24, h = 24}
         else
             lo.geometry = {x = osc_geo.w - 87, y = refY - 40, an = 5, w = 24, h = 24}
         end
         lo.style = osc_styles.Ctrl3
-        lo.visible = (osc_param.playresx >= 700 - outeroffset)
+        lo.visible = (osc_param.playresx >= 500 - outeroffset)
     end
     
     geo = { x = 25, y = refY - 132, an = 1, w = osc_geo.w - 50, h = 48 }
@@ -1837,6 +1851,30 @@ function osc_init()
     ne.visible = (osc_param.playresx >= 700 - outeroffset)
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
+
+    --tog_ontop
+    ne = new_element('ontop', 'button')
+    local ontop = mp.get_property('ontop')
+    ne.content = function ()
+        if ontop == 'no' then
+            return ('\xEF\x86\x8B')
+        else
+            return ('\xEF\x86\x8C')
+        end
+    end
+
+    ne.tooltip_style = osc_styles.Tooltip
+    ne.tooltipF = function ()
+		local msg = texts.ontop
+        if not ontop then
+            msg = texts.ontopdisable
+        end
+        return msg
+    end
+
+
+    ne.eventresponder['mbtn_left_up'] =
+        function () mp.commandv('cycle', 'ontop') end
 
     -- title
     ne = new_element('title', 'button')
