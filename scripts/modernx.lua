@@ -1856,7 +1856,7 @@ function osc_init()
     ne = new_element('ontop', 'button')
     local ontop = mp.get_property('ontop')
     ne.content = function ()
-        if ontop == 'no' then
+        if mp.get_property('ontop') == 'no' then
             return ('\xEF\x86\x8B')
         else
             return ('\xEF\x86\x8C')
@@ -1866,7 +1866,7 @@ function osc_init()
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
 		local msg = texts.ontop
-        if not ontop then
+        if not mp.get_property('ontop') then
             msg = texts.ontopdisable
         end
         return msg
