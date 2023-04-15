@@ -66,7 +66,8 @@ local user_opts = {
     greenandgrumpy = false,     -- disable santa hat
     volumecontrol = true,       -- whether to show mute button and volume slider
     keyboardnavigation = false, -- enable directional keyboard navigation
-    chapter_fmt = "Chapter: %s" -- chapter print format for seekbar-hover. "no" to disable
+    chapter_fmt = "Chapter: %s",-- chapter print format for seekbar-hover. "no" to disable
+    boxalpha = 80,              -- alpha of the background box,0 (opaque) to 255 (fully transparent)
 }
 
 -- Icons for jump button depending on jumpamount 
@@ -87,7 +88,7 @@ local icons = {
   audio = '\239\142\183',
   volume = '\239\142\188',
   volume_mute = '\239\142\187',
-  sub = '\239\143\147',
+  sub = '\xEF\x8C\xA4',
   minimize = '\239\133\172',
   fullscreen = '\239\133\173',  
   loopoff = '',
@@ -113,7 +114,9 @@ local language = {
 		chapter = 'Chapter',
 		nochapter = 'No chapters.',
         ontop = 'Enable stay on top',
-        ontopdisable = 'Disable stay on top'
+        ontopdisable = 'Disable stay on top',
+        loopenable = 'Enable looping',
+        loopdisable = 'Disable looping',
 	},
 	['chs'] = {
 		welcome = '{\\1c&H00\\bord0\\fs30\\fn微软雅黑 light\\fscx125}MPV{\\fscx100} 播放器',  -- this text appears when mpv starts
@@ -131,7 +134,9 @@ local language = {
 		chapter = '章节',
 		nochapter = '无章节信息',
         ontop = '启用窗口停留在顶层',  -- please check these translations
-        ontopdisable = '禁用停留在顶层的窗口'  -- please check these translations
+        ontopdisable = '禁用停留在顶层的窗口',  -- please check these translations
+        loopenable = '启用循环功能',
+        loopdisable = '禁用循环功能',
 	},
 	['pl'] = {
 	    welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}Upuść plik lub łącze URL do odtworzenia.',  -- this text appears when mpv starts
@@ -149,7 +154,9 @@ local language = {
 		chapter = 'Rozdział',
 		nochapter = 'Brak rozdziałów.',
         ontop = 'Umożliwić pozostawienie okna na górze',
-        ontopdisable = 'Wyłączenie pozostawania okna na górze'
+        ontopdisable = 'Wyłączenie pozostawania okna na górze',
+        loopenable = 'Włączenie zapętlenia',
+        loopdisable = 'Wyłączenie zapętlenia',
 	},
     ['jp'] = {
 	    welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}ファイルやURLのリンクをここにドロップすると再生されます。',  -- this text appears when mpv starts
@@ -167,7 +174,9 @@ local language = {
 		chapter = 'チャプター',
 		nochapter = '利用可能なチャプターはありません.',
         ontop = 'ウィンドウが上に表示されるようにする',
-        ontopdisable = 'ウィンドウが上に表示されないようにする'
+        ontopdisable = 'ウィンドウが上に表示されないようにする',
+        loopenable = 'ループON',
+        loopdisable = 'ループOFF',
     }
 }
 -- read options from config and command-line
@@ -194,7 +203,7 @@ local osc_styles = {
     Ctrl3 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmaterial-design-iconic-font}',
     Time = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&H000000&\\fs17\\fn' .. user_opts.font .. '}',
     Tooltip = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs18\\fn' .. user_opts.font .. '}',
-    Title = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs38\\q2\\fn' .. user_opts.font .. '}',
+    Title = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs30\\q2\\fn' .. user_opts.font .. '}',
     WinCtrl = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs20\\fnmpv-osd-symbols}',
     elementDown = '{\\1c&H999999&}',
     elementHighlight = '{\\blur1\\bord1\\1c&HFFC033&}',
@@ -1269,7 +1278,7 @@ layouts = function ()
 	lo.geometry = {x = posX, y = posY, an = 7, w = osc_w, h = 1}
 	lo.style = osc_styles.TransBg
 	lo.layer = 10
-	lo.alpha[3] = 0
+	lo.alpha[3] = user_opts.boxalpha
 	
     --
     -- Alignment
@@ -1839,6 +1848,14 @@ function osc_init()
         end
     end
     ne.visible = (osc_param.playresx >= 600 - outeroffset)
+    ne.tooltip_style = osc_styles.Tooltip
+    ne.tooltipF = function ()
+		local msg = texts.loopenable
+        if state.looping then
+            msg = texts.loopdisable
+        end
+        return msg
+    end
     ne.eventresponder['mbtn_left_up'] =
         function ()
             state.looping = not state.looping
@@ -1862,17 +1879,14 @@ function osc_init()
             return ('\xEF\x86\x8C')
         end
     end
-
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
-		local msg = texts.ontop
-        if not mp.get_property('ontop') then
-            msg = texts.ontopdisable
+		local msg = texts.ontopdisable
+        if mp.get_property('ontop') == 'no' then
+            msg = texts.ontop
         end
         return msg
     end
-
-
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('cycle', 'ontop') end
 
@@ -1881,11 +1895,6 @@ function osc_init()
     ne.content = function ()
         local title = state.forced_title or
                       mp.command_native({"expand-text", user_opts.title})
-        if state.paused then
-			title = title:gsub('\\n', ' '):gsub('\\$', ''):gsub('{','\\{')
-		else
-			title = title:gsub('\\n', ' '):gsub('\\$', ''):gsub('{','\\{') --title = ' '
-		end
         return not (title == '') and title or ' '
     end
     ne.visible = osc_param.playresy >= 320 and user_opts.showtitle
