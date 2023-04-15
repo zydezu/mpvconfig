@@ -26,7 +26,7 @@ local user_opts = {
     scalewindowed = 1.0,        -- scaling of the controller when windowed
     scalefullscreen = 1.0,      -- scaling of the controller when fullscreen
     scaleforcedwindow = 1.0,    -- scaling when rendered on a forced window
-    vidscale = false,            -- scale the controller with the video?
+    vidscale = false,           -- scale the controller with the video?
     hidetimeout = 1500,         -- duration in ms until the OSC hides if no
                                 -- mouse movement. enforced non-negative for the
                                 -- user, but internally negative is 'always-on'.
@@ -45,11 +45,12 @@ local user_opts = {
                                 -- shift+left-click to step 1 frame and 
                                 -- right-click to jump 1 minute
     showskip = true,            -- show the skip back and forward (chapter) buttons
-    showloop = true;            -- show the loop button
-    showinfo = true;            -- show the info button
-    compactmode = true;        -- replace the jump buttons with the chapter buttons, clicking the
+    showloop = true,            -- show the loop button
+    showinfo = true,            -- show the info button
+    compactmode = true,         -- replace the jump buttons with the chapter buttons, clicking the
                                 -- buttons will act as jumping, and shift clicking will as skipping
                                 -- a chapter
+    bottomhover = true,        -- if the osc should only display when hover occurs at video elements on the bottom of the window
     jumpamount = 5,             -- change the jump amount (in seconds by default)
     jumpiconnumber = true,      -- show different icon when jumpamount is 5, 10, or 30
     jumpmode = 'exact',         -- seek mode for jump buttons. e.g.
@@ -64,8 +65,8 @@ local user_opts = {
     windowcontrols = 'auto',    -- whether to show window controls
     greenandgrumpy = false,     -- disable santa hat
     volumecontrol = true,       -- whether to show mute button and volumne slider
-    keyboardnavigation = false,  -- enable directional keyboard navigation
-    chapter_fmt = "Chapter: %s", -- chapter print format for seekbar-hover. "no" to disable
+    keyboardnavigation = false, -- enable directional keyboard navigation
+    chapter_fmt = "Chapter: %s"-- chapter print format for seekbar-hover. "no" to disable
 }
 
 -- Icons for jump button depending on jumpamount 
@@ -1609,7 +1610,7 @@ function osc_init()
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset*10)
     ne.softrepeat = true
     ne.content = icons.backward
-    ne.enabled = (have_ch) -- disables button when no chapters available.
+    ne.enabled = (have_ch) or compactmode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         function () 
             if compactmode then
@@ -1651,7 +1652,7 @@ function osc_init()
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset*10)
     ne.softrepeat = true
     ne.content = icons.forward
-    ne.enabled = (have_ch) -- disables button when no chapters available.
+    ne.enabled = (have_ch) or compactmode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         function ()
             if compactmode then
@@ -2403,13 +2404,17 @@ function process_event(source, what)
         state.mouse_in_window = true
 
         local mouseX, mouseY = get_virt_mouse_pos()
-        if (user_opts.minmousemove == 0) or
-            (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and
-                ((math.abs(mouseX - state.last_mouseX) >= user_opts.minmousemove)
-                    or (math.abs(mouseY - state.last_mouseY) >= user_opts.minmousemove)
-                )
-            ) then
-            show_osc()
+
+        if (user_opts.minmousemove == 0) or (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and ((math.abs(mouseX - state.last_mouseX) >= user_opts.minmousemove) or (math.abs(mouseY - state.last_mouseY) >= user_opts.minmousemove))) then
+                if user_opts.bottomhover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
+                    if (mouseY > osc_param.playresy - 200) then -- account for scaling options
+                        show_osc()
+                    else
+                        hide_osc()
+                    end
+                else
+                    show_osc()
+                end
         end
         state.last_mouseX, state.last_mouseY = mouseX, mouseY
 
