@@ -18,14 +18,16 @@ local utils = require 'mp.utils'
 -- default user option values
 -- may change them in osc.conf
 local user_opts = {
-    language = 'en',		    -- eng:English, chs:Chinese, pl:Polish, jp:Japanese
-
+    language = 'en',		    -- en:English, chs:Chinese, pl:Polish, jp:Japanese
     showwindowed = true,        -- show OSC when windowed?
     showfullscreen = true,      -- show OSC when fullscreen?
     idlescreen = true,          -- draw logo and text when idle
     scalewindowed = 1.0,        -- scaling of the controller when windowed
     scalefullscreen = 1.0,      -- scaling of the controller when fullscreen
     scaleforcedwindow = 1.0,    -- scaling when rendered on a forced window
+    titlefontsize = 28,         -- the font size of the title text
+    titlecutoff = true,         -- if title is long, replace with '...' instead of cutting of screen
+    scrollingtitle = true,      -- instead of cutting off the title, it will scroll
     vidscale = false,           -- scale the controller with the video?
     hidetimeout = 1500,         -- duration in ms until the OSC hides if no
                                 -- mouse movement. enforced non-negative for the
@@ -47,6 +49,7 @@ local user_opts = {
     showskip = true,            -- show the skip back and forward (chapter) buttons
     showloop = true,            -- show the loop button
     showinfo = true,            -- show the info button
+    showontop = true,           -- show window on top button
     compactmode = true,         -- replace the jump buttons with the chapter buttons, clicking the
                                 -- buttons will act as jumping, and shift clicking will as skipping
                                 -- a chapter
@@ -113,8 +116,8 @@ local language = {
 		nolist = 'Empty playlist.',
 		chapter = 'Chapter',
 		nochapter = 'No chapters.',
-        ontop = 'Enable stay on top',
-        ontopdisable = 'Disable stay on top',
+        ontop = 'Pin window',
+        ontopdisable = 'Unpin window',
         loopenable = 'Enable looping',
         loopdisable = 'Disable looping',
 	},
@@ -203,7 +206,7 @@ local osc_styles = {
     Ctrl3 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmaterial-design-iconic-font}',
     Time = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&H000000&\\fs17\\fn' .. user_opts.font .. '}',
     Tooltip = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs18\\fn' .. user_opts.font .. '}',
-    Title = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs30\\q2\\fn' .. user_opts.font .. '}',
+    Title = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs'.. user_opts.titlefontsize ..'\\q2\\fn' .. user_opts.font .. '}',
     WinCtrl = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs20\\fnmpv-osd-symbols}',
     elementDown = '{\\1c&H999999&}',
     elementHighlight = '{\\blur1\\bord1\\1c&HFFC033&}',
@@ -229,6 +232,9 @@ local state = {
     fullscreen = false,
     tick_timer = nil,
     tick_last_time = 0,                     -- when the last tick() was run
+    titletick = 0,
+    oldtitle = ' ',
+    initialborder = mp.get_property('border'),
     hide_timer = nil,
     cache_state = nil,
     idle = false,
@@ -307,7 +313,9 @@ function build_keyboard_controls()
     if user_opts.showinfo then
         table.insert(bottom_button_line, 'tog_info')
     end
-    table.insert(bottom_button_line, 'tog_ontop')
+    if user_opts.showontop then
+        table.insert(bottom_button_line, 'tog_ontop')
+    end
     if user_opts.showloop then
         table.insert(bottom_button_line, 'tog_loop')
     end
@@ -923,21 +931,42 @@ function render_elements(master_ass)
             elseif not (element.content == nil) then
                 buttontext = element.content -- text objects
             end
-			
-			buttontext = buttontext:gsub(':%((.?.?.?)%) unknown ', ':%(%1%)')  --gsub('%) unknown %(\'', '')
+            buttontext = buttontext:gsub(':%((.?.?.?)%) unknown ', ':%(%1%)')  --gsub('%) unknown %(\'', '')
 
-            local maxchars = element.layout.button.maxchars
-            -- 认为1个中文字符约等于1.5个英文字符
-            -- local charcount = buttontext:len()-  (buttontext:len()-select(2, buttontext:gsub('[^\128-\193]', '')))/1.5
-            local charcount = (buttontext:len() + select(2, buttontext:gsub('[^\128-\193]', ''))*2) / 3
-            if not (maxchars == nil) and (charcount > maxchars) then
-                local limit = math.max(0, maxchars - 3)
-                if (charcount > limit) then
-                    while (charcount > limit) do
-                        buttontext = buttontext:gsub('.[\128-\191]*$', '')
-						charcount = (buttontext:len() + select(2, buttontext:gsub('[^\128-\193]', ''))*2) / 3
+            if (user_opts.titlecutoff or user_opts.scrollingtitle) and element.name=='title' then
+                local maxchars = element.layout.button.maxchars
+                -- 认为1个中文字符约等于1.5个英文字符
+                -- local charcount = buttontext:len()-  (buttontext:len()-select(2, buttontext:gsub('[^\128-\193]', '')))/1.5
+                local charcount = (buttontext:len() + select(2, buttontext:gsub('[^\128-\193]', ''))*2) / 3
+                if not (maxchars == nil) and (charcount > maxchars) then
+                    local limit = math.max(0, maxchars - 3)
+                    if (charcount > limit) then
+                        if user_opts.scrollingtitle then
+                            if (state.osc_visible) then
+                                state.titletick = state.titletick + 0.1
+                                if(state.titletick > string.len(element.content())) then
+                                    state.titletick = 0
+                                end
+                                if (element.content() ~= state.oldtitle) then
+                                    state.titletick = 0 -- if title/chapter display is changed, reset scrolling
+                                end
+                                state.oldtitle = element.content()
+                                request_tick()
+                            end
+                            -- hacky thing as elem_ass cuts off spaces at the 
+                            --start which makes text scrolling look juddgery
+                            buttontext = '​' .. string.sub(buttontext, state.titletick, string.len(buttontext)) 
+                        else
+                            while (charcount > limit) do
+                                buttontext = buttontext:gsub('.[\128-\191]*$', '')
+                                charcount = (buttontext:len() + select(2, buttontext:gsub('[^\128-\193]', ''))*2) / 3
+                            end
+                            buttontext = buttontext .. '...'
+                        end
                     end
-                    buttontext = buttontext .. '...'
+                else
+                    state.titletick = 0 --if title/chapter fits on screen, reset scrolling
+                    state.oldtitle = ' '
                 end
             end
 
@@ -950,7 +979,7 @@ function render_elements(master_ass)
                     local an = 1
                     local ty = element.hitbox.y1
                     local tx = get_virt_mouse_pos()
-                    
+
                     if ty < osc_param.playresy / 2 then
                         ty = element.hitbox.y2
                         an = 7
@@ -965,6 +994,11 @@ function render_elements(master_ass)
                     else
                         tooltiplabel = element.nothingavailable
                     end
+
+                    if tx > osc_param.playresx / 2 then --move tooltip to left side of mouse cursor
+                        tx = tx - string.len(tooltiplabel) * 8
+                    end
+
                     elem_ass:new_event()
                     elem_ass:pos(tx, ty)
                     elem_ass:an(an)
@@ -1209,7 +1243,7 @@ function window_controls()
 
     -- Minimize: ??
     ne = new_element('minimize', 'button')
-    ne.content = '\\n\238\132\146'
+    ne.content = '\238\132\146'
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('cycle', 'window-minimized') end
     lo = add_layout('minimize')
@@ -1311,6 +1345,7 @@ layouts = function ()
     local showskip = user_opts.showskip
     local showloop = user_opts.showloop
     local showinfo = user_opts.showinfo
+    local showontop = user_opts.showontop
 
     if user_opts.compactmode then
         user_opts.showjump = false
@@ -1417,10 +1452,12 @@ layouts = function ()
     lo.style = osc_styles.Ctrl3
     lo.visible = (osc_param.playresx >= 250)    
 
-    lo = add_layout('ontop')
-    lo.geometry = {x = osc_geo.w - 137, y = refY - 40, an = 5, w = 24, h = 24}
-    lo.style = osc_styles.Ctrl3
-    lo.visible = (osc_param.playresx >= 700 - outeroffset)
+    if showontop then
+        lo = add_layout('tog_ontop')
+        lo.geometry = {x = osc_geo.w - 137 + (showloop and 0 or 50), y = refY - 40, an = 5, w = 24, h = 24}
+        lo.style = osc_styles.Ctrl3
+        lo.visible = (osc_param.playresx >= 700 - outeroffset)
+    end
 
     if showloop then
         lo = add_layout('tog_loop')
@@ -1431,11 +1468,7 @@ layouts = function ()
 
     if showinfo then
         lo = add_layout('tog_info')
-        if showloop then
-            lo.geometry = {x = osc_geo.w - 187, y = refY - 40, an = 5, w = 24, h = 24}
-        else
-            lo.geometry = {x = osc_geo.w - 87, y = refY - 40, an = 5, w = 24, h = 24}
-        end
+        lo.geometry = {x = osc_geo.w - 187 + (showloop and 0 or 50) + (showontop and 0 or 50), y = refY - 40, an = 5, w = 24, h = 24}
         lo.style = osc_styles.Ctrl3
         lo.visible = (osc_param.playresx >= 500 - outeroffset)
     end
@@ -1446,7 +1479,7 @@ layouts = function ()
     lo.style = string.format('%s{\\clip(%f,%f,%f,%f)}', osc_styles.Title,
 								geo.x, geo.y - geo.h, geo.x + geo.w , geo.y + 5)
 	lo.alpha[3] = 0
-    lo.button.maxchars = geo.w / 23
+    lo.button.maxchars = geo.w / 13
 end
 
 -- Validate string type user options
@@ -1870,8 +1903,7 @@ function osc_init()
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
 
     --tog_ontop
-    ne = new_element('ontop', 'button')
-    local ontop = mp.get_property('ontop')
+    ne = new_element('tog_ontop', 'button')
     ne.content = function ()
         if mp.get_property('ontop') == 'no' then
             return ('\xEF\x86\x8B')
@@ -1887,8 +1919,24 @@ function osc_init()
         end
         return msg
     end
+    ne.visible = (osc_param.playresx >= 650 - outeroffset)
     ne.eventresponder['mbtn_left_up'] =
-        function () mp.commandv('cycle', 'ontop') end
+        function () 
+            mp.commandv('cycle', 'ontop') 
+            if (state.initialborder == 'yes') then
+                if (mp.get_property('ontop') == 'yes') then
+                    mp.commandv('set', 'border', "no")
+
+                else
+                    mp.commandv('set', 'border', "yes")
+                end
+            end
+        end
+
+    ne.eventresponder['mbtn_right_up'] =
+        function () 
+            mp.commandv('cycle', 'ontop') 
+        end
 
     -- title
     ne = new_element('title', 'button')
@@ -1897,7 +1945,7 @@ function osc_init()
                       mp.command_native({"expand-text", user_opts.title})
         return not (title == '') and title or ' '
     end
-    ne.visible = osc_param.playresy >= 320 and user_opts.showtitle
+    ne.visible = osc_param.playresy >= 200 and user_opts.showtitle
     
     --seekbar
     ne = new_element('seekbar', 'slider')
@@ -2454,7 +2502,7 @@ function process_event(source, what)
 
         if (user_opts.minmousemove == 0) or (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and ((math.abs(mouseX - state.last_mouseX) >= user_opts.minmousemove) or (math.abs(mouseY - state.last_mouseY) >= user_opts.minmousemove))) then
                 if user_opts.bottomhover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
-                    if (mouseY > osc_param.playresy - 200) then -- account for scaling options
+                    if (mouseY > osc_param.playresy - 200) or (mp.get_property('border') == 'no' and mouseX > osc_param.playresx - 150 and mouseY < 40) then -- account for scaling options
                         show_osc()
                     else
                         hide_osc()
