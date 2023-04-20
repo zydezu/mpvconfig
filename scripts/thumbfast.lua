@@ -13,8 +13,8 @@ local options = {
 
     -- Maximum thumbnail size in pixels (scaled down to fit)
     -- Values are scaled when hidpi is enabled
-    max_height = 200,
-    max_width = 200,
+    max_height = 150,
+    max_width = 150,
 
     -- Overlay id
     overlay_id = 42,
@@ -23,7 +23,7 @@ local options = {
     spawn_first = false,
 
     -- Enable on network playback
-    network = false,
+    network = true,
 
     -- Enable on audio playback
     audio = false,

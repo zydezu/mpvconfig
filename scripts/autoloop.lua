@@ -4,7 +4,6 @@
 -- Alternatively use script-opts=autoloop-autoloop_duration=n in mpv.conf (takes priority)
 -- Also disables the save-position-on-quit for this file, if it qualifies for looping.
 
-
 require 'mp.options'
 
 function getOption()
@@ -12,21 +11,6 @@ function getOption()
     local options = {autoloop_duration = 5}
     read_options(options)
     autoloop_duration = options.autoloop_duration
-
-
-    -- Keep old way just for compatibility (remove lines 15-27 soon)
-    if autoloop_duration ~= 5 then
-        return
-    end
-
-    local opt = tonumber(mp.get_opt("autoloop-duration"))
-    if not opt then
-        return
-    end
-    print("Depracted configuration!  Please use script-opts directory to set auto_loop duration")
-    print("Or use 'script-opts=autoloop-autoloop_duration' in mpv.conf")
-    autoloop_duration = opt
-    -- Remove lines 15-27 soon
 end
 
 function set_loop()
@@ -49,7 +33,6 @@ function set_loop()
         mp.set_property_native("loop-file", false)
     end
 end
-
 
 getOption()
 mp.register_event("file-loaded", set_loop)

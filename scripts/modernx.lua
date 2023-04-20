@@ -7,14 +7,14 @@
 
 -- further fork by zydezu
 
+-- clean up code, implement "title bar in pinned mode"
+
 local assdraw = require 'mp.assdraw'
 local msg = require 'mp.msg'
 local opt = require 'mp.options'
 local utils = require 'mp.utils'
 
---
 -- Parameters
---
 -- default user option values
 -- may change them in osc.conf
 local user_opts = {
@@ -1898,7 +1898,7 @@ function osc_init()
     --tog_info
     ne = new_element('tog_info', 'button')
     ne.content = icons.info
-    ne.visible = (osc_param.playresx >= 700 - outeroffset)
+    ne.visible = (osc_param.playresx >= 800 - outeroffset)
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
 
@@ -1919,7 +1919,7 @@ function osc_init()
         end
         return msg
     end
-    ne.visible = (osc_param.playresx >= 650 - outeroffset)
+    ne.visible = (osc_param.playresx >= 700 - outeroffset)
     ne.eventresponder['mbtn_left_up'] =
         function () 
             mp.commandv('cycle', 'ontop') 
@@ -2050,7 +2050,7 @@ function osc_init()
 
     --volumebar
     ne = new_element('volumebar', 'slider')
-    ne.visible = (osc_param.playresx >= 900 - outeroffset) and user_opts.volumecontrol
+    ne.visible = (osc_param.playresx >= 850 - outeroffset) and user_opts.volumecontrol
     ne.enabled = (get_track('audio')>0)
     ne.slider.markerF = function ()
         return {}
