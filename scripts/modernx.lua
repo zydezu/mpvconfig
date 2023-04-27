@@ -255,6 +255,7 @@ local state = {
     chapter_list = {},                      -- sorted by time
     looping = false,
     windowtitle = "",
+    videoDescription = "",                  -- fill if it is a YouTube
 }
 
 local thumbfast = {
@@ -1821,7 +1822,9 @@ function osc_init()
     end
     ne.nothingavailable = texts.nosub
     ne.eventresponder['mbtn_left_up'] = 
-        function () set_track('sub', 1) end
+        function () 
+            set_track('sub', 1) 
+        end
     ne.eventresponder['enter'] = 
         function ()
             set_track('sub', 1)
@@ -3072,7 +3075,6 @@ function osc_disable_key_bindings()
 	for _, name in ipairs(osc_key_bindings) do mp.remove_key_binding(name) end
 	osc_key_bindings = {}
 end
-
 
 
 visibility_mode(user_opts.visibility, true)
