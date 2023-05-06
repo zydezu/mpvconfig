@@ -33,24 +33,22 @@ local user_opts = {
     fadeduration = 150,         -- duration of fade out in ms, 0 = no fade
     minmousemove = 1,           -- minimum amount of pixels the mouse has to
                                 -- move between ticks to make the OSC show up
-    iamaprogrammer = false,     -- use native mpv values and disable OSC
-                                -- internal track list management (and some
-                                -- functions that depend on it)
     font = 'mpv-osd-symbols',	-- default osc font
     seekbarhandlesize = 1.0,	-- size ratio of the slider handle, range 0 ~ 1
     seekrange = true,		    -- show seekrange overlay
     seekrangealpha = 64,      	-- transparency of seekranges
-    seekbarkeyframes = true,    -- use keyframes when dragging the seekbar
-    showjump = false,            -- show "jump forward/backward 5 seconds" buttons 
+    seekbarkeyframes = false,   -- use keyframes when dragging the seekbar
+    showjump = true,           -- show "jump forward/backward 5 seconds" buttons 
                                 -- shift+left-click to step 1 frame and 
                                 -- right-click to jump 1 minute
     showskip = true,            -- show the skip back and forward (chapter) buttons
     showloop = true,            -- show the loop button
     showinfo = true,            -- show the info button
     showontop = true,           -- show window on top button
+    volumecontrol = true,       -- whether to show mute button and volume slider
     compactmode = true,         -- replace the jump buttons with the chapter buttons, clicking the
-                                -- buttons will act as jumping, and shift clicking will as skipping
-                                -- a chapter
+                                -- buttons will act as jumping, and shift clicking will act as
+                                -- skipping a chapter
     bottomhover = true,         -- if the osc should only display when hover occurs at video elements on the bottom of the window
     jumpamount = 5,             -- change the jump amount (in seconds by default)
     jumpiconnumber = true,      -- show different icon when jumpamount is 5, 10, or 30
@@ -68,7 +66,6 @@ local user_opts = {
     visibility = 'auto',        -- only used at init to set visibility_mode(...)
     windowcontrols = 'auto',    -- whether to show window controls
     greenandgrumpy = false,     -- disable santa hat
-    volumecontrol = true,       -- whether to show mute button and volume slider
     keyboardnavigation = false, -- enable directional keyboard navigation
     chapter_fmt = "Chapter: %s",-- chapter print format for seekbar-hover. "no" to disable
     boxalpha = 50,              -- alpha of the background box, 0 (opaque) to 255 (fully transparent)
@@ -461,13 +458,6 @@ end
 -- get value at current mouse position
 function get_slider_value(element)
     return get_slider_value_at(element, get_virt_mouse_pos())
-end
-
-function countone(val)
-    if not (user_opts.iamaprogrammer) then
-        val = val + 1
-    end
-    return val
 end
 
 -- multiplies two alpha values, formular can probably be improved
