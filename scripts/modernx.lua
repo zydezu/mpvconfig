@@ -19,7 +19,7 @@ local user_opts = {
     language = 'en',		    -- en:English, chs:Chinese, pl:Polish, jp:Japanese
     showwindowed = true,        -- show OSC when windowed?
     showfullscreen = true,      -- show OSC when fullscreen?
-    idlescreen = true,          -- draw logo and text when idle
+    welcomescreen = true,       -- show the mpv 'play files' screen upon open
     scalewindowed = 1.0,        -- scaling of the controller when windowed
     scalefullscreen = 1.0,      -- scaling of the controller when fullscreen
     scaleforcedwindow = 1.0,    -- scaling when rendered on a forced window
@@ -41,7 +41,7 @@ local user_opts = {
     seekrange = true,		    -- show seekrange overlay
     seekrangealpha = 64,      	-- transparency of seekranges
     seekbarkeyframes = true,    -- use keyframes when dragging the seekbar
-    showjump = true,            -- show "jump forward/backward 5 seconds" buttons 
+    showjump = false,            -- show "jump forward/backward 5 seconds" buttons 
                                 -- shift+left-click to step 1 frame and 
                                 -- right-click to jump 1 minute
     showskip = true,            -- show the skip back and forward (chapter) buttons
@@ -2594,7 +2594,7 @@ function tick()
 
         local ass = assdraw.ass_new()
         -- mpv logo
-        if user_opts.idlescreen then
+        if user_opts.welcomescreen then
             for i, line in ipairs(logo_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
@@ -2602,14 +2602,14 @@ function tick()
         end
 
         -- Santa hat
-        if is_december and user_opts.idlescreen and not user_opts.greenandgrumpy then
+        if is_december and user_opts.welcomescreen and not user_opts.greenandgrumpy then
             for i, line in ipairs(santa_hat_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
             end
         end
    
-        if user_opts.idlescreen then
+        if user_opts.welcomescreen then
             ass:new_event()
             ass:pos(display_w / 2, icon_y + 65)
             ass:an(8)
