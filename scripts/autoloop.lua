@@ -28,7 +28,7 @@ function set_loop()
     if not was_loop and duration <= autoloop_duration then
         mp.set_property_native("loop-file", true)
         mp.set_property_bool("file-local-options/save-position-on-quit", false)
-        -- Unloops file if was_loop is true, and file does not meet requirements
+    -- Unloops file if was_loop is true, and file does not meet requirements
     elseif was_loop and duration > autoloop_duration then
         mp.set_property_native("loop-file", false)
     end
