@@ -25,10 +25,10 @@ local opts = {
     ytdl_ver = "yt-dlp",
 
     --formatting / cursors
-    selected_and_active     = "▶  - ",
-    selected_and_inactive   = "●  - ",
-    unselected_and_active   = "▷ - ",
-    unselected_and_inactive = "○ - ",
+    selected_and_active     = "▶  ",
+    selected_and_inactive   = "●  ",
+    unselected_and_active   = "▷ ",
+    unselected_and_inactive = "○ ",
 
     --font size scales by window, if false requires larger font and padding sizes
     scale_playlist_by_window = true,
@@ -38,9 +38,7 @@ local opts = {
     --read http://docs.aegisub.org/3.2/ASS_Tags/ for reference of tags
     --undeclared tags will use default osd settings
     --these styles will be used for the whole playlist. More specific styling will need to be hacked in
-    --
-    --(a monospaced font is recommended but not required)
-    style_ass_tags = "{\\fnmonospace\\fs25\\bord1}",
+    style_ass_tags = "{\\sanserif\\fs22\\bord" .. mp.get_property('options/osd-border-size') .. "}",
 
     -- Shift drawing coordinates. Required for mpv.net compatiblity
     shift_x = 0,
@@ -55,7 +53,7 @@ local opts = {
 
     --how many seconds until the quality menu times out
     --setting this to 0 deactivates the timeout
-    menu_timeout = 6,
+    menu_timeout = 3.0,
 
     --use youtube-dl to fetch a list of available formats (overrides quality_strings)
     fetch_formats = true,
@@ -125,7 +123,7 @@ local opts = {
     sort_video = 'height,fps,tbr,size,format_id',
     sort_audio = 'asr,tbr,size,format_id',
 }
-opt.read_options(opts, "quality-menu")
+read_options(opts)
 opts.quality_strings = utils.parse_json(opts.quality_strings)
 
 opts.font_size = tonumber(opts.style_ass_tags:match('\\fs(%d+%.?%d*)')) or mp.get_property_number('osd-font-size') or 25
@@ -377,7 +375,12 @@ end
 local function get_url()
     local path = mp.get_property("path")
     if not path then return nil end
-    path = string.gsub(path, "ytdl://", "") -- Strip possible ytdl:// prefix.
+
+    if string.find(path, "https://") then
+        path = string.gsub(path, "ytdl://", "") -- Strip possible ytdl:// prefix
+    else
+        path = string.gsub(path, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
+    end
 
     local function is_url(s)
         -- adapted the regex from
@@ -590,10 +593,8 @@ local function set_format(url, vfmt, afmt)
     if (url_data[url].vfmt ~= vfmt or url_data[url].afmt ~= afmt) then
         url_data[url].afmt = afmt
         url_data[url].vfmt = vfmt
-        if url == mp.get_property("path") then
-            mp.set_property("ytdl-format", format_string(vfmt, afmt))
-            reload_resume()
-        end
+        mp.set_property("ytdl-format", format_string(vfmt, afmt))
+        reload_resume()
     end
 end
 
@@ -623,8 +624,9 @@ local function show_menu(isvideo)
             else
                 mp.commandv('script-binding', 'uosc/audio')
             end
+        else
+            mp.osd_message("No quality formats available")
         end
-
         return
     end
 
