@@ -38,7 +38,9 @@ function screenshotdone(event)
     mp.commandv("screenshot");
     mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}) .. mp.get_property("screenshot-template"))
     count = count + 1
-    mp.set_property("screenshot-template", currentTime .. "(" .. count .. ")")
+    if options.saveAsTimeStamp then
+        mp.set_property("screenshot-template", currentTime .. "(" .. count .. ")")
+    end
 end
 
 mp.register_event("start-file", init)

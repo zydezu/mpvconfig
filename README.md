@@ -12,6 +12,12 @@ See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for
 
 ### 2023-05-08
 
+- Added an osc message on screenshot
+- Slightly changed file path and duplicate screenshots
+
+
+### 2023-05-08
+
 - Optimised code
 - Increased osd message duration
 - Tweaked the quality menu
