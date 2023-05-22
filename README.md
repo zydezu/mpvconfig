@@ -10,6 +10,16 @@ See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for
 
 # Updates
 
+### 2023-05-21
+
+- Added an option for round icons
+
+
+### 2023-05-14
+
+- Slightly tweaked settings
+
+
 ### 2023-05-08
 
 - Added an osc message on screenshot
