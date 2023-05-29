@@ -8,6 +8,10 @@ Use `git clone https://github.com/zydezu/mpvconfig mpv` to download the reposito
 
 See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for more information.
 
+# Scripts
+
+mpv_cut allows the user to clip a video.
+
 # Updates
 
 ### 2023-05-27
