@@ -28,7 +28,7 @@ function setFileDir()
     updateTime()
 
     count = 0
-    mp.set_property("screenshot-directory", "~~desktop/mpv/"..title.."/")
+    mp.set_property("screenshot-directory", "~~desktop/mpv/screenshots/"..title.."/")
     if options.saveAsTimeStamp then
         mp.set_property("screenshot-template", currentTime)
     end
