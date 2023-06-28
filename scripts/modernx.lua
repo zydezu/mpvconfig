@@ -2052,6 +2052,14 @@ function osc_init()
         end
     end
     ne.visible = (osc_param.playresx >= 900 - outeroffset) and state.isWebVideo
+    ne.tooltip_style = osc_styles.Tooltip
+    ne.tooltipF = function ()
+		local msg = "Download file"
+        if (state.downloading)then
+            msg = "Downloading..."
+        end
+        return msg
+    end
     ne.eventresponder['mbtn_left_up'] =
         function ()
             if state.downloading then
