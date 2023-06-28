@@ -25,8 +25,6 @@ local user_opts = {
     scalefullscreen = 1.0,          -- scaling of the controller when fullscreen
     scaleforcedwindow = 1.0,        -- scaling when rendered on a forced window
     titlefontsize = 28,             -- the font size of the title text
-    titlecutoff = true,             -- if title is long, replace with '...' instead of cutting of screen
-    scrollingtitle = true,          -- instead of cutting off the title, it will scroll
     vidscale = false,               -- scale the controller with the video?
     hidetimeout = 1500,             -- duration in ms until the OSC hides if no
                                     -- mouse movement. enforced non-negative for the
@@ -1928,7 +1926,7 @@ function osc_init()
     ne.eventresponder['mbtn_right_up'] = 
         function () set_track('audio', -1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_left_down'] =
-        function () show_message(get_tracklist('audio')) end
+    function () set_track('audio', 1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('audio')) end
                 
@@ -1967,7 +1965,7 @@ function osc_init()
     ne.eventresponder['mbtn_right_up'] =
         function () set_track('sub', -1) show_message(get_tracklist('sub')) end
     ne.eventresponder['shift+mbtn_left_down'] =
-        function () show_message(get_tracklist('sub')) end
+    function () set_track('sub', 1) show_message(get_tracklist('sub')) end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
     
