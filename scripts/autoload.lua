@@ -30,6 +30,7 @@ o = {
     images = true,
     videos = true,
     audio = true,
+    ownfiletype = true,
     ignore_hidden = true
 }
 (require 'mp.options').read_options(o)
@@ -133,6 +134,10 @@ function find_and_add_entries()
     elseif #dir == 0 then
         msg.verbose("stopping: not a local path")
         return
+    end
+
+    if o.ownfiletype then
+        EXTENSIONS = SetUnion(EXTENSIONS, Set{string.lower(get_extension(filename))})
     end
 
     local pl_count = mp.get_property_number("playlist-count", 1)

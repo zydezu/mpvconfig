@@ -30,7 +30,7 @@ local user_opts = {
                                     -- mouse movement. enforced non-negative for the
                                     -- user, but internally negative is 'always-on'.
     fadeduration = 150,             -- duration of fade out in ms, 0 = no fade
-    minmousemove = 1,               -- minimum amount of pixels the mouse has to
+    minmousemove = 0,               -- minimum amount of pixels the mouse has to
                                     -- move between ticks to make the OSC show up
     font = 'mpv-osd-symbols',	    -- default osc font
     iconstyle = 'round',            -- icon style, 'solid' or 'round'
@@ -1043,11 +1043,6 @@ function checkWebLink()
         path = string.gsub(path, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
     end
 
-    msg.info("Loading description...")
-
-    local command = { "yt-dlp", "--no-download", "--get-description", path}
-    exec_title(command)
-
     local function is_url(s)
         return nil ~=
             string.match(path,
@@ -1060,6 +1055,10 @@ function checkWebLink()
         state.isWebVideo = true
         state.path = path
         msg.info("Is a web video")
+        
+        msg.info("Loading description...")
+        local command = { "yt-dlp", "--no-download", "--get-description", path}
+        exec_title(command)
     end
 end
 
