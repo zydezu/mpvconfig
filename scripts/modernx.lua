@@ -1056,9 +1056,11 @@ function checkWebLink()
         state.path = path
         msg.info("Is a web video")
         
-        msg.info("Loading description...")
-        local command = { "yt-dlp", "--no-download", "--get-description", path}
-        exec_title(command)
+        if user_opts.showdescription then
+            msg.info("Loading description...")
+            local command = { "yt-dlp", "--no-download", "--get-description", path}
+            exec_title(command)
+        end
     end
 end
 
@@ -1087,6 +1089,9 @@ function exec_title(args, result)
         state.descriptionLoaded = true
         msg.info("Loaded video description")
         msg.info(state.videoDescription)
+        if (state.videoDescription == '' or state.videoDescription == '\\N') then
+            state.videoDescription = "No description"
+        end
     end)
 end
 
@@ -1433,7 +1438,7 @@ layouts = function ()
     local outeroffset = (showskip and 0 or 100) + (showjump and 0 or 100)
 
     -- Title
-    geo = {x = 25, y = refY - 122 + (state.isWebVideo and -20 or 0), an = 1, w = osc_geo.w - 50, h = 35}
+    geo = {x = 25, y = refY - 122 + ((state.isWebVideo and user_opts.showdescription) and -20 or 0), an = 1, w = osc_geo.w - 50, h = 35}
     lo = add_layout("title")
     lo.geometry = geo
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.Title,
@@ -1443,7 +1448,7 @@ layouts = function ()
 
     -- Description
     if state.isWebVideo and user_opts.showdescription then
-        geo = {x = 25, y = refY - 122, an = 1, w = osc_geo.w - 50, h = 30}
+        geo = {x = 25, y = refY - 122, an = 1, w = osc_geo.w - 50, h = 19}
         lo = add_layout("description")
         lo.geometry = geo
         lo.style = osc_styles.Description
@@ -1674,21 +1679,14 @@ function osc_init()
         local title = "Loading..."
         if (state.descriptionLoaded) then
             title = state.videoDescription
-            if (state.videoDescription == '\\N') then
-                title = "No description."
-            end
         end
         -- get rid of new lines
         title = string.gsub(title, '\\N', ' ')
-        return not (title == "") and title or "mpv"
+        return not (title == "") and title or "error"
     end
     ne.eventresponder['mbtn_left_up'] =
         function () 
-            if (state.videoDescription == '\\N') then
-                show_message("\\N" .. "No description.")
-            else
-                show_message("\\N" .. state.videoDescription)
-            end
+            show_message("\\N" .. state.videoDescription)
         end
 
     -- playlist buttons
@@ -2070,9 +2068,11 @@ function osc_init()
             local localpath = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
             msg.info(localpath)
             local command = { "yt-dlp", "-S res,ext:mp4:m4a", "--add-metadata", "--write-auto-subs", "--embed-subs", "-P " .. localpath, state.path }
-            state.downloading = true
+
             show_message("\\N{\\an9}Downloading...")
+            state.downloading = true
             local status = exec(command, downloadDone)
+            end
         end
 
     --tog_info
