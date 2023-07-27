@@ -2072,7 +2072,6 @@ function osc_init()
             show_message("\\N{\\an9}Downloading...")
             state.downloading = true
             local status = exec(command, downloadDone)
-            end
         end
 
     --tog_info
