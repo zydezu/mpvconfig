@@ -43,7 +43,7 @@ local user_opts = {
 
     -- title and chapter settings --
     showtitle = true,		        -- show title in OSC
-    showdescription = false,        -- show video description on web videos
+    showdescription = true,         -- show video description on web videos (WARNING: could be potentially laggy as of now)
     showwindowtitle = true,         -- show window title in borderless/fullscreen mode
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
                                     -- differ (like with playing urls, audio or some media)
@@ -286,6 +286,8 @@ local state = {
     isWebVideo = false,
     path = "",                               -- used for yt-dlp downloading
     downloading = false,
+    fileSizeBytes = 0,
+    fileSizeNormalised = "Approximating size...",
 }
 
 local thumbfast = {
@@ -1041,7 +1043,6 @@ function checktitle()
 end
 
 function checkWebLink()
-    if not user_opts.downloadbutton then return end
     local path = mp.get_property("path")
     if not path then return nil end
 
@@ -1063,6 +1064,12 @@ function checkWebLink()
         state.isWebVideo = true
         state.path = path
         msg.info("Is a web video")
+
+        if user_opts.downloadbutton then
+            msg.info("Loading filesize...")
+            local command = { "yt-dlp", "--no-download", "-O '%(filesize,filesize_approx)s'", path}
+            exec_filesize(command)
+        end
         
         if user_opts.showdescription then
             msg.info("Loading description...")
@@ -1100,6 +1107,33 @@ function exec_title(args, result)
         if (state.videoDescription == '' or state.videoDescription == '\\N') then
             state.videoDescription = "No description"
         end
+    end)
+end
+
+function exec_filesize(args, result)
+    local function formatBytes(numberBytes)
+        local suffixes = {"B", "KB", "MB", "GB"}
+        local index = 1
+        while numberBytes >= 1024 and index < #suffixes do
+            numberBytes = numberBytes / 1024
+            index = index + 1
+        end
+        return string.format("%.2f %s", numberBytes, suffixes[index])
+    end
+
+    print("Running: " .. table.concat(args, " "))
+    local ret = mp.command_native_async({
+        name = "subprocess",
+        args = args,
+        capture_stdout = true,
+        capture_stderr = true
+    }, function(res, val, err)
+        local fileSizeString = val.stdout:match("%d+")
+        state.fileSizeBytes = tonumber(fileSizeString)
+        msg.info("File size: " .. state.fileSizeBytes .. " B")
+        state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
+        msg.info("Normalised file size: " .. state.fileSizeNormalised)
+        request_tick()
     end)
 end
 
@@ -1658,8 +1692,8 @@ function osc_init()
 
     if compactmode then nojumpoffset = 100 end
 
-    local outeroffset = (user_opts.showskip and 0 or 100) + (user_opts.showjump and 0 or 100)
-    if compactmode then outeroffset = 100 end
+    local outeroffset = (user_opts.showskip and 0 or 140) + (user_opts.showjump and 0 or 140)
+    if compactmode then outeroffset = 140 end
 
     local ne
 
@@ -2068,10 +2102,10 @@ function osc_init()
             return (icons.download)
         end
     end
-    ne.visible = (osc_param.playresx >= 900 - outeroffset) and state.isWebVideo
+    ne.visible = (osc_param.playresx >= 900 - outeroffset - (user_opts.showloop and 0 or 100) - (user_opts.showontop and 0 or 100) - (user_opts.showinfo and 0 or 100)) and state.isWebVideo
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
-		local msg = "Download file"
+		local msg = state.fileSizeNormalised
         if (state.downloading)then
             msg = "Downloading..."
         end
@@ -2095,7 +2129,7 @@ function osc_init()
     --tog_info
     ne = new_element('tog_info', 'button')
     ne.content = icons.info
-    ne.visible = (osc_param.playresx >= 800 - outeroffset)
+    ne.visible = (osc_param.playresx >= 800 - outeroffset - (user_opts.showloop and 0 or 100) - (user_opts.showontop and 0 or 100))
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
 
@@ -2116,7 +2150,7 @@ function osc_init()
         end
         return msg
     end
-    ne.visible = (osc_param.playresx >= 700 - outeroffset)
+    ne.visible = (osc_param.playresx >= 700 - outeroffset - (user_opts.showloop and 0 or 100))
     ne.eventresponder['mbtn_left_up'] =
         function () 
             mp.commandv('cycle', 'ontop') 
