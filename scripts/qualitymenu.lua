@@ -20,7 +20,7 @@ local opts = {
     select_binding = "ENTER MBTN_LEFT",
     close_menu_binding = "ESC MBTN_RIGHT F Alt+f",
 
-    --youtube-dl version(could be youtube-dl or yt-dlp, or something else)
+    --yt-dlp version(could be youtube-dl or yt-dlp, or something else)
     ytdl_ver = "yt-dlp",
 
     --formatting / cursors
@@ -54,7 +54,7 @@ local opts = {
     --setting this to 0 deactivates the timeout
     menu_timeout = 3.0,
 
-    --use youtube-dl to fetch a list of available formats (overrides quality_strings)
+    --use yt-dlp to fetch a list of available formats (overrides quality_strings)
     fetch_formats = true,
 
     --default menu entries
@@ -435,15 +435,15 @@ end
 local function download_formats(url)
 
     if opts.fetch_on_start and not opts.start_with_menu then
-        msg.info("fetching available formats with youtube-dl...")
+        msg.info("fetching available formats with yt-dlp...")
     else
-        mp.osd_message("fetching available formats with youtube-dl...", 60)
+        mp.osd_message("fetching available formats with yt-dlp...", 60)
     end
 
     if not (ytdl.searched) then
         local ytdl_mcd = mp.find_config_file(opts.ytdl_ver)
         if not (ytdl_mcd == nil) then
-            msg.verbose("found youtube-dl at: " .. ytdl_mcd)
+            msg.verbose("found yt-dlp at: " .. ytdl_mcd)
             ytdl.path = ytdl_mcd
         end
         ytdl.searched = true
@@ -476,7 +476,7 @@ local function download_formats(url)
         end
         local version_ts = os.time { year = year, month = month, day = day }
         if (os.difftime(os.time(), version_ts) > 60 * 60 * 24 * 90) then
-            msg.warn("It appears that your youtube-dl version is severely out of date.")
+            msg.warn("It appears that your yt-dlp version is severely out of date.")
         end
     end
 
@@ -488,7 +488,7 @@ local function download_formats(url)
         command = { ytdl.path, "--no-warnings", "--no-playlist", "-J", "-f", ytdl_format, url }
     end
 
-    msg.verbose("calling youtube-dl with command: " .. table.concat(command, " "))
+    msg.verbose("calling yt-dlp with command: " .. table.concat(command, " "))
 
     local es, json, result, aborted = exec(command)
 
@@ -510,7 +510,7 @@ local function download_formats(url)
         -- trim our stderr to avoid spurious newlines
         local ytdl_err = result.stderr:gsub("^%s*(.-)%s*$", "%1")
         msg.error(ytdl_err)
-        local err = "youtube-dl failed: "
+        local err = "yt-dlp failed: "
         if result.error_string and result.error_string == "init" then
             err = err .. "not found or not enough permissions"
         elseif not result.killed_by_us then
@@ -525,7 +525,7 @@ local function download_formats(url)
         return
     end
 
-    msg.verbose("youtube-dl succeeded!")
+    msg.verbose("yt-dlp succeeded!")
     mp.osd_message("", 0)
 
     local vres, ares, vfmt, afmt = process_json_string(url, json)
