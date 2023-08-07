@@ -1139,6 +1139,7 @@ function exec_filesize(args, result)
         state.fileSizeBytes = tonumber(fileSizeString)
         state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
         if state.fileSizeNormalised ~= "NA" then
+            state.fileSizeNormalised = "Can't download"
             msg.info("Can't download")
             state.downloadedOnce = true
         else
