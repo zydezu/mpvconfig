@@ -1115,6 +1115,10 @@ end
 
 function exec_filesize(args, result)
     local function formatBytes(numberBytes)
+        if type(numberBytes) ~= "number" then
+            return string.format("NA")
+        end
+
         local suffixes = {"B", "KB", "MB", "GB"}
         local index = 1
         while numberBytes >= 1024 and index < #suffixes do
@@ -1134,7 +1138,12 @@ function exec_filesize(args, result)
         local fileSizeString = val.stdout
         state.fileSizeBytes = tonumber(fileSizeString)
         state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
-        msg.info("File size: " .. state.fileSizeBytes .. " B / " .. state.fileSizeNormalised)
+        if state.fileSizeNormalised ~= "NA" then
+            msg.info("Can't download")
+            state.downloadedOnce = true
+        else
+            msg.info("File size: " .. state.fileSizeBytes .. " B / " .. state.fileSizeNormalised)
+        end
         request_tick()
     end)
 end
