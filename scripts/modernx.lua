@@ -1070,9 +1070,9 @@ function checkWebLink()
             msg.info("Loading filesize...")
             local command = { "yt-dlp", "--no-download", "-O%(filesize,filesize_approx)s", path}
             exec_filesize(command)
-            msg.info("Loading yt-dlp file name...")
-            command = { "yt-dlp", user_opts.ytdlpQuality, "--no-download", "-O%(filename)s", path}
-            exec_fileName(command)
+            --msg.info("Loading yt-dlp file name...")
+            --command = { "yt-dlp", user_opts.ytdlpQuality, "--no-download", "-O%(filename)s", path}
+            --exec_fileName(command)
         end
         
         if user_opts.showdescription then
@@ -1115,10 +1115,6 @@ end
 
 function exec_filesize(args, result)
     local function formatBytes(numberBytes)
-        if type(numberBytes) ~= "number" then
-            return string.format("NA")
-        end
-
         local suffixes = {"B", "KB", "MB", "GB"}
         local index = 1
         while numberBytes >= 1024 and index < #suffixes do
@@ -1137,12 +1133,12 @@ function exec_filesize(args, result)
     }, function(res, val, err)
         local fileSizeString = val.stdout
         state.fileSizeBytes = tonumber(fileSizeString)
-        state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
-        if state.fileSizeNormalised ~= "NA" then
+        if type(state.fileSizeBytes) ~= "number" then
             state.fileSizeNormalised = "Can't download"
             msg.info("Can't download")
             state.downloadedOnce = true
         else
+            state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
             msg.info("File size: " .. state.fileSizeBytes .. " B / " .. state.fileSizeNormalised)
         end
         request_tick()
@@ -2245,16 +2241,16 @@ function osc_init()
                     if f~=nil then io.close(f) return true else return false end
                 end
 
-                local fullFilePath = localpath .. "\\" .. state.downloadFileName
-                print(fullFilePath)
-                print(file_exists(fullFilePath))
                 local cmd = "start $path\\"
-                if file_exists(fullFilePath) then
-                    cmd = "explorer /select,$path\\"
-                    cmd = cmd:gsub("$path", localpath..state.downloadFileName)
-                else
-                    cmd = cmd:gsub("$path", localpath)
-                end
+                cmd = cmd:gsub("$path", localpath)
+                -- local fullFilePath = localpath .. "\\" .. state.downloadFileName
+                -- if file_exists(fullFilePath) then
+                --     cmd = "explorer /select,$path\\"
+                --     cmd = cmd:gsub("$path", localpath..state.downloadFileName)
+                --     print(cmd)
+                -- else
+                --     cmd = cmd:gsub("$path", localpath)
+                -- end
                 os.execute(cmd)
                 return
             end
