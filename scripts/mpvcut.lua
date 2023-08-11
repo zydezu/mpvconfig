@@ -15,8 +15,9 @@ local settings = {
     webkey_mark_cut = "shift+c",
 
     audio_target_bitrate = 128, -- kbps
-    video_target_file_size = 24.50,  -- mb, keeping this less than 8 since the process is not perfectly accurate.
-    video_target_scale = "original" -- https://trac.ffmpeg.org/wiki/Scaling everthing after "scale=" will be considered, keep "original" for no changes to the scaling
+    video_target_file_size = 24.50,  -- mb, keeping this less than 25 since the process is not perfectly accurate.
+    video_target_scale = "original", -- https://trac.ffmpeg.org/wiki/Scaling everthing after "scale=" will be considered, keep "original" for no changes to the scaling
+    max_resolution = "1280:-2",
 }
 (require 'mp.options').read_options(settings)
 

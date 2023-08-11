@@ -4,7 +4,7 @@
 -- Also disables the save-position-on-quit for this file, if it qualifies for looping.
 
 function getOption()
-    local options = {autoloop_duration = 5}
+    local options = {autoloop_duration = 10}
     (require 'mp.options').read_options(options)    -- get options
     autoloop_duration = options.autoloop_duration
 end

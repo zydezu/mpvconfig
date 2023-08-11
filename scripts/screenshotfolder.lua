@@ -1,7 +1,3 @@
-local utils = require 'mp.utils'
-local msg = require 'mp.msg'
-local assdraw = require 'mp.assdraw'
-
 local options = {
     saveAsTimeStamp = false;
     fileExtension = "jpg"
@@ -11,7 +7,6 @@ local options = {
 local currentTime = "0000"
 local filename = "default"
 local title = "default"
-local duplicate = false
 local count = 0
 
 function updateTime()
@@ -34,8 +29,12 @@ function setFileDir()
     end
     mp.set_property("screenshot-format", options.fileExtension)
 end
-function screenshotdone(event)
+
+function screenshotdone()
+    local tempSubPosition = mp.get_property('sub-pos')
+    mp.commandv('set', 'sub-pos', 100)
     mp.commandv("screenshot");
+    mp.commandv('set', 'sub-pos', tempSubPosition)
     mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}) .. mp.get_property("screenshot-template"))
     count = count + 1
     if options.saveAsTimeStamp then
