@@ -30,7 +30,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-08-12
 
-- Screenshotting now renders subtitles at the correct position, even when OSD is showing, pressing `P` will now pin the window, changed download filename formatting, removed some unused settings, improved the `dynamictitle` setting as it now incorporates file metadata
+- Screenshotting now renders subtitles at the correct position, even when OSD is showing
+- Pressing `P` will now pin the window
+- Changed download filename formatting
+- Removed some unused settings,
+- Improved the `dynamictitle` setting as it now incorporates file metadata
 
 
 ### 2023-08-08
@@ -45,7 +49,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-08-06
 
-- Fixed long descriptions lagging the player, added a scrolling description box
+- Fixed long descriptions lagging the player
+- Added a scrolling description box
 
 
 ### 2023-08-05
@@ -75,7 +80,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-06-28
 
-- Fixed some bugs, fixed broken icons on some systems
+- Fixed broken icons on some systems
+- Fixed some bugs
 
 
 ### 2023-06-27
