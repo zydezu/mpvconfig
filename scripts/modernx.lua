@@ -2281,25 +2281,12 @@ function osc_init()
     ne.eventresponder['mbtn_left_up'] =
         function ()
             local localpathnormal = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
-            localpath = localpathnormal:gsub("/", "\\")
+            local localpath = localpathnormal:gsub("/", "\\")
             if state.downloadedOnce then
                 show_message("\\N{\\an9}Already downloaded")
 
-                local function file_exists(name)
-                    local f=io.open(name,"r")
-                    if f~=nil then io.close(f) return true else return false end
-                end
-
                 local cmd = "start $path\\"
                 cmd = cmd:gsub("$path", localpath)
-                -- local fullFilePath = localpath .. "\\" .. state.downloadFileName
-                -- if file_exists(fullFilePath) then
-                --     cmd = "explorer /select,$path\\"
-                --     cmd = cmd:gsub("$path", localpath..state.downloadFileName)
-                --     print(cmd)
-                -- else
-                --     cmd = cmd:gsub("$path", localpath)
-                -- end
                 os.execute(cmd)
                 return
             end
