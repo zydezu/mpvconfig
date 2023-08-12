@@ -2280,8 +2280,8 @@ function osc_init()
     end
     ne.eventresponder['mbtn_left_up'] =
         function ()
-            local localpath = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
-            localpath = localpath:gsub("/", "\\")
+            local localpathnormal = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
+            localpath = localpathnormal:gsub("/", "\\")
             if state.downloadedOnce then
                 show_message("\\N{\\an9}Already downloaded")
 
@@ -2315,7 +2315,7 @@ function osc_init()
 
             show_message("\\N{\\an9}Downloading...")
             state.downloading = true
-            local command = { "yt-dlp", user_opts.ytdlpQuality, "--add-metadata", "--write-auto-subs", "--embed-subs", "-o%(title)s", "-P " .. localpath, state.path }
+            local command = { "yt-dlp", user_opts.ytdlpQuality, "--add-metadata", "--write-auto-subs", "--embed-subs", "-o%(title)s", "-P " .. localpathnormal, state.path }
             local status = exec(command, downloadDone)
         end
 
