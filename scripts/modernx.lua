@@ -267,6 +267,8 @@ local state = {
     hide_timer = nil,
     cache_state = nil,
     idle = false,
+    playingWhilstSeeking = false,
+    playingWhilstSeekingWaitingForEnd = false,
     enabled = true,
     input_enabled = true,
     showhide_enabled = false,
@@ -1029,6 +1031,7 @@ end
 -- downloading --
 
 function startupevents()
+    show_osc() -- when changing playlist items with keyboard buttons, show OSC briefly
     checktitle()
     checkWebLink()
 end
@@ -1070,9 +1073,44 @@ function checktitle()
     if (artist ~= nil) then
         if (state.localDescription == nil) then
             state.localDescription = artist
+            state.localDescriptionClick = artist
+            state.localDescriptionIsClickable = true
         else
             state.localDescriptionClick = state.localDescription .. "\\N_____\\N\\N\\NBy: " .. artist
-            state.localDescription = state.localDescription .. " | By: " .. artist
+            state.localDescription = state.localDescription:sub(1, 300) .. "... | By: " .. artist
+        end
+    end
+    if (album ~= nil) then
+        if (state.localDescription == nil) then -- only metadata
+            state.localDescription = album
+        else -- append to other metadata
+            if (state.localDescriptionClick ~= nil) then 
+                state.localDescriptionClick = state.localDescriptionClick .. " - " .. album
+            else
+                state.localDescriptionClick = album
+                state.localDescriptionIsClickable = true
+            end
+            state.localDescription = state.localDescription .. " - " .. album
+        end
+    end
+    if (date ~= nil) then
+        local datenormal = ""
+        if (#date > 4) then -- YYYYMMDD
+            datenormal = date:sub(1,4) .. "-" .. date:sub(5,6) .. "-" .. date:sub(7,8)
+            print(datenormal)
+        else -- YYYY
+            datenormal = date
+        end
+        if (state.localDescription == nil) then -- only metadata
+            state.localDescription = datenormal
+        else -- append to other metadata
+            if (state.localDescriptionClick ~= nil) then
+                state.localDescriptionClick = state.localDescriptionClick .. " (" .. datenormal .. ")"
+            else
+                state.localDescriptionClick = datenormal
+                state.localDescriptionIsClickable = true
+            end
+            state.localDescription = state.localDescription .. " (" .. datenormal .. ")"
         end
     end
 
@@ -1864,7 +1902,7 @@ function osc_init()
         if state.isWebVideo then
             local title = "Loading description..."
             if (state.descriptionLoaded) then
-                title = state.videoDescription:sub(1, 400)
+                title = state.videoDescription:sub(1, 300)
             end
             -- get rid of new lines
             title = string.gsub(title, '\\N', ' ')
@@ -1951,7 +1989,7 @@ function osc_init()
     ne.content = function ()
         if mp.get_property("eof-reached") == "yes" then
             return (icons.replay)
-        elseif mp.get_property("pause") == "yes" then
+        elseif mp.get_property("pause") == "yes" and not state.playingWhilstSeeking then
             return (icons.play)
         else
             return (icons.pause)
@@ -2409,6 +2447,10 @@ function osc_init()
             -- mouse move events may pile up during seeking and may still get
             -- sent when the user is done seeking, so we need to throw away
             -- identical seeks
+            if mp.get_property("pause") == "no" then
+                state.playingWhilstSeeking = true
+                mp.commandv("cycle", "pause")
+            end
             local seekto = get_slider_value(element)
             if (element.state.lastseek == nil) or
                 (not (element.state.lastseek == seekto)) then
@@ -2427,7 +2469,9 @@ function osc_init()
 			mp.commandv('seek', get_slider_value(element), 'absolute-percent', 'exact')
 		end
 	ne.eventresponder['mbtn_left_up'] =
-		function (element) element.state.mbtnleft = false end
+		function (element)
+            element.state.mbtnleft = false
+        end
     ne.eventresponder['mbtn_right_down'] = --seeks to chapter start
         function (element)
             if (mp.get_property_native("chapter-list/count") > 0) then
@@ -2451,7 +2495,15 @@ function osc_init()
             end
 		end
     ne.eventresponder['reset'] =
-        function (element) element.state.lastseek = nil end
+        function (element)
+            element.state.lastseek = nil
+            if (state.playingWhilstSeeking) then
+                if mp.get_property("eof-reached") == "no" then
+                    mp.commandv("cycle", "pause")
+                end
+                state.playingWhilstSeeking = false
+            end
+        end
 
     --volumebar
     ne = new_element('volumebar', 'slider')
@@ -2546,10 +2598,6 @@ function osc_init()
     prepare_elements()
 end
 
-function shutdown()
-    
-end
-
 --
 -- Other important stuff
 --
@@ -2584,6 +2632,9 @@ function hide_osc()
     else
         osc_visible(false)
     end
+    if thumbfast.available then
+        mp.commandv("script-message-to", "thumbfast", "clear")
+    end
 end
 
 function osc_visible(visible)
@@ -2606,6 +2657,9 @@ function adjustSubtitles(visible)
 end
 
 function pause_state(name, enabled)
+    -- fix OSC instantly hiding after scrubbing (initiates a 'fake' pause to stop issues when scrubbing to the end of files)
+    if (state.playingWhilstSeeking) then state.playingWhilstSeekingWaitingForEnd = true return end
+    if (state.playingWhilstSeekingWaitingForEnd) then state.playingWhilstSeekingWaitingForEnd = false return end
     state.paused = enabled
     if user_opts.showonpause then
 		if enabled then
@@ -2658,7 +2712,6 @@ end
 
 -- Like request_init(), but also request an immediate update
 function request_init_resize()
-    adjustSubtitles()
     request_init()
     -- ensure immediate update
     state.tick_timer:kill()
@@ -3058,6 +3111,13 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     request_init()
 end)
 
+-- extra key bindings
+mp.add_key_binding("x", "cycleaudiotracks", function()
+    set_track('audio', 1) show_message(get_tracklist('audio'))
+end);
+mp.add_key_binding("c", "cyclecaptions", function()
+    set_track('sub', 1) show_message(get_tracklist('sub'))
+end);
 mp.add_key_binding("TAB", 'get_chapterlist', function() show_message(get_chapterlist()) end)
 mp.add_key_binding("p", "pinwindow", function()
     mp.commandv('cycle', 'ontop')
@@ -3096,7 +3156,6 @@ mp.observe_property('loop-file', 'bool',
 mp.observe_property('border', 'bool',
     function(name, val)
         state.border = val
-        request_init_resize()
     end
 )
 mp.observe_property('window-maximized', 'bool',

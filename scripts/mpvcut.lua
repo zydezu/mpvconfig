@@ -5,14 +5,14 @@ utils = require("mp.utils")
 
 -- #region globals
 local settings = {
-    key_mark_cut = "c",
+    key_mark_cut = "z",
     video_extension = "mp4",
     custom_output_path = "",
     
     -- web
     ffmpeg_custom_parameters = "",  -- if you want faster cutting, leave this blank
 
-    webkey_mark_cut = "shift+c",
+    webkey_mark_cut = "shift+z",
 
     audio_target_bitrate = 128, -- kbps
     video_target_file_size = 24.50,  -- mb, keeping this less than 25 since the process is not perfectly accurate.

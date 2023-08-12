@@ -17,7 +17,7 @@ Please note that many of these scripts have been slightly modified from their in
 | [autoload](https://github.com/mpv-player/mpv/blob/master/TOOLS/lua/autoload.lua) loads files in the directory to play through | None |
 | [autoloop](https://github.com/zc62/mpv-scripts/blob/master/autoloop.lua) loops files by default that are smaller than a set duration | None |
 | [modernx](https://github.com/zydezu/modernx) an modern OSC for mpv with many additional features | [Check repository](https://github.com/zydezu/modernx) |
-| [mpv_cut](https://github.com/b1scoito/mpv-cut) allows clipping a segment of a video | **c** - Mark start segment <br> **c (again)** - Clip the video <br> **Shift+c (instead of c again)** - Re-encode the clip with a small file size |
+| [mpv_cut](https://github.com/b1scoito/mpv-cut) allows clipping a segment of a video | **z** - Mark start segment <br> **z (again)** - Clip the video <br> **Shift+z (instead of z again)** - Re-encode the clip with a small file size |
 | [qualitymenu](https://github.com/christoph-heinrich/mpv-quality-menu) allows you to select the quality of a YouTube video playing in mpv. | **f** - Open video quality menu <br> **Alt+f** - Open audio quality menu <br> **Arrows and Enter** - Navigate options and confirm a selection <br> **Esc** - Exit menu |
 | [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) saves screenshots to a designated `~desktop/mpv/.../` folder | **s** - Take a screenshot |
 | [SmartCopyPaste](https://github.com/Eisa01/mpv-scripts#smartcopypaste) allows various files and links to be pasted into mpv | **Ctrl+v** - Paste |
@@ -28,6 +28,16 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-08-12 (Part 2)
+
+- Fixed download location on unix systems
+- Added more keybinds (X and C for cycling audio and caption tracks)
+- Fixed long metadata lag
+- Fixed subtitles sometimes showing in the wrong position when toggling window pinning or fullscreen
+- OSC shows up when using keybinds (Shift + < or Shift + >) to change playlist items
+- Fixed a crash when dragging the seekbar quickly to the end, and the next video immidiately playing
+
+
 ### 2023-08-12
 
 - Screenshotting now renders subtitles at the correct position, even when OSD is showing
@@ -35,7 +45,6 @@ Please note that many of these scripts have been slightly modified from their in
 - Changed download filename formatting
 - Removed some unused settings,
 - Improved the `dynamictitle` setting as it now incorporates file metadata
-
 
 ### 2023-08-08
 
