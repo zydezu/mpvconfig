@@ -40,6 +40,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-08-12
 
+- Added an option to change the font size of the time text
 - Screenshotting now renders subtitles at the correct position, even when OSD is showing
 - Pressing `P` will now pin the window
 - Changed download filename formatting
