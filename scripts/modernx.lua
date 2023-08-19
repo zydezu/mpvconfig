@@ -1032,7 +1032,6 @@ end
 -- downloading --
 
 function startupevents()
-    show_osc() -- when changing playlist items with keyboard buttons, show OSC briefly
     checktitle()
     checkWebLink()
 end
@@ -1208,8 +1207,8 @@ function exec_filesize(args, result)
         local fileSizeString = val.stdout
         state.fileSizeBytes = tonumber(fileSizeString)
         if type(state.fileSizeBytes) ~= "number" then
-            state.fileSizeNormalised = "Can't download"
-            state.videoCantBeDownloaded = true
+            state.fileSizeNormalised = "Unknown..."
+            -- state.videoCantBeDownloaded = true
         else
             state.fileSizeNormalised = "Size: ~" .. formatBytes(state.fileSizeBytes)
             msg.info("WEB: File size: " .. state.fileSizeBytes .. " B / " .. state.fileSizeNormalised)
