@@ -2342,7 +2342,7 @@ function osc_init()
 
                 show_message("\\N{\\an9}Downloading...")
                 state.downloading = true
-                local command = { "yt-dlp", user_opts.ytdlpQuality, "--add-metadata", "--write-auto-subs", "--embed-subs", "-o%(title)s", "-P " .. localpathnormal, state.path }
+                local command = { "yt-dlp", user_opts.ytdlpQuality, "--add-metadata", "--write-sub", "-o%(title)s", "-P " .. localpathnormal, state.path }
                 local status = exec(command, downloadDone)
             else
                 show_message("\\N{\\an9}Can't be downloaded")
@@ -3108,7 +3108,10 @@ validate_user_opts()
 mp.register_event('start-file', request_init)
 mp.register_event("file-loaded", startupevents)
 mp.observe_property('track-list', nil, request_init)
-mp.observe_property('playlist', nil, request_init)
+mp.observe_property('playlist', nil, function()
+    request_init()
+    state.downloadedOnce = false;
+end)
 mp.observe_property("chapter-list", "native", function(_, list) -- chapter list changes
     list = list or {}  -- safety, shouldn't return nil
     table.sort(list, function(a, b) return a.time < b.time end)

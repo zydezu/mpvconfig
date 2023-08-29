@@ -28,6 +28,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-08-29
+
+- Fixed a small download bug
+
 ### 2023-08-19
 
 - Fixed UI not scaling properly on mpv.net
