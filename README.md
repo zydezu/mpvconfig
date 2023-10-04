@@ -30,6 +30,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-10-04
+
+- Added shadertoggle.lua
+
 ### 2023-08-29
 
 - Fixed a small download bug
