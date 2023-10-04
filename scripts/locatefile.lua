@@ -103,6 +103,11 @@ function locate_current_file()
     end
 
   local path = mp.get_property("path")
+  if string.find(path, "https://") then
+    path = string.gsub(path, "ytdl://", "") -- Strip possible ytdl:// prefix
+  else
+    path = string.gsub(path, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
+  end
   print(path)
   if path ~= nil then
     local cmd = ""

@@ -24,7 +24,9 @@ Please note that many of these scripts have been slightly modified from their in
 | [sponsorblock](https://github.com/po5/mpv_sponsorblock) skips sponsored segments of YouTube videos | **g** - Set segment boundaires <br> **Shift+g** - Submit a segment <br> **h** - Upvote last segment <br> **Shift+h** - Downvote last segment                      |
 | [thumbfast](https://github.com/po5/thumbfast) show thumbnails on the scrubbing bar | None |
 | [locatefile.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/locatefile.lua) opens the file in an explorer or a web browser | **o** - Open file |
-| [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume <br> **Ctrl+s** - Toggle shaders  |
+| [shadertoggle.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/shadertoggle.lua) loads shaders found in a folder of choice and toggles through them | **Ctrl+s** - Switch shaders |
+| [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
+
 
 # Updates
 
