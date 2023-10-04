@@ -1,23 +1,23 @@
 local utils = require 'mp.utils'
-
-local o = {
-	shaderdirectory = "~~/shaders/"
+local o = { -- set list of shaders in shadertoggle.conf
+	shaderdirectory = "~~/shaders/",
+    shaders = ""
 }
 (require 'mp.options').read_options(o)
 
 function init() -- store the name of all shaders in a table
     path = '"' .. mp.command_native({"expand-path", o.shaderdirectory}) .. '"'
     i = 0
-    for dir in io.popen('dir '.. path ..' /b'):lines() do
+    for w in o.shaders:gmatch("([^;]+),?") do 
         i = i + 1
-        shaders[i] = dir
+        shaders[i] = w
     end
     maxindex = i
 end
 
 function toggleshader()
     if maxindex == 0 then
-        mp.osd_message("There are no shaders")
+        mp.osd_message("There are no shaders loaded")
     else
         shaderindex = shaderindex + 1
         if shaderindex > maxindex then
