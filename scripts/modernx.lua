@@ -861,7 +861,8 @@ function render_elements(master_ass)
                         local r_w, r_h = get_virt_scale_factor()
 
                         if osd_w then
-                            local hover_sec = mp.get_property_number("duration") * sliderpos / 100
+                            local hover_sec = 0
+                            if (mp.get_property_number("duration")) then hover_sec = mp.get_property_number("duration") * sliderpos / 100 end
                             local thumbPad = user_opts.thumbnailborder
                             local thumbMarginX = 18 / r_w
                             local thumbMarginY = user_opts.timefontsize + thumbPad + 2 / r_h

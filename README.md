@@ -33,6 +33,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2023-10-04
 
 - Added shadertoggle.lua
+- Fixed a bug that would crash the ModernX OSD
 
 ### 2023-08-29
 
