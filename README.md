@@ -30,6 +30,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-10-10
+
+- Fixed virtual title bar when toggling border/pinning
+
 ### 2023-10-04
 
 - Added shadertoggle.lua
