@@ -4,9 +4,9 @@
 
 -- fork by cyl0 - https://github.com/cyl0/ModernX/
 
--- added some changes from dexeonify - https://github.com/dexeonify/mpv-config#difference-between-upstream-modernx
-
 -- further fork by zydezu
+
+-- added some changes from dexeonify - https://github.com/dexeonify/mpv-config#difference-between-upstream-modernx
 
 local assdraw = require 'mp.assdraw'
 local msg = require 'mp.msg'
