@@ -1,7 +1,9 @@
 # mpvconfig
 My personal [mpv](https://mpv.io/) config.
 
-See my [modernX](https://github.com/zydezu/modernX) fork for more information about that script.
+
+> [!NOTE]
+> Releases of the [modernX](https://github.com/zydezu/modernX) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
 
 # Usage
 Use `git clone https://github.com/zydezu/mpvconfig mpv`, and place it in the relevant directory. This will be typically located at `\%APPDATA%\mpv\` on Windows and `~/.config/mpv/` on Linux/MacOS. 
