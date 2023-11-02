@@ -30,6 +30,14 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-11-02
+
+- Added the keybind CTRL/Shift + left/right to jump to the previous/next chapters
+- Changed compact mode key bindings, right clicking now goes to the previous/next chapter, shift clicking now jumps backward/forwards a minute
+- Made OSC timing out smarter
+- Fixed the issue: [Mute button not working as expected #5](https://github.com/zydezu/mpvconfig/issues/5)
+- Fixed a crash when pressing Shift on the playlist buttons
+
 ### 2023-10-10
 
 - Fixed virtual title bar when toggling border/pinning
@@ -37,7 +45,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2023-10-04
 
 - Added shadertoggle.lua
-- Fixed a bug that would crash the ModernX OSD
+- Fixed a bug that would crash the ModernX OSC
 
 ### 2023-08-29
 
@@ -61,7 +69,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2023-08-12
 
 - Added an option to change the font size of the time text
-- Screenshotting now renders subtitles at the correct position, even when OSD is showing
+- Screenshotting now renders subtitles at the correct position, even when OSC is showing
 - Pressing `P` will now pin the window
 - Changed download filename formatting
 - Removed some unused settings,
@@ -158,7 +166,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2023-05-08
 
 - Optimised code
-- Increased osd message duration
+- Increased OSC message duration
 - Tweaked the quality menu
 - Quality menu now works with ytdl:// links
 - Added a keybind to toggle shaders (temporary)
@@ -206,7 +214,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Added ability to hide pin window button
 - Changed some phrasing
-- If titlebar isn't showing, OSD will now show when the mouse is at the window buttons
+- If titlebar isn't showing, OSC will now show when the mouse is at the window buttons
 - Tooltips now always stay on the screen
 - Pinning the window will remove the border, unpinning will show it
 - Right clicking the ontop button will not change border status
