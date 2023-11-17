@@ -23,7 +23,7 @@ function setFileDir()
     updateTime()
 
     count = 0
-    mp.set_property("screenshot-directory", "~~desktop/mpv/screenshots/"..title.."/")
+    mp.set_property("screenshot-dir", "~~desktop/mpv/screenshots/"..title.."/")
     if options.saveAsTimeStamp then
         mp.set_property("screenshot-template", currentTime)
     end
@@ -35,7 +35,7 @@ function screenshotdone()
     mp.commandv('set', 'sub-pos', 100)
     mp.commandv("screenshot");
     mp.commandv('set', 'sub-pos', tempSubPosition)
-    mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}) .. mp.get_property("screenshot-template"))
+    mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", mp.get_property("screenshot-dir")}) .. mp.get_property("screenshot-template"))
     count = count + 1
     if options.saveAsTimeStamp then
         mp.set_property("screenshot-template", currentTime .. "(" .. count .. ")")
