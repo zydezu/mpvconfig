@@ -1,8 +1,6 @@
 -- Runs write-watch-later-config periodically
-
-local options = require 'mp.options'
 local o = { save_interval = 60 }
-options.read_options(o)
+(require 'mp.options').read_options(o)
 
 local function save()
 	if mp.get_property_bool("save-position-on-quit") then

@@ -32,6 +32,13 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-11-22
+
+- Tweaked some config scripts
+- Videos that [auto loop](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua) ignore `save-position-on-quit`, so always play from the start, this option can be configured in `script-opts/autoloop.conf` as `playfromstart=false` (to disable)
+- Replaced mpvcut.lua with a heavily modified one from [https://github.com/familyfriendlymikey/mpv-cut](https://github.com/familyfriendlymikey/mpv-cut), that should provide faster compression
+- More consistant code
+
 ### 2023-11-17
 
 - Added a dislike counter (under the description) for supported YouTube videos

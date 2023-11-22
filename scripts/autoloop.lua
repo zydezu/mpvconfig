@@ -3,11 +3,11 @@
 -- Alternatively use script-opts=autoloop-autoloop_duration=n in mpv.conf (takes priority)
 -- Also disables the save-position-on-quit for this file, if it qualifies for looping.
 
-function getOption()
-    local options = {autoloop_duration = 10}
-    (require 'mp.options').read_options(options)    -- get options
-    autoloop_duration = options.autoloop_duration
-end
+local o = {
+    autoloop_duration = 10,
+    playfromstart = true -- doesn't 'resume-playback' looping videos
+}
+(require 'mp.options').read_options(o)
 
 function set_loop()
     local duration = mp.get_property_native("duration")
@@ -21,14 +21,17 @@ function set_loop()
     end
 
     -- Loops file if was_loop is false, and file meets requirements
-    if not was_loop and duration <= autoloop_duration then
+    if not was_loop and duration <= o.autoloop_duration then
+        print("Autolooped file")
         mp.set_property_native("loop-file", true)
         mp.set_property_bool("file-local-options/save-position-on-quit", false)
+        if o.playfromstart and mp.get_property_number("playback-time") > 0 then -- always play videos that auto loop from the start
+            mp.commandv('seek', 0, 'absolute-percent', 'exact')
+        end
     -- Unloops file if was_loop is true, and file does not meet requirements
-    elseif was_loop and duration > autoloop_duration then
+    elseif was_loop and duration > o.autoloop_duration then
         mp.set_property_native("loop-file", false)
     end
 end
 
-getOption()
 mp.register_event("file-loaded", set_loop)
