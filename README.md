@@ -39,6 +39,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Additionally date formatting is now an option `user_opts.dateformat`
 !["An image of KOMM SUSSER TODs date"](https://cdn.discordapp.com/attachments/1160645107637309441/1174867243050467348/2023-11-17_00-21-51_818_mpv.png)
 ![An image of KOMM SUSSER TODs, with date, like count and dislike count](https://cdn.discordapp.com/attachments/1160645107637309441/1174867243344076850/2023-11-17_00-21-38_898_mpv.png)
+
 ### 2023-11-02
 
 - Added the keybind CTRL/Shift + left/right to jump to the previous/next chapters
