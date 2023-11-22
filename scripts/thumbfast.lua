@@ -1,9 +1,3 @@
--- thumbfast.lua
---
--- High-performance on-the-fly thumbnailer
---
--- Built for easy integration in third-party UIs.
-
 local options = {
     -- Socket path (leave empty for auto)
     socket = "",
@@ -13,8 +7,8 @@ local options = {
 
     -- Maximum thumbnail size in pixels (scaled down to fit)
     -- Values are scaled when hidpi is enabled
-    max_height = 150,
-    max_width = 150,
+    max_height = 200,
+    max_width = 200,
 
     -- Apply tone-mapping, no to disable
     tone_mapping = "auto",
@@ -29,7 +23,7 @@ local options = {
     quit_after_inactivity = 0,
 
     -- Enable on network playback
-    network = false,
+    network = true,
 
     -- Enable on audio playback
     audio = false,
@@ -44,8 +38,9 @@ local options = {
     mpv_path = "mpv"
 }
 
-(require 'mp.options').read_options(options)
 mp.utils = require "mp.utils"
+mp.options = require "mp.options"
+mp.options.read_options(options, "thumbfast")
 
 local properties = {}
 local pre_0_30_0 = mp.command_native_async == nil
@@ -121,7 +116,7 @@ if options.direct_io then
     end
 end
 
-local file = nil
+local file
 local file_bytes = 0
 local spawned = false
 local disabled = false
@@ -132,21 +127,16 @@ local script_written = false
 
 local dirty = false
 
-local x = nil
-local y = nil
-local last_x = x
-local last_y = y
+local x, y
+local last_x, last_y
 
-local last_seek_time = nil
+local last_seek_time
 
-local effective_w = options.max_width
-local effective_h = options.max_height
-local real_w = nil
-local real_h = nil
-local last_real_w = nil
-local last_real_h = nil
+local effective_w, effective_h = options.max_width, options.max_height
+local real_w, real_h
+local last_real_w, last_real_h
 
-local script_name = nil
+local script_name
 
 local show_thumbnail = false
 
@@ -155,7 +145,7 @@ local filters_runtime = {["hflip"]=true, ["vflip"]=true}
 local filters_all = {["hflip"]=true, ["vflip"]=true, ["lavfi-crop"]=true, ["crop"]=true}
 
 local tone_mappings = {["none"]=true, ["clip"]=true, ["linear"]=true, ["gamma"]=true, ["reinhard"]=true, ["hable"]=true, ["mobius"]=true}
-local last_tone_mapping = nil
+local last_tone_mapping
 
 local last_vf_reset = ""
 local last_vf_runtime = ""
@@ -165,10 +155,12 @@ local last_rotate = 0
 local par = ""
 local last_par = ""
 
+local last_crop = nil
+
 local last_has_vid = 0
 local has_vid = 0
 
-local file_timer = nil
+local file_timer
 local file_check_period = 1/60
 
 local allow_fast_seek = true
@@ -304,6 +296,15 @@ local function vf_string(filters, full)
     local vf = ""
     local vf_table = properties["vf"]
 
+    if (properties["video-crop"] or "") ~= "" then
+        vf = "lavfi-crop="..string.gsub(properties["video-crop"], "(%d*)x?(%d*)%+(%d+)%+(%d+)", "w=%1:h=%2:x=%3:y=%4")..","
+        local width = properties["video-out-params"] and properties["video-out-params"]["dw"]
+        local height = properties["video-out-params"] and properties["video-out-params"]["dh"]
+        if width and height then
+            vf = string.gsub(vf, "w=:h=:", "w="..width..":h="..height..":")
+        end
+    end
+
     if vf_table and #vf_table > 0 then
         for i = #vf_table, 1, -1 do
             if filters[vf_table[i].name] then
@@ -370,8 +371,8 @@ local info_timer = nil
 
 local function info(w, h)
     local rotate = properties["video-params"] and properties["video-params"]["rotate"]
-    local image = properties["current-tracks"] and properties["current-tracks"]["video"] and properties["current-tracks"]["video"]["image"]
-    local albumart = image and properties["current-tracks"]["video"]["albumart"]
+    local image = properties["current-tracks/video"] and properties["current-tracks/video"]["image"]
+    local albumart = image and properties["current-tracks/video"]["albumart"]
 
     disabled = (w or 0) == 0 or (h or 0) == 0 or
         has_vid == 0 or
@@ -732,8 +733,7 @@ local function thumb(time, r_x, r_y, script)
     script_name = script
     if last_x ~= x or last_y ~= y or not show_thumbnail then
         show_thumbnail = true
-        last_x = x
-        last_y = y
+        last_x, last_y = x, y
         draw(real_w, real_h, script)
     end
 
@@ -767,7 +767,7 @@ local function watch_changes()
         old_h ~= effective_h or
         last_vf_reset ~= vf_reset or
         (last_rotate % 180) ~= (rotate % 180) or
-        par ~= last_par
+        par ~= last_par or last_crop ~= properties["video-crop"]
 
     if resized then
         last_rotate = rotate
@@ -802,6 +802,7 @@ local function watch_changes()
     last_vf_reset = vf_reset
     last_rotate = rotate
     last_par = par
+    last_crop = properties["video-crop"]
     last_has_vid = has_vid
 
     if not spawned and not disabled and options.spawn_first and resized then
@@ -826,8 +827,7 @@ local function update_tracklist(name, value)
     -- current-tracks shim
     for _, track in ipairs(value) do
         if track.type == "video" and track.selected then
-            properties["current-tracks/video/image"] = track.image
-            properties["current-tracks/video/albumart"] = track.albumart
+            properties["current-tracks/video"] = track
             return
         end
     end
@@ -887,7 +887,7 @@ local function on_duration(prop, val)
     allow_fast_seek = (val or 30) >= 30
 end
 
-mp.observe_property("current-tracks", "native", function(name, value)
+mp.observe_property("current-tracks/video", "native", function(name, value)
     if pre_0_33_0 then
         mp.unobserve_property(update_tracklist)
         pre_0_33_0 = false
@@ -906,6 +906,7 @@ mp.observe_property("stream-open-filename", "native", update_property)
 mp.observe_property("macos-app-activation-policy", "native", update_property)
 mp.observe_property("current-vo", "native", update_property)
 mp.observe_property("video-rotate", "native", update_property)
+mp.observe_property("video-crop", "native", update_property)
 mp.observe_property("path", "native", update_property)
 mp.observe_property("vid", "native", sync_changes)
 mp.observe_property("edition", "native", sync_changes)

@@ -48,7 +48,7 @@ local opts = {
     text_padding_y = 10,
 
     --Screen dim when menu is open
-    curtain_opacity = 0.7,
+    curtain_opacity = 0.3,
 
     --how many seconds until the quality menu times out
     --setting this to 0 deactivates the timeout

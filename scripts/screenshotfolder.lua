@@ -1,5 +1,5 @@
 local options = {
-    saveAsTimeStamp = false;
+    saveAsTimeStamp = true;
     fileExtension = "jpg"
 }
 (require 'mp.options').read_options(options)

@@ -63,4 +63,3 @@ mp.observe_property("pause", "bool", pause_timer_while_paused)
 
 mp.observe_property("pause", "bool", save_if_pause)
 mp.register_event("file-loaded", delete_watch_later)
-

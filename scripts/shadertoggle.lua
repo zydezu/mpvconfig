@@ -1,7 +1,7 @@
 local utils = require 'mp.utils'
-local o = { -- set list of shaders in shadertoggle.conf
-	shaderdirectory = "~~/shaders/",
-    shaders = ""
+local o = { 
+	shaderdirectory = "~~/shaders/", 
+    shaders = "" -- set list of shaders in shadertoggle.conf
 }
 (require 'mp.options').read_options(o)
 
