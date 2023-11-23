@@ -105,7 +105,6 @@ function getBitrate()
 		else
 			averageBitrate = ((avgCount-1) * averageBitrate + video_bitrate) / avgCount
 		end
-		msg.info("Average bitrate KB: " .. averageBitrate / 1000)
 	end
 end
 

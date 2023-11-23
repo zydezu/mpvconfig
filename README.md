@@ -32,6 +32,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-11-23
+
+- Fixed [error loading modernx.lua with mpv v0.37.0-7](https://github.com/zydezu/mpvconfig/issues/6)
+- Made `user_opts.title` function properly
+- Tweaked some messages
+
 ### 2023-11-22
 
 - Tweaked some config scripts
