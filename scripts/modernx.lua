@@ -3131,16 +3131,16 @@ mp.observe_property('seeking', nil, function()
 end)
 
 -- chapter scrubbing
-mp.add_key_binding("CTRL+LEFT", "prevchapter", function()
+mp.add_key_binding("CTRL+LEFT", "prevfile", function()
+    mp.commandv('playlist-prev', 'weak')
+end);
+mp.add_key_binding("CTRL+RIGHT", "nextfile", function()
+    mp.commandv('playlist-next', 'weak')
+end);
+mp.add_key_binding("SHIFT+LEFT", "prevchapter", function()
     changeChapter(-1)
 end);
-mp.add_key_binding("CTRL+RIGHT", "nextchapter", function()
-    changeChapter(1)
-end);
-mp.add_key_binding("SHIFT+LEFT", "prevchapter2", function()
-    changeChapter(-1)
-end);
-mp.add_key_binding("SHIFT+RIGHT", "nextchapter2", function()
+mp.add_key_binding("SHIFT+RIGHT", "nextchapter", function()
     changeChapter(1)
 end);
 
