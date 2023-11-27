@@ -78,7 +78,7 @@ ACTIONS.COPY = function(d)
 		"-map", "0",
 		"-dn",
 		"-avoid_negative_ts", "make_zero",
-		utils.join_path(d.indir, "COPY" .. d.infile_noext .. "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. d.ext)
+		utils.join_path(d.indir, d.infile_noext .. " (cut)" .. d.ext)
 	}
 	print("Saving cut...")
 	mp.command_native_async({
@@ -137,7 +137,7 @@ ACTIONS.COMPRESS = function(d)
 		"-b:v", target_bitrate .. "k",
 		"-c:a", "aac",
 		"-b:a", "128k",
-		utils.join_path(d.indir, "COMPRESS_" .. d.infile_noext .. "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. d.ext)
+		utils.join_path(d.indir, d.infile_noext .. " (compress)" .. d.ext)
 	}
 	print("Saving cut...")
 	mp.command_native_async({
@@ -158,7 +158,7 @@ ACTIONS.ENCODE = function(d)
 		"-pix_fmt", "yuv420p",
 		"-crf", "16",
 		"-preset", "superfast",
-		utils.join_path(d.indir, "ENCODE_" .. d.infile_noext .. "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. d.ext)
+		utils.join_path(d.indir, d.infile_noext .. " (encode)" .. d.ext)
 	}
 	print("Saving cut...")
 	mp.command_native_async({

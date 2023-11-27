@@ -32,6 +32,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-11-27
+
+- Added the `donttimeoutonpause` option, which when enabled, doesn't hide the osc whilst hovering over it, when paused.
+- Changed filename formats when cutting a video
+
 ### 2023-11-23
 
 - Fixed [error loading modernx.lua with mpv v0.37.0-7](https://github.com/zydezu/mpvconfig/issues/6)
