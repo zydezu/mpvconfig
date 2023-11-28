@@ -4,6 +4,7 @@
 -- Project: SmartCopyPaste
 -- Version: 3.2.1
 
+
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
 --These settings are for users to manually change some options.

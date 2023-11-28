@@ -1,2 +1,2 @@
-git pull
+git pull origin
 git checkout -f HEAD
