@@ -32,6 +32,15 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-09
+
+- Adapted [lrc.lua](https://github.com/guidocella/mpv-lrc), to automatically download lyrics for songs (with metadata)
+- The description now doesn't prevent you from clicking buttons
+- The description closes properly when navigating files in a playlist
+- Tweaked metadata formatting
+- Fixed a crash in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua), where some date metadata could cause a crash
+- Fixed description line breaks not working in description metadata of some old youtube videos
+
 ### 2023-11-27
 
 - Added the `donttimeoutonpause` option, which when enabled, doesn't hide the osc whilst hovering over it, when paused.

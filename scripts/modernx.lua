@@ -1040,6 +1040,7 @@ function startupevents()
     state.fileSizeNormalised = "Approximating size..."
     checktitle()
     checkWebLink()
+    destroyscrollingkeys() -- close description
 end
 
 function checktitle()
@@ -1067,6 +1068,7 @@ function checktitle()
     state.localDescriptionClick = title .. "\\N----------\\N"
     if (description ~= nil) then
         description = string.gsub(description, '\n', '\\N')
+        description = string.gsub(description, '\r', '\\N') -- old youtube videos seem to use /r
         state.localDescription = description
         state.localDescriptionIsClickable = true
     end
@@ -1099,21 +1101,26 @@ function checktitle()
     end
     if (date ~= nil) then
         local datenormal = normaliseDate(date)
+        local datetext = "Year"
+        if (#datenormal > 4) then
+            datetext = "Date"
+        end
         if (state.localDescription == nil) then -- only metadata
-            state.localDescription = datenormal
+            state.localDescription = datetext .. ": " .. datenormal
         else -- append to other metadata
             if (state.localDescriptionClick ~= nil) then
-                state.localDescriptionClick = state.localDescriptionClick .. "\\NDate: " .. datenormal
+                state.localDescriptionClick = state.localDescriptionClick .. "\\N" .. datetext .. ": " .. datenormal
             else
                 state.localDescriptionClick = datenormal
                 state.localDescriptionIsClickable = true
             end
-            state.localDescription = state.localDescription .. " / Date: " .. datenormal
+            state.localDescription = state.localDescription .. " / " ..  datetext .. ": " .. datenormal
         end
     end
 end
 
 function normaliseDate(date)
+    date = string.gsub(date, "-", "")
     if (#date > 4) then -- YYYYMMDD
         local dateTable = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
         return os.date(user_opts.dateformat, os.time(dateTable))
@@ -1204,8 +1211,7 @@ function exec_description(args, result)
         capture_stdout = true,
         capture_stderr = true
     }, function(res, val, err)
-        -- replace actual linebreaks with ASS linebreaks
-        state.localDescriptionClick = string.gsub(val.stdout .. state.dislikes, '\n', "\\N")
+        state.localDescriptionClick = string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', "\\N")
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
@@ -1408,8 +1414,8 @@ function show_description(text)
         state.message_hide_timer:resume()
         request_tick()
     end, { repeatable = true })
-    bind_keys("ENTER MBTN_LEFT", "select", destroyscrollingkeys)
-    bind_keys("ESC MBTN_RIGHT", "close", destroyscrollingkeys) --close menu using ESC
+    bind_keys("ENTER", "select", destroyscrollingkeys)
+    bind_keys("ESC", "close", destroyscrollingkeys) --close menu using ESC
 
     state.message_text = text
 
@@ -1985,10 +1991,14 @@ function osc_init()
     ne.content = icons.previous
     ne.enabled = (pl_pos > 1) or (loop ~= 'no')
     ne.eventresponder['mbtn_left_up'] =
-        function ()mp.commandv('playlist-prev', 'weak') end
+        function ()
+            mp.commandv('playlist-prev', 'weak')
+            destroyscrollingkeys()
+        end
     ne.eventresponder['enter'] =
         function ()
             mp.commandv('playlist-prev', 'weak')
+            destroyscrollingkeys()
             show_message(get_playlist()) 
         end
     ne.eventresponder['mbtn_right_up'] =
@@ -2002,10 +2012,14 @@ function osc_init()
     ne.content = icons.next
     ne.enabled = (have_pl and (pl_pos < pl_count)) or (loop ~= 'no')
     ne.eventresponder['mbtn_left_up'] =
-        function () mp.commandv('playlist-next', 'weak') end
+        function () 
+            mp.commandv('playlist-next', 'weak') 
+            destroyscrollingkeys()
+        end
     ne.eventresponder['enter'] =
         function () 
             mp.commandv('playlist-next', 'weak')
+            destroyscrollingkeys()
             show_message(get_playlist())
         end
     ne.eventresponder['mbtn_right_up'] =
@@ -3136,9 +3150,11 @@ end)
 -- chapter scrubbing
 mp.add_key_binding("CTRL+LEFT", "prevfile", function()
     mp.commandv('playlist-prev', 'weak')
+    destroyscrollingkeys()
 end);
 mp.add_key_binding("CTRL+RIGHT", "nextfile", function()
     mp.commandv('playlist-next', 'weak')
+    destroyscrollingkeys()
 end);
 mp.add_key_binding("SHIFT+LEFT", "prevchapter", function()
     changeChapter(-1)
