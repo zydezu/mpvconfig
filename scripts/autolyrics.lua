@@ -1,6 +1,6 @@
 local options = {
     musixmatch_token = '220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea',
-    downloadforall = false -- experimental, try to get subtitles for all videos
+    downloadforall = true -- experimental, try to get subtitles for all videos
 }
 local utils = require 'mp.utils'
 require 'mp.options'.read_options(options)
@@ -52,7 +52,7 @@ local function get_metadata()
         title = metadata.title or metadata.TITLE or metadata.Title
         if options.downloadforall then
             title = mp.get_property("media-title")
-            title = title .. " " .. (metadata.description or "")
+            title = title:gsub('%b[]', '') .. " " .. (metadata.description or "")
             mp.msg.info("requesting: " .. title)
         end
         artist = metadata.artist or metadata.ARTIST or metadata.Artist

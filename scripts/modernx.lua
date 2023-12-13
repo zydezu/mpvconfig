@@ -1045,15 +1045,21 @@ end
 
 function checktitle()
     local mediatitle = mp.get_property("media-title")
+
+    print(mediatitle)
+    print(mp.get_property("filename"))
+    print(mp.get_property("filename/no-ext"))
+
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamictitle then
         if (string.find(mp.get_property("path"), "watch?")) then
             user_opts.title = "${media-title}" -- youtube videos
         elseif mp.get_property("filename/no-ext") ~= mediatitle then
-            msg.info("Changing title to include filename")
             user_opts.title = "${media-title} | ${filename}" -- {filename/no-ext}
         else
             user_opts.title = "${filename}" -- audio with the same title (without file extension) and filename
         end
+    else
+        user_opts.title = "${media-title}"
     end
 
     -- fake description using metadata

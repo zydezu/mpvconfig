@@ -32,6 +32,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-13
+
+- Fixed a bug with `user_opts.dynamictitle` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) not properly updating the title when switching video in a playlist
+- Made changes to [autolyrics.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua), specifically improving the `options.downloadforall` feature
+- Updated [qualitymenu.lua](https://github.com/christoph-heinrich/mpv-quality-menu) from its repository to 4.1.1 - 2023-Oct-22
+
 ### 2023-12-09
 
 - Adapted [lrc.lua](https://github.com/guidocella/mpv-lrc), to automatically download lyrics for songs (with metadata)
