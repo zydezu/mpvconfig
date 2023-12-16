@@ -53,6 +53,10 @@ Please note that many of these scripts have been slightly modified from their in
 - Fixed a crash in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua), where some date metadata could cause a crash
 - Fixed description line breaks not working in description metadata of some old youtube videos
 
+![2023-12-09_12-03-14_260_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/1b7da399-fef3-4990-9286-8ecfd3d0ed0a)
+![2023-12-09_12-28-51_412_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/0a96511e-0a42-4f6d-b5f7-23a40ec6020f)
+
+
 ### 2023-11-27
 
 - Added the `donttimeoutonpause` option, which when enabled, doesn't hide the osc whilst hovering over it, when paused.
