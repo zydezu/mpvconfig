@@ -1046,9 +1046,9 @@ end
 function checktitle()
     local mediatitle = mp.get_property("media-title")
 
-    print(mediatitle)
-    print(mp.get_property("filename"))
-    print(mp.get_property("filename/no-ext"))
+    -- print(mediatitle)
+    -- print(mp.get_property("filename"))
+    -- print(mp.get_property("filename/no-ext"))
 
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamictitle then
         if (string.find(mp.get_property("path"), "watch?")) then
@@ -1171,7 +1171,6 @@ function checkWebLink()
         end
 
         -- Youtube Return Dislike API
-        -- API get probably windows only right now
         state.dislikes = ""
         exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId="..string.gsub(mp.get_property_osd("filename"), "watch%?v=", "")}) 
         
@@ -1180,7 +1179,7 @@ function checkWebLink()
             local command = { 
                 "yt-dlp", 
                 "--no-download", 
-                "-O %(title)s\\N----------\\N%(description)s\\N----------\\NUploaded by: %(uploader)s\nUploaded on: %(upload_date>".. user_opts.dateformat ..")s\nLikes: %(like_count)s", 
+                "-O %(title)s\\N----------\\N%(description)s\\N----------\\NViews: %(view_count)s\nUploaded by: %(uploader)s\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
                 path
             }
             exec_description(command)
@@ -1218,6 +1217,7 @@ function exec_description(args, result)
         capture_stderr = true
     }, function(res, val, err)
         state.localDescriptionClick = string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', "\\N")
+        addLikeCountToTitle()
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
@@ -1227,15 +1227,14 @@ function exec_description(args, result)
 
         -- segment localDescriptionClick parts with " - "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
-        beforeLastPattern = beforeLastPattern:sub(1, 120)
-        state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " / ")
+        beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
+        state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
 
         local startPos, endPos = state.videoDescription:find("\\N----------\\N")
         state.videoDescription = string.gsub(state.videoDescription:sub(endPos + 1), "\\N----------\\N", " | ")
 
         state.descriptionLoaded = true
         msg.info("WEB: Loaded video description")
-
     end)
 end
 
@@ -1248,6 +1247,7 @@ function exec_dislikes(args, result)
     }, function(res, val, err)
         local dislikes = val.stdout
         dislikes = tonumber(dislikes:match('"dislikes":(%d+)'))
+        state.dislikecount = dislikes
 
         if dislikes then
             state.dislikes = "Dislikes: " .. dislikes
@@ -1259,8 +1259,20 @@ function exec_dislikes(args, result)
         if (not state.descriptionLoaded) then
             state.localDescriptionClick = state.localDescriptionClick .. state.dislikes
             state.videoDescription = state.localDescriptionClick
+        else
+            addLikeCountToTitle()
         end
     end)
+end
+
+function addLikeCountToTitle()
+    if (user_opts.dynamictitle) then
+        state.viewcount = tonumber(state.localDescriptionClick:match('Views: (%d+)')) 
+        state.likecount = tonumber(state.localDescriptionClick:match('Likes: (%d+)'))
+        if (state.viewcount and state.likecount and state.dislikecount) then
+            mp.set_property("title", mp.get_property("media-title") .. " | 👁️" .. state.viewcount .. " | 👍" .. state.likecount .. " | 👎" .. state.dislikecount)
+        end    
+    end
 end
 
 function exec_filesize(args, result)

@@ -32,6 +32,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-16
+
+- Edited video info formatting
+- When playing YouTube videos, information like views, likes and dislikes are added to the window title
+
+
 ### 2023-12-13
 
 - Fixed a bug with `user_opts.dynamictitle` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) not properly updating the title when switching video in a playlist
