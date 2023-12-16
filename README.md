@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Edited video info formatting
 - When playing YouTube videos, information like views, likes and dislikes are added to the window title
+- [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) properly respects the `raisesubswithosc` option
 
 
 ### 2023-12-13
