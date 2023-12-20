@@ -34,6 +34,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-12-16
 
+- Fixed screenshotting playing YouTube videos [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua)
+
+### 2023-12-16
+
 - Edited video info formatting
 - When playing YouTube videos, information like views, likes and dislikes are added to the window title
 - [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) properly respects the `raisesubswithosc` option
