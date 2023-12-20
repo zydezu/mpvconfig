@@ -35,6 +35,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2023-12-16
 
 - Fixed screenshotting playing YouTube videos [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua)
+- Fixed quality menu for ytdl:// playing videos
 
 ### 2023-12-16
 

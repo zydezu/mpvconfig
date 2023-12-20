@@ -496,7 +496,12 @@ end
 local function get_url()
     local path = mp.get_property('path')
     if not path then return nil end
-    path = path:gsub('ytdl://', '') -- Strip possible ytdl:// prefix.
+
+    if string.find(path, "https://") then
+        path = string.gsub(path, "ytdl://", "") -- Strip possible ytdl:// prefix
+    else
+        path = string.gsub(path, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
+    end
 
     ---@param str string
     ---@return boolean
@@ -682,7 +687,13 @@ local function set_format(url, video_format, audio_format)
     if (url_data[url].video_active_id ~= video_format or url_data[url].audio_active_id ~= audio_format) then
         url_data[url].video_active_id = video_format
         url_data[url].audio_active_id = audio_format
-        if url == mp.get_property('path') then reload_resume() end
+        local correctpath = mp.get_property('path')
+        if string.find(correctpath, "https://") then
+            correctpath = string.gsub(correctpath, "ytdl://", "") -- Strip possible ytdl:// prefix
+        else
+            correctpath = string.gsub(correctpath, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
+        end
+        if url == correctpath then reload_resume() end
     end
 end
 
@@ -1219,6 +1230,12 @@ end)
 -- run before ytdl_hook, which uses a priority of 10
 mp.add_hook('on_load', 9, function()
     local path = mp.get_property('path')
+    if string.find(path, "https://") then
+        path = string.gsub(path, "ytdl://", "") -- Strip possible ytdl:// prefix
+    else
+        path = string.gsub(path, "ytdl://", "https://") -- Strip possible ytdl:// prefix and replace with "https://" if there it isn't there already
+    end
+    
     local data = url_data[path]
     if not (data and data.video_active_id and data.audio_active_id) then return end
     local format = format_string(data.video_active_id, data.audio_active_id)
