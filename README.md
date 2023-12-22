@@ -41,7 +41,7 @@ if (not (state.paused and user_opts.donttimeoutonpause)) then
 end
 ```
 
-### 2023-12-16
+### 2023-12-22
 
 - Fixed screenshotting playing YouTube videos [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua)
 - Fixed quality menu for ytdl:// playing videos
