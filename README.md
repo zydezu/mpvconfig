@@ -34,7 +34,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2023-12-16
 
-- Fix [this issue](https://github.com/zydezu/mpvconfig/issues/7) - [modernx 0.2.3] The OSC doesn't hide #7... this is because I forgot to finish writing this line...
+- Fixed [this issue](https://github.com/zydezu/mpvconfig/issues/7) - [modernx 0.2.3] The OSC doesn't hide #7... this is because I forgot to finish writing this line...
 ```lua
 if (not (state.paused and user_opts.donttimeoutonpause)) then
     hide_osc()
