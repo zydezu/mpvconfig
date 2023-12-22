@@ -36,7 +36,7 @@ local user_opts = {
     minmousemove = 0,               -- amount of pixels the mouse has to move for OSC to show
     scrollingSpeed = 40,            -- the speed of scrolling text in menus
     showonpause = true,             -- whether to show to osc when paused
-    donttimeoutonpause = true,      -- whether to disable the hide timeout on pause
+    donttimeoutonpause = false,     -- whether to disable the hide timeout on pause
     bottomhover = true,             -- if the osc should only display when hovering at the bottom
     raisesubswithosc = true,        -- whether to raise subtitles above the osc when it's shown
     thumbnailborder = 2,            -- the width of the thumbnail border
@@ -2953,7 +2953,7 @@ function render()
         local timeout = state.showtime + (get_hidetimeout()/1000) - now
         if timeout <= 0 then
             if (state.active_element == nil) and (user_opts.bottomhover or not (mouse_over_osc)) then
-                if (not user_opts.donttimeoutonpause) then
+                if (not (state.paused and user_opts.donttimeoutonpause)) then
                     hide_osc()
                 end
             end
