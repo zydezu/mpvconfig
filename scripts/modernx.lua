@@ -126,6 +126,13 @@ local icons = {
   ontopoff = '',
 }
 
+local emoticon = {
+    view = "👁️",
+    comment = "💬",
+    like = "👍",
+    dislike = "👎"
+}
+
 -- Localization
 local language = {
 	['en'] = {
@@ -1182,7 +1189,7 @@ function checkWebLink()
             local command = { 
                 "yt-dlp", 
                 "--no-download", 
-                "-O %(title)s\\N----------\\N%(description)s\\N----------\\NViews: %(view_count)s\nUploaded by: %(uploader)s\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
+                "-O %(title)s\\N----------\\N%(description)s\\N----------\\NUploaded by: %(uploader)s\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
                 path
             }
             exec_description(command)
@@ -1227,16 +1234,17 @@ function exec_description(args, result)
         if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA') then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
         end
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Dislikes: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("NA", "")
 
         -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
         beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
+        afterLastPattern = afterLastPattern:gsub("Views:", emoticon.view):gsub("Comments:", emoticon.comment):gsub("Likes:", emoticon.like):gsub("Dislikes:", emoticon.dislike)  -- replace with icons
         state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
         local startPos, endPos = state.videoDescription:find("\\N----------\\N")
         state.videoDescription = state.videoDescription:sub(endPos + 1):gsub("\\N----------\\N", " | ")
@@ -1284,13 +1292,13 @@ function addLikeCountToTitle()
         state.likecount = tonumber(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount and state.likecount and state.dislikecount) then
             mp.set_property("title", mp.get_property("media-title") .. 
-            " | 👁️" .. state.viewcount .. 
-            " | 👍" .. state.likecount .. 
-            " | 👎" .. state.dislikecount)
+            " | " .. emoticon.view .. state.viewcount .. 
+            " | " .. emoticon.like .. state.likecount .. 
+            " | " .. emoticon.dislike .. state.dislikecount)
         elseif (state.viewcount and state.likecount) then
             mp.set_property("title", mp.get_property("media-title") .. 
-            " | 👁️" .. state.viewcount .. 
-            " | 👍" .. state.likecount)
+            " | " .. emoticon.view .. state.viewcount .. 
+            " | " .. emoticon.like .. state.likecount)
         end    
     end
 end
