@@ -128,11 +128,11 @@ local function save_lyrics(lyrics)
                 "[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
     end
 
-    local function createDirectory(directoryPath)
-        local function is_windows()
-            local a=os.getenv("windir")if a~=nil then return true else return false end
-        end
+    local function is_windows()
+        local a=os.getenv("windir")if a~=nil then return true else return false end
+    end
 
+    local function createDirectory(directoryPath)
         local args = {'mkdir', directoryPath}
         if is_windows() then 
             args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath}
@@ -158,8 +158,12 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
+    local lrc_path = (path:match('(.*)%.[^/]*$') or path).. '.lrc'
     local dir_path = lrc_path:match("(.+\\).-$"):gsub("/", "\\")
+    if is_windows() then
+        lrc_path = lrc_path:gsub("/", "\\")
+        dir_path = dir_path:gsub("/", "\\")
+    end
     print(lrc_path)
     print(dir_path)
     
