@@ -159,10 +159,10 @@ local function save_lyrics(lyrics)
     end
 
     local lrc_path = (path:match('(.*)%.[^/]*$') or path) .. '.lrc'
-    local dir_path = lrc_path:match("(.+\\).-$")
+    local dir_path = lrc_path:match("(.+[\\/])")
     if is_windows() then
         lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
-        dir_path = lrc_path:match("(.+\\).-$"):gsub("/", "\\")    
+        dir_path = lrc_path:match("(.+[\\/])"):gsub("/", "\\")    
     end
     print(lrc_path)
     print(dir_path)
