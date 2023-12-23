@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Added the `dontsaveduration` option to [autoloop.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua), which doesn't save the position of videos under the specified length, but also doesn't loop them - perfect for short videos under a minute or so
 - Opening the downloaded file's folder now works for other operating systems (this needs testing)
 - Enabled `autolyrics.lua` functionality for YouTube videos, and .lrc files can now be saved to a specified path
+![2023-12-23_05-02-18_325_ArcControl](https://github.com/zydezu/mpvconfig/assets/50119098/1cd17f86-30cd-481b-a02d-e6f8bdf56e29)
 
 ### 2023-12-22
 
