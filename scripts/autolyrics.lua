@@ -56,9 +56,8 @@ local function get_metadata()
         if options.downloadforall then
             title = mp.get_property("media-title")
             title = title:gsub('%b[]', '') .. " "
-            mp.msg.info("requesting: " .. title)
         end
-        artist = metadata.artist or metadata.ARTIST or metadata.Artist
+        artist = metadata.artist or metadata.ARTIST or metadata.Artist or mp.get_property("filtered-metadata/by-key/Uploader")
         if options.downloadforall and not artist then
             artist = " "
         end
@@ -171,7 +170,7 @@ local function save_lyrics(lyrics)
     
     if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
         if not isWindows then
-            subdir_path = dir_path:match("(.-)/[^/]+$")
+            subdir_path = dir_path:match("^(.-)/[^/]+/$")
             print(subdir_path)
             createDirectory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
@@ -209,6 +208,7 @@ end)
 
 function musixmatchdownload()
     local title, artist = get_metadata()
+    print("Requesting: "..title.." - "..artist)
 
     if not title then
         return
