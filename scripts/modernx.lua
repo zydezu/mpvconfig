@@ -1171,12 +1171,14 @@ function checkWebLink()
             exec_filesize(command)
         end
 
-        -- Youtube Return Dislike API
+        -- Youtube Return Dislike API  
         state.dislikes = ""
-        exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId="..string.gsub(mp.get_property_osd("filename"), "watch%?v=", "")}) 
-        
+        if path:find('youtu%.?be') then
+            exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. 
+            string.gsub(mp.get_property_osd("filename"), "watch%?v=", "")}) 
+        end
         if user_opts.showdescription then
-            msg.info("WEB: Loading description...")
+            msg.info("WEB: Loading video information...")
             local command = { 
                 "yt-dlp", 
                 "--no-download", 
@@ -1222,17 +1224,27 @@ function exec_description(args, result)
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
-        if (descriptionText == '' or descriptionText == '\\N') then
+        if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA') then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
         end
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("NA", "")
 
-        -- segment localDescriptionClick parts with " - "
+        -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
         beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
         state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
-
         local startPos, endPos = state.videoDescription:find("\\N----------\\N")
-        state.videoDescription = string.gsub(state.videoDescription:sub(endPos + 1), "\\N----------\\N", " | ")
+        state.videoDescription = state.videoDescription:sub(endPos + 1):gsub("\\N----------\\N", " | ")
+        
+        if (select(2, afterLastPattern:gsub("\\N", "")) == 1) then -- get rid of last | if there's only one item
+            print("Erasing last item")
+            state.videoDescription = state.videoDescription:gsub(" | ", "")
+        end
 
         state.descriptionLoaded = true
         msg.info("WEB: Loaded video description")
@@ -1275,6 +1287,10 @@ function addLikeCountToTitle()
             " | 👁️" .. state.viewcount .. 
             " | 👍" .. state.likecount .. 
             " | 👎" .. state.dislikecount)
+        elseif (state.viewcount and state.likecount) then
+            mp.set_property("title", mp.get_property("media-title") .. 
+            " | 👁️" .. state.viewcount .. 
+            " | 👍" .. state.likecount)
         end    
     end
 end
@@ -1983,7 +1999,7 @@ function osc_init()
     ne.visible = (state.localDescription ~= nil or state.isWebVideo) and user_opts.showdescription
     ne.content = function ()
         if state.isWebVideo then
-            local title = "Loading description..."
+            local title = "Loading video information..."
             if (state.descriptionLoaded) then
                 title = state.videoDescription:sub(1, 300)
             end
