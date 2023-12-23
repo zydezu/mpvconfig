@@ -50,7 +50,7 @@ local function get_metadata()
     local metadata = mp.get_property_native('metadata')
     local title, artist, album
     if next(metadata) == nil then
-        mp.osd_message("couldn't load metadata!")
+        mp.msg.info("couldn't load metadata!")
     else
         title = metadata.title or metadata.TITLE or metadata.Title
         if options.downloadforall then
