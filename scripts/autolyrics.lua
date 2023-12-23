@@ -171,7 +171,7 @@ local function save_lyrics(lyrics)
     
     if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
         if not isWindows then
-            subdir_path = dir_path:match("(.+/)")
+            subdir_path = dir_path:match("(.-)/[^/]+$")
             print(subdir_path)
             createDirectory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
