@@ -128,7 +128,7 @@ local function save_lyrics(lyrics)
                 "[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
     end
 
-    local function is_windows()
+    function is_windows()
         local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
@@ -158,11 +158,11 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = (path:match('(.*)%.[^/]*$') or path).. '.lrc'
-    local dir_path = lrc_path:match("(.+\\).-$"):gsub("/", "\\")
+    local lrc_path = (path:match('(.*)%.[^/]*$') or path) .. '.lrc'
+    local dir_path = lrc_path:match("(.+\\).-$")
     if is_windows() then
-        lrc_path = lrc_path:gsub("/", "\\")
-        dir_path = dir_path:gsub("/", "\\")
+        lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
+        dir_path = lrc_path:match("(.+\\).-$"):gsub("/", "\\")    
     end
     print(lrc_path)
     print(dir_path)
