@@ -32,6 +32,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-23
+
+- Added the `dontsaveduration` option to [autoloop.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua), which doesn't save the position of videos under the specified length, but also doesn't loop them - perfect for short videos under a minute or so
+- Opening the downloaded file's folder now works for other operating systems (this needs testing)
+
 ### 2023-12-22
 
 - Fixed [this issue](https://github.com/zydezu/mpvconfig/issues/7) - [modernx 0.2.3] The OSC doesn't hide #7... this is because I forgot to finish writing this line...

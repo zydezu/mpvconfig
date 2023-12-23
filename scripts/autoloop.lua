@@ -5,6 +5,8 @@
 
 local o = {
     autoloop_duration = 10,
+    dontsaveduration = 60, -- don't save position in videos under this length 
+                           -- (set the same as autoloop_duration to disable this function)
     playfromstart = true -- doesn't 'resume-playback' looping videos
 }
 (require 'mp.options').read_options(o)
@@ -21,12 +23,17 @@ function set_loop()
     end
 
     -- Loops file if was_loop is false, and file meets requirements
-    if not was_loop and duration <= o.autoloop_duration then
-        print("Autolooped file")
-        mp.set_property_native("loop-file", true)
-        mp.set_property_bool("file-local-options/save-position-on-quit", false)
-        if o.playfromstart and mp.get_property_number("playback-time") > 0 then -- always play videos that auto loop from the start
-            mp.commandv('seek', 0, 'absolute-percent', 'exact')
+    if not was_loop then
+        if duration <= o.autoloop_duration then
+            print("Autolooped file")
+            mp.set_property_native("loop-file", true)
+        end
+        if duration <= o.autoloop_duration or duration <= o.dontsaveduration then
+            mp.set_property_bool("file-local-options/save-position-on-quit", false)
+            mp.set_property("file-local-options/watch-later-options", "start") -- so videos don't load paused
+            if o.playfromstart and mp.get_property_number("playback-time") > 0 then -- always play video from the start
+                mp.commandv('seek', 0, 'absolute-percent', 'exact')
+            end
         end
     -- Unloops file if was_loop is true, and file does not meet requirements
     elseif was_loop and duration > o.autoloop_duration then

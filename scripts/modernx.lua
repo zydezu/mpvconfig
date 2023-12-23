@@ -1271,7 +1271,10 @@ function addLikeCountToTitle()
         state.viewcount = tonumber(state.localDescriptionClick:match('Views: (%d+)')) 
         state.likecount = tonumber(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount and state.likecount and state.dislikecount) then
-            mp.set_property("title", mp.get_property("media-title") .. " | 👁️" .. state.viewcount .. " | 👍" .. state.likecount .. " | 👎" .. state.dislikecount)
+            mp.set_property("title", mp.get_property("media-title") .. 
+            " | 👁️" .. state.viewcount .. 
+            " | 👍" .. state.likecount .. 
+            " | 👎" .. state.dislikecount)
         end    
     end
 end
@@ -2364,40 +2367,53 @@ function osc_init()
         function ()
             if (not state.videoCantBeDownloaded) then
                 local localpathnormal = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
-                local localpath = localpathnormal:gsub("/", "\\")
+                local localpath = localpathnormal
+
+                local function openFolder()
+                    local function is_macos()
+                        local a=os.getenv("HOME")if a~=nil and string.sub(a,1,6)=="/Users"then return true else return false end
+                    end
+
+                    local function is_windows()
+                        local a=os.getenv("windir")if a~=nil then return true else return false end
+                    end
+
+                    local command = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
+                    local windowscmd = "start $path\\"
+                    local macoscmd = "open -a Finder -R \"$path\""
+
+                    if is_windows() then
+                        localpath = localpath:gsub("/", "\\")
+                        command = windowscmd
+                    elseif is_macos() then
+                        command = macoscmd
+                    end
+                    command = command:gsub("$path", localpath)
+
+                    os.execute(command)
+                end
+
                 if state.downloadedOnce then
                     show_message("\\N{\\an9}Already downloaded")
-
-                    -- open file system
-                    local cmd = "start $path\\"
-                    cmd = cmd:gsub("$path", localpath)
-                    os.execute(cmd)
-                    return
-                end
-
-                if state.downloading then
+                    openFolder()
+                elseif state.downloading then
                     show_message("\\N{\\an9}Already downloading...")
-                    
-                    -- open file system
-                    local cmd = "start $path\\"
-                    cmd = cmd:gsub("$path", localpath)
-                    os.execute(cmd)
-                    return
+                    openFolder()
+                else
+                    show_message("\\N{\\an9}Downloading...")
+                    state.downloading = true
+                    local command = { 
+                        "yt-dlp",
+                        user_opts.ytdlpQuality,
+                        "--add-metadata",
+                        "--console-title",
+                        "--embed-subs",
+                        "-o%(title)s",
+                        "-P " .. localpathnormal,
+                        state.path 
+                    }
+                    local status = exec(command, downloadDone)
                 end
-
-                show_message("\\N{\\an9}Downloading...")
-                state.downloading = true
-                local command = { 
-                    "yt-dlp",
-                    user_opts.ytdlpQuality,
-                    "--add-metadata",
-                    "--console-title",
-                    "--embed-subs",
-                    "-o%(title)s",
-                    "-P " .. localpathnormal,
-                    state.path 
-                }
-                local status = exec(command, downloadDone)
             else
                 show_message("\\N{\\an9}Can't be downloaded")
             end
