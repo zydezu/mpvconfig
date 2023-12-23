@@ -1,6 +1,9 @@
 local options = {
     musixmatch_token = '220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea',
-    downloadforall = true -- experimental, try to get subtitles for all videos
+    downloadforall = true, -- experimental, try to get subtitles for all videos
+    loadforyoutube = true, -- try to load lyrics on youtube videos
+    lyricsstore = "~~desktop/mpv/lrcdownloads/",
+    storelyricsseperate = true, -- store lyrics in ~~desktop/mpv/lrcdownloads/
 }
 local utils = require 'mp.utils'
 require 'mp.options'.read_options(options)
@@ -52,7 +55,7 @@ local function get_metadata()
         title = metadata.title or metadata.TITLE or metadata.Title
         if options.downloadforall then
             title = mp.get_property("media-title")
-            title = title:gsub('%b[]', '') .. " " .. (metadata.description or "")
+            title = title:gsub('%b[]', '') .. " "
             mp.msg.info("requesting: " .. title)
         end
         artist = metadata.artist or metadata.ARTIST or metadata.Artist
@@ -117,8 +120,53 @@ local function save_lyrics(lyrics)
         end
     end
 
+    local function is_url(s)
+        return nil ~=
+            string.match(s,
+                "^[%w]-://[-a-zA-Z0-9@:%._\\+~#=]+%." ..
+                "[a-zA-Z0-9()][a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?" ..
+                "[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
+    end
+
+    local function createDirectory(directoryPath)
+        local function is_windows()
+            local a=os.getenv("windir")if a~=nil then return true else return false end
+        end
+
+        local args = {'mkdir', directoryPath}
+        if is_windows() then 
+            args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath}
+        end
+        local res = utils.subprocess({ args = args, cancellable = false })
+        if res.status ~= 0 then
+            mp.msg.error("Failed to create directory: " .. directoryPath)
+        else
+            mp.msg.info("Directory created successfully: " .. directoryPath)
+        end
+    end    
+
     local path = mp.get_property('path')
-    local lrc_path = (path:match('(.*)%.[^/]*$') or path) .. '.lrc'
+    local media = mp.get_property("media-title")
+
+    if (is_url(path) and path or nil) and options.loadforyoutube then
+        youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]"
+        local filename = string.gsub(media:sub(1, 35), "^%s*(.-)%s*$", "%1") .. youtubeID
+        path =  mp.command_native({"expand-path", options.lyricsstore .. filename})
+    else
+        if options.storelyricsseperate then
+            path = mp.command_native({"expand-path", options.lyricsstore .. media})
+        end
+    end
+
+    local lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
+    local dir_path = lrc_path:match("(.+\\).-$"):gsub("/", "\\")
+    print(lrc_path)
+    print(dir_path)
+    
+    if (utils.readdir(dir_path) == nil) then
+        createDirectory(dir_path)
+    end
+
     local lrc = io.open(lrc_path, 'w')
     if lrc == nil then
         show_error('Failed writing to ' .. lrc_path)
@@ -128,6 +176,7 @@ local function save_lyrics(lyrics)
     lrc:close()
 
     if lyrics:find('^%[') then
+        mp.commandv("sub-add", lrc_path)
         mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files')
         if manualrun or options.downloadforall then
             mp.osd_message(success_message)

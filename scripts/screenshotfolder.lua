@@ -23,9 +23,9 @@ function init()
                 "[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
     end
 
-    filename = mp.get_property("filename")
-    media = mp.get_property("media-title")
-    path = mp.get_property("path")
+    local filename = mp.get_property("filename")
+    local media = mp.get_property("media-title")
+    local path = mp.get_property("path")
 
     if is_url(path) and path or nil then
         youtubeID = ""
