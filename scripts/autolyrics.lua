@@ -101,7 +101,7 @@ local function save_lyrics(lyrics)
 
     local success_message = 'Lyrics downloaded'
     if options.downloadforall then
-        success_message = 'Found some lyrics... are they correct?'
+        success_message = 'Found and applied lyrics'
     end
     if current_sub_path then
         -- os.rename only works across the same filesystem
@@ -132,9 +132,11 @@ local function save_lyrics(lyrics)
         local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
+    local isWindows = is_windows()
+
     local function createDirectory(directoryPath)
         local args = {'mkdir', directoryPath}
-        if is_windows() then 
+        if isWindows then 
             args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath}
         end
         local res = utils.subprocess({ args = args, cancellable = false })
@@ -160,14 +162,18 @@ local function save_lyrics(lyrics)
 
     local lrc_path = (path:match('(.*)%.[^/]*$') or path) .. '.lrc'
     local dir_path = lrc_path:match("(.+[\\/])")
-    if is_windows() then
+    if isWindows then
         lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
         dir_path = lrc_path:match("(.+[\\/])"):gsub("/", "\\")    
     end
     print(lrc_path)
     print(dir_path)
     
-    if (utils.readdir(dir_path) == nil) then
+    if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
+        if not isWindows then
+            subdir_path = dir_path:match("(.+/)")
+            createDirectory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
+        end
         createDirectory(dir_path)
     end
 
