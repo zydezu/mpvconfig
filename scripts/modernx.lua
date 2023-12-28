@@ -1102,7 +1102,7 @@ function checktitle()
     end
     if (album ~= nil) then
         if (state.localDescription == nil) then -- only metadata
-            state.localDescription = album
+            state.localDescription = "Album: " .. album
         else -- append to other metadata
             if (state.localDescriptionClick ~= nil) then 
                 state.localDescriptionClick = state.localDescriptionClick .. " - " .. album
@@ -1116,17 +1116,16 @@ function checktitle()
     if (date ~= nil) then
         local datenormal = normaliseDate(date)
         local datetext = "Year"
-        if (#datenormal > 4) then
-            datetext = "Date"
-        end
+        if (#datenormal > 4) then datetext = "Date" end
+        state.localDescriptionIsClickable = true
         if (state.localDescription == nil) then -- only metadata
             state.localDescription = datetext .. ": " .. datenormal
+            state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
         else -- append to other metadata
             if (state.localDescriptionClick ~= nil) then
                 state.localDescriptionClick = state.localDescriptionClick .. "\\N" .. datetext .. ": " .. datenormal
             else
                 state.localDescriptionClick = datenormal
-                state.localDescriptionIsClickable = true
             end
             state.localDescription = state.localDescription .. " | " ..  datetext .. ": " .. datenormal
         end
