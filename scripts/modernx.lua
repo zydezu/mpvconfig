@@ -1131,7 +1131,7 @@ function checktitle()
     end
 
     local function format_file_size(file_size)
-        local units = {"bytes", "KB", "MB", "GB"}
+        local units = {"bytes", "KB", "MB", "GB", "TB"}
         local unit_index = 1
     
         while file_size >= 1024 and unit_index < #units do
