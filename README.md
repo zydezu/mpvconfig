@@ -1,5 +1,6 @@
 # mpvconfig
 ![2023-12-09_12-28-51_412_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/0a96511e-0a42-4f6d-b5f7-23a40ec6020f)
+
 My personal [mpv](https://mpv.io/) config.
 
 > [!NOTE]
