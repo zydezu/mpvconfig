@@ -1,6 +1,7 @@
 # mpvconfig
 My personal [mpv](https://mpv.io/) config.
 
+![2023-12-09_12-28-51_412_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/0a96511e-0a42-4f6d-b5f7-23a40ec6020f)
 
 > [!NOTE]
 > Releases of the [modernX](https://github.com/zydezu/modernX) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
@@ -81,7 +82,6 @@ end
 - Fixed description line breaks not working in description metadata of some old youtube videos
 
 ![2023-12-09_12-03-14_260_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/1b7da399-fef3-4990-9286-8ecfd3d0ed0a)
-![2023-12-09_12-28-51_412_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/0a96511e-0a42-4f6d-b5f7-23a40ec6020f)
 
 
 ### 2023-11-27
