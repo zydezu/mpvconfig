@@ -1105,12 +1105,12 @@ function checktitle()
             state.localDescription = album
         else -- append to other metadata
             if (state.localDescriptionClick ~= nil) then 
-                state.localDescriptionClick = state.localDescriptionClick .. " / " .. album
+                state.localDescriptionClick = state.localDescriptionClick .. " - " .. album
             else
                 state.localDescriptionClick = album
                 state.localDescriptionIsClickable = true
             end
-            state.localDescription = state.localDescription .. " / " .. album
+            state.localDescription = state.localDescription .. " - " .. album
         end
     end
     if (date ~= nil) then
@@ -1128,14 +1128,17 @@ function checktitle()
                 state.localDescriptionClick = datenormal
                 state.localDescriptionIsClickable = true
             end
-            state.localDescription = state.localDescription .. " / " ..  datetext .. ": " .. datenormal
+            state.localDescription = state.localDescription .. " | " ..  datetext .. ": " .. datenormal
         end
     end
 end
 
 function normaliseDate(date)
-    date = string.gsub(date, "-", "")
-    if (#date > 4) then -- YYYYMMDD
+    date = string.gsub(date:gsub("/", ""), "-", "")
+    if (#date > 8) then -- YYYYMMDD HHMMSS (plus a time)
+        local dateTable = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
+        return os.date(user_opts.dateformat, os.time(dateTable)) .. date:sub(9)
+    elseif (#date > 4) then -- YYYYMMDD
         local dateTable = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
         return os.date(user_opts.dateformat, os.time(dateTable))
     else -- YYYY

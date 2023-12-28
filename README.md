@@ -32,6 +32,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-28
+
+- Fixed some dates crashing [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
+
 ### 2023-12-23
 
 - Added the `dontsaveduration` option to [autoloop.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua), which doesn't save the position of videos under the specified length, but also doesn't loop them - perfect for short videos under a minute or so
