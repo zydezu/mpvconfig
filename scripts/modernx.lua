@@ -1133,17 +1133,16 @@ function checktitle()
     local function format_file_size(file_size)
         local units = {"bytes", "KB", "MB", "GB", "TB"}
         local unit_index = 1
-    
         while file_size >= 1024 and unit_index < #units do
             file_size = file_size / 1024
             unit_index = unit_index + 1
         end
-    
         return string.format("%.2f %s", file_size, units[unit_index])
     end
 
-    file_size = format_file_size(mp.get_property_native("file-size"))
+    file_size = mp.get_property_native("file-size")
     if (file_size ~= nil) then
+        file_size = format_file_size(file_size)
         if (state.localDescription == nil) then -- only metadata
             state.localDescription = "Size: " .. file_size
             state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
