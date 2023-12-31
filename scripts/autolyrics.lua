@@ -1,7 +1,7 @@
 local options = {
     musixmatch_token = '220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea',
-    downloadforall = true, -- experimental, try to get subtitles for all videos
-    loadforyoutube = true, -- try to load lyrics on youtube videos
+    downloadforall = false, -- experimental, try to get subtitles for all videos
+    loadforyoutube = false, -- try to load lyrics on youtube videos
     lyricsstore = "~~desktop/mpv/lrcdownloads/",
     storelyricsseperate = true, -- store lyrics in ~~desktop/mpv/lrcdownloads/
 }
