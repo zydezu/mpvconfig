@@ -33,6 +33,14 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2023-12-31
+
+- Stopped [autolyrics.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) crashing when `downloadforall` is disabled
+
+### 2023-12-30
+
+- Fix a bug with calculating file size
+
 ### 2023-12-28
 
 - Fixed some dates crashing [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
