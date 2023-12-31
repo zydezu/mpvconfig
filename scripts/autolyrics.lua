@@ -1,7 +1,7 @@
 local options = {
     musixmatch_token = '220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea',
     downloadforall = false, -- experimental, try to get subtitles for all videos
-    loadforyoutube = false, -- try to load lyrics on youtube videos
+    loadforyoutube = true, -- try to load lyrics on youtube videos
     lyricsstore = "~~desktop/mpv/lrcdownloads/",
     storelyricsseperate = true, -- store lyrics in ~~desktop/mpv/lrcdownloads/
 }
@@ -208,10 +208,13 @@ end)
 
 function musixmatchdownload()
     local title, artist = get_metadata()
-    print("Requesting: "..title.." - "..artist)
 
     if not title then
         return
+    end
+
+    if artist then
+        print("Requesting: "..title.." - "..artist)
     end
 
     mp.msg.info('Downloading lyrics')
