@@ -36,7 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-01-10
 
 - Added the ability to choose a directory to save clips in (required for web video cache saving), using `savedirectory`
-- Implemented saving clips from web videos, using the cache in [mpvcut.lua](https://github.com/zydezu/mpvconfig/commit/edf7b9d88e90d67922330d6f03d70628b30f22af#diff-8f6436b607b063cf868ffaef66bebbcc6cec22b62894400dad687c4caf54df1c) based off [https://github.com/Sagnac/streamsave]https://github.com/Sagnac/streamsave
+- Implemented saving clips from web videos, using the cache in [mpvcut.lua](https://github.com/zydezu/mpvconfig/commit/edf7b9d88e90d67922330d6f03d70628b30f22af#diff-8f6436b607b063cf868ffaef66bebbcc6cec22b62894400dad687c4caf54df1c) based off [https://github.com/Sagnac/streamsave](https://github.com/Sagnac/streamsave)
 
 ### 2023-12-31
 
