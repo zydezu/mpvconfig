@@ -2,6 +2,10 @@ utils = require "mp.utils"
 msg = require "mp.msg"
 
 local o = {
+	-- Save location
+	localsavetofolder = true, -- Save to `savedirectory` instead of the current folder
+	savedirectory = "~~desktop/mpv/clips", -- Required for web videos
+
 	-- Key config
 	keyCut = "z",
 	keyCancelCut = "Z",
@@ -12,6 +16,9 @@ local o = {
 
 	-- File size target (MB)
 	compressSize = 24.00,
+
+	-- Web videos/cache
+	usecacheforwebvideos = true,
 }
 (require 'mp.options').read_options(o)
 
@@ -33,12 +40,43 @@ local function table_to_str(o)
 	end
 end
 
+function is_url(s)
+	return nil ~=
+		string.match(s,
+			"^[%w]-://[-a-zA-Z0-9@:%._\\+~#=]+%." ..
+			"[a-zA-Z0-9()][a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?" ..
+			"[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
+end
+
 local result = mp.command_native({ name = "subprocess", args = {"ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })
 if result.status ~= 1 then
 	mp.osd_message("FFmpeg failed to run, please press ` for debug info", 5)
 	mp.msg.error("FFmpeg failed to run:\n" .. table_to_str(result))
 	mp.msg.error("`which ffmpeg` output:\n" .. table_to_str(mp.command_native({ name = "subprocess", args = {"which", "ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })))
 end
+local fullpath = mp.command_native({"expand-path", o.savedirectory})
+local fullpathsave = ""
+local webext = ".mkv"
+
+function getfullpath()
+	if fullpath then
+		fullpathsave = mp.command_native({"expand-path", o.savedirectory .. "/" .. mp.get_property("media-title")})
+		if (o.usecacheforwebvideos and is_url(mp.get_property("path"))) then
+			local video = mp.get_property("video-format", "none")
+			local audio = mp.get_property("audio-codec-name", "none")
+			local webm={vp8=true,vp9=true,av1=true,opus=true,vorbis=true,none=true}
+			local mp4={h264=true,hevc=true,av1=true,mp3=true,flac=true,aac=true,none=true}
+			if webm[video] and webm[audio] then
+				webext = ".webm"
+			elseif mp4[video] and mp4[audio] then
+				webext = ".mp4"
+			else
+				webext = ".mkv"
+			end	
+		end
+	end
+end
+mp.register_event("file-loaded", getfullpath)
 
 local function to_hms(seconds)
 	local ms = math.floor((seconds - math.floor(seconds)) * 1000)
@@ -64,9 +102,37 @@ local function next_table_key(t, current)
 	return keys[1]
 end
 
+function is_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
+local isWindows = is_windows()
+local function createDirectory(directoryPath)
+	local args = {'mkdir', directoryPath}
+	if isWindows then args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath} end
+	local res = utils.subprocess({ args = args, cancellable = false })
+	if res.status ~= 0 then
+		mp.msg.error("Failed to create directory: " .. directoryPath)
+	else
+		mp.msg.info("Directory created successfully: " .. directoryPath)
+	end
+end
+
+function checkPaths(d, suffix, webpathsave)
+	resultpath = utils.join_path(fullpath .. '/', d.infile_noext .. " " .. suffix .. d.ext)
+	if (utils.readdir(fullpath) == nil) then
+		if not isWindows then
+			subfullpath = utils.split_path(fullpath)
+			createDirectory(subfullpath) -- required for linux as it cannot create mpv/lrcdownloads/
+		end
+		createDirectory(fullpath)
+	end
+	if webpathsave then return webpathsave .. " " .. suffix .. webext end
+	return resultpath
+end
+
 ACTIONS = {}
 
 ACTIONS.COPY = function(d)
+	local resultpath = utils.join_path(d.indir, d.infile_noext .. " (cut)" .. d.ext)
+	if (o.localsavetofolder) then resultpath = checkPaths(d, "(cut)") end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -78,7 +144,7 @@ ACTIONS.COPY = function(d)
 		"-map", "0",
 		"-dn",
 		"-avoid_negative_ts", "make_zero",
-		utils.join_path(d.indir, d.infile_noext .. " (cut)" .. d.ext)
+		resultpath
 	}
 	print("Saving cut...")
 	mp.command_native_async({
@@ -125,6 +191,8 @@ ACTIONS.COMPRESS = function(d)
 	end
 	msg.info("Adjusted bitrate:" .. target_bitrate)
 
+	local resultpath = utils.join_path(d.indir, d.infile_noext .. " (compress)" .. d.ext)
+	if (o.localsavetofolder) then resultpath = checkPaths(d, "(compress)") end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -137,7 +205,7 @@ ACTIONS.COMPRESS = function(d)
 		"-b:v", target_bitrate .. "k",
 		"-c:a", "aac",
 		"-b:a", "128k",
-		utils.join_path(d.indir, d.infile_noext .. " (compress)" .. d.ext)
+		resultpath
 	}
 	print("Saving cut...")
 	mp.command_native_async({
@@ -148,6 +216,8 @@ ACTIONS.COMPRESS = function(d)
 end
 
 ACTIONS.ENCODE = function(d)
+	local resultpath = utils.join_path(d.indir, d.infile_noext .. " (encode)" .. d.ext)
+	if (o.localsavetofolder) then resultpath = checkPaths(d, "(encode)") end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -158,7 +228,7 @@ ACTIONS.ENCODE = function(d)
 		"-pix_fmt", "yuv420p",
 		"-crf", "16",
 		"-preset", "superfast",
-		utils.join_path(d.indir, d.infile_noext .. " (encode)" .. d.ext)
+		resultpath
 	}
 	print("Saving cut...")
 	mp.command_native_async({
@@ -166,6 +236,18 @@ ACTIONS.ENCODE = function(d)
 		args = args,
 		playback_only = false,
 	}, function() print("Saved cut!") end)
+end
+
+RUNWEBCACHE = function(d)
+    local command = {
+        filename = checkPaths(d, "(cache)", fullpathsave)
+    }
+	command["name"] = "dump-cache"
+	command["start"] = d.start_time
+	command["end"] = d.end_time
+	mp.command_native_async(command, function() 
+		print("Written!")
+	end)
 end
 
 ACTION = o.action
@@ -211,9 +293,18 @@ local function cut(start_time, end_time)
 	local d = get_data()
 	local t = get_times(start_time, end_time)
 	for k, v in pairs(t) do d[k] = v end
-	mp.msg.info(ACTION)
-	mp.msg.info(table_to_str(d))
-	ACTIONS[ACTION](d)
+	if is_url(d.inpath) then
+		if o.usecacheforwebvideos then
+			mp.msg.info("WEBCACHE")
+			RUNWEBCACHE(d)
+		else
+			mp.msg.error("Can't cut on a web video (usecacheforwebvideos is disabled)")
+		end
+	else
+		mp.msg.info(ACTION)
+		mp.msg.info(table_to_str(d))
+		ACTIONS[ACTION](d)
+	end
 end
 
 local function put_time()

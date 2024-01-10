@@ -33,6 +33,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-01-10
+
+- Added the ability to choose a directory to save clips in (required for web video cache saving), using `savedirectory`
+- Implemented saving clips from web videos, using the cache in [mpvcut.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) based off [https://github.com/Sagnac/streamsave]https://github.com/Sagnac/streamsave
+
 ### 2023-12-31
 
 - Stopped [autolyrics.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) crashing when `downloadforall` is disabled

@@ -135,9 +135,7 @@ local function save_lyrics(lyrics)
 
     local function createDirectory(directoryPath)
         local args = {'mkdir', directoryPath}
-        if isWindows then 
-            args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath}
-        end
+        if isWindows then args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath} end
         local res = utils.subprocess({ args = args, cancellable = false })
         if res.status ~= 0 then
             mp.msg.error("Failed to create directory: " .. directoryPath)
@@ -170,8 +168,7 @@ local function save_lyrics(lyrics)
     
     if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
         if not isWindows then
-            subdir_path = dir_path:match("^(.-)/[^/]+/$")
-            print(subdir_path)
+            subdir_path = utils.split_path(dir_path)
             createDirectory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
         createDirectory(dir_path)
@@ -188,7 +185,7 @@ local function save_lyrics(lyrics)
     if lyrics:find('^%[') then
         mp.commandv("sub-add", lrc_path)
         mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files')
-        if manualrun or options.downloadforall then
+        if manualrun then
             mp.osd_message(success_message)
         end
         gotlyrics = true
@@ -203,6 +200,7 @@ end
 
 mp.add_key_binding('Alt+m', 'musixmatch-download', function() 
     manualrun = true
+    options.downloadforall = true
     musixmatchdownload() 
 end)
 
@@ -267,6 +265,7 @@ end
 
 mp.add_key_binding('Alt+n', 'netease-download', function() 
     manualrun = true
+    options.downloadforall = true
     neteasedownload() 
 end)
 
