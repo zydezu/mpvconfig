@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Fixed CJK characters not showing in screenshot folder and file names
 - [Implemented](https://github.com/zydezu/mpvconfig/issues/9) `persistentprogress` and `persistentbuffer` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
+- Fixed [Seekbarhandle does not hit the end position #3](https://github.com/zydezu/mpvconfig/issues/3)
 
 ### 2024-01-10
 

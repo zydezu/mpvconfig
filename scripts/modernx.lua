@@ -2602,8 +2602,10 @@ function osc_init()
             return {}
         end
     end
-    ne.slider.posF =
-        function () return mp.get_property_number('percent-pos', nil) end
+    ne.slider.posF = function () 
+            if mp.get_property_bool("eof-reached") then return 100 end
+            return mp.get_property_number('percent-pos', nil) 
+        end
     ne.slider.tooltipF = function (pos)
         local duration = mp.get_property_number('duration', nil)
         if not ((duration == nil) or (pos == nil)) then
@@ -2710,8 +2712,10 @@ function osc_init()
         ne.slider.markerF = function ()
             return {}
         end
-        ne.slider.posF =
-            function () return mp.get_property_number('percent-pos', nil) end
+        ne.slider.posF = function () 
+            if mp.get_property_bool("eof-reached") then return 100 end
+            return mp.get_property_number('percent-pos', nil) 
+        end 
         ne.slider.tooltipF = function()
             return ""
         end
@@ -3456,7 +3460,6 @@ mp.observe_property('osd-dimensions', 'native', function(name, val)
     --  we might have to worry about property update ordering)
     request_init_resize()
 end)
-
 -- mouse show/hide bindings
 mp.set_key_bindings({
     {'mouse_move',              function(e) process_event('mouse_move', nil) end},
