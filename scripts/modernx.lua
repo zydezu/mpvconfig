@@ -565,11 +565,14 @@ end
     --(+1 -> next, -1 -> previous)
 function set_track(type, next)
     local current_track_mpv, current_track_osc
+    current_track_osc = 0
     if (mp.get_property(type) == 'no') then
         current_track_osc = 0
     else
         current_track_mpv = tonumber(mp.get_property(type))
-        current_track_osc = tracks_mpv[type][current_track_mpv].osc_id
+        if (tracks_mpv[type][current_track_mpv]) then
+            current_track_osc = tracks_mpv[type][current_track_mpv].osc_id
+        end
     end
     local new_track_osc = (current_track_osc + next) % (#tracks_osc[type] + 1)
     local new_track_mpv

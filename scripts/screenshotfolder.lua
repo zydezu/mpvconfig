@@ -34,9 +34,8 @@ function init()
         end
         filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
     end
-    local pattern = '/[/\\?%*:|"<>]/g'
+    local pattern = '[\\/:*?"<>|]'
     title = filename:gsub(pattern, '')
-    print(title)
 
     setFileDir()
 end

@@ -4,12 +4,16 @@ local options = {
     loadforyoutube = true, -- try to load lyrics on youtube videos
     lyricsstore = "~~desktop/mpv/lrcdownloads/",
     storelyricsseperate = true, -- store lyrics in ~~desktop/mpv/lrcdownloads/
+    cacheloading = true, -- try to load lyrics that were already downloaded
 }
-local utils = require 'mp.utils'
 require 'mp.options'.read_options(options)
+local utils = require 'mp.utils'
+
 local manualrun = false
 local gotlyrics = false
 local withoutTimestamps = false
+local downloadingName = ""
+local downloadedSubsOn = false
 
 local function show_error(message)
     mp.msg.error(message)
@@ -145,11 +149,15 @@ local function save_lyrics(lyrics)
     end    
 
     local path = mp.get_property('path')
-    local media = mp.get_property("media-title")
+    local media = downloadingName .. " [" .. mp.get_property("media-title") .. "]"
+    local pattern = '[\\/:*?"<>|]'
 
     if (is_url(path) and path or nil) and options.loadforyoutube then
-        youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]"
-        local filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
+        local youtubeID = ""
+        if not downloadingName then 
+            youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]" 
+        end
+        local filename = string.gsub(media:sub(1, 100):gsub(pattern, ''), "^%s*(.-)%s*$", "%1") .. youtubeID
         path =  mp.command_native({"expand-path", options.lyricsstore .. filename})
     else
         if options.storelyricsseperate then
@@ -157,11 +165,11 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = (path:match('(.*)%.[^/]*$') or path) .. '.lrc'
+    local lrc_path = path .. '.lrc'
     local dir_path = lrc_path:match("(.+[\\/])")
     if isWindows then
-        lrc_path = (path:match('(.*)%.[^/]*$') or path):gsub("/", "\\") .. '.lrc'
-        dir_path = lrc_path:match("(.+[\\/])"):gsub("/", "\\")    
+        lrc_path = lrc_path:gsub("/", "\\")
+        dir_path = dir_path:gsub("/", "\\")
     end
     print(lrc_path)
     print(dir_path)
@@ -183,8 +191,18 @@ local function save_lyrics(lyrics)
     lrc:close()
 
     if lyrics:find('^%[') then
-        mp.commandv("sub-add", lrc_path)
-        mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files')
+        if not downloadedSubsOn then 
+            local old_subtitle_count, subtitle_count = get_subtitle_count(), nil
+            if options.cacheloading then
+                mp.set_property('sub-file-paths', mp.command_native({"expand-path", options.lyricsstore}))
+                mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files') 
+                subtitle_count = get_subtitle_count()
+            end
+            if (old_subtitle_count == subtitle_count) or not options.cacheloading then
+                mp.commandv("sub-add", lrc_path)
+                mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files') 
+            end
+        end
         if manualrun then
             mp.osd_message(success_message)
         end
@@ -215,7 +233,7 @@ function musixmatchdownload()
         print("Requesting: "..title.." - "..artist)
     end
 
-    mp.msg.info('Downloading lyrics')
+    mp.msg.info('Downloading lyrics (musixmatch)')
     if manualrun then
         mp.osd_message('Downloading lyrics (musixmatch)')
     end
@@ -247,9 +265,9 @@ function musixmatchdownload()
     end
 
     local body = response.message.body.macro_calls
-
     local lyrics = ''
     if body['matcher.track.get'].message.header.status_code == 200 then
+        downloadingName = body['matcher.track.get'].message.body.track.track_name
         if body['matcher.track.get'].message.body.track.has_subtitles == 1 then
             lyrics = body['track.subtitles.get'].message.body.subtitle_list[1].subtitle.subtitle_body
         elseif body['matcher.track.get'].message.body.track.has_lyrics == 1 then -- lyrics without timestamps
@@ -278,7 +296,7 @@ function neteasedownload()
 
     mp.msg.info('Downloading lyrics (netease)')
     if manualrun then
-        mp.osd_message('Downloading lyrics')
+        mp.osd_message('Downloading lyrics (netease)')
     end
 
     local response = curl({
@@ -328,6 +346,7 @@ function neteasedownload()
         ', artist ' .. song.artists[1].name ..
         ', album ' .. song.album.name
     )
+    downloadingName = song.name .. ' - ' .. song.artists[1].name
 
     response = curl({
         'curl',
@@ -354,14 +373,38 @@ mp.add_key_binding('Alt+o', 'offset-sub', function()
     mp.osd_message('Subtitles updated')
 end)
 
-function autodownload()
-    gotlyrics = false
-    musixmatchdownload()
-    if not gotlyrics then
-        neteasedownload()
+function get_subtitle_count()
+    local track_list = mp.get_property_native("track-list", {})
+    local subtitle_count = 0
+    for _, track in ipairs(track_list) do
+        if track["type"] == "sub" then
+            subtitle_count = subtitle_count + 1
+        end
     end
-    if withoutTimestamps then
-        mp.osd_message('Lyrics without timestamps downloaded automatically')
+    return subtitle_count
+end
+
+function autodownload()
+    downloadedSubsOn = false
+    local old_subtitle_count, subtitle_count = get_subtitle_count(), nil
+    if options.cacheloading then
+        -- check if already downloaded lyrics exist and were loaded
+        mp.set_property('sub-file-paths', mp.command_native({"expand-path", options.lyricsstore}))
+        mp.command(current_sub_path and 'sub-reload' or 'rescan-external-files')
+        subtitle_count = get_subtitle_count()
+    end
+    if (old_subtitle_count ~= subtitle_count) and options.cacheloading then
+        downloadedSubsOn = true
+        print("Subs previously downloaded - not downloading again")
+    else
+        gotlyrics = false
+        musixmatchdownload()
+        if not gotlyrics then
+            neteasedownload()
+        end
+        if withoutTimestamps then
+            mp.osd_message('Lyrics without timestamps downloaded automatically')
+        end
     end
 end
 

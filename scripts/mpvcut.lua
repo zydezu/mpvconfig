@@ -60,7 +60,8 @@ local webext = ".mkv"
 
 function getfullpath()
 	if fullpath then
-		fullpathsave = mp.command_native({"expand-path", o.savedirectory .. "/" .. mp.get_property("media-title")})
+		local pattern = '[\\/:*?"<>|]'
+		fullpathsave = mp.command_native({"expand-path", o.savedirectory .. "/" .. mp.get_property("media-title"):gsub(pattern, '')})
 		if (o.usecacheforwebvideos and is_url(mp.get_property("path"))) then
 			local video = mp.get_property("video-format", "none")
 			local audio = mp.get_property("audio-codec-name", "none")

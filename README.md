@@ -38,6 +38,11 @@ Please note that many of these scripts have been slightly modified from their in
 - Fixed CJK characters not showing in screenshot folder and file names
 - [Implemented](https://github.com/zydezu/mpvconfig/issues/9) `persistentprogress` and `persistentbuffer` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
 - Fixed issue: [Seekbarhandle does not hit the end position](https://github.com/zydezu/mpvconfig/issues/3)
+- [mpvcut](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) fixed cache saving for certain web videos with specific characters in media names
+- [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) CJK fix... again
+- [autolyrics](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) now loads previously downloaded subtitles instantly, the script is smarter with what to download, using the new option `cacheloading`
+- In [autolyrics](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) filenames are now closer to the track's name, also CJK filenames fix
+- Stopped a crash when switching subtitles at the same time another external track added
 
 ### 2024-01-10
 
