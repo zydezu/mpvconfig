@@ -37,6 +37,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Fixed CJK characters not showing in screenshot folder and file names
 - [Implemented](https://github.com/zydezu/mpvconfig/issues/9) `persistentprogress` and `persistentbuffer` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
+
+![2024-01-12_08-47-05_210_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/a13d4d56-d7ba-48d8-8096-95fa2b1965b4)
 - Fixed issue: [Seekbarhandle does not hit the end position](https://github.com/zydezu/mpvconfig/issues/3)
 - [mpvcut](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) fixed cache saving for certain web videos with specific characters in media names
 - [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) CJK fix... again
