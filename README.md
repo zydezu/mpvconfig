@@ -33,6 +33,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-01-12
+
+- Fixed CJK characters not showing in screenshot folder and file names
+- [Implemented](https://github.com/zydezu/mpvconfig/issues/9) `persistentprogress` and `persistentbuffer` in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua)
+
 ### 2024-01-10
 
 - Added the ability to choose a directory to save clips in (required for web video cache saving), using `savedirectory`

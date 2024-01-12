@@ -149,7 +149,7 @@ local function save_lyrics(lyrics)
 
     if (is_url(path) and path or nil) and options.loadforyoutube then
         youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]"
-        local filename = string.gsub(media:sub(1, 35), "^%s*(.-)%s*$", "%1") .. youtubeID
+        local filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
         path =  mp.command_native({"expand-path", options.lyricsstore .. filename})
     else
         if options.storelyricsseperate then

@@ -32,10 +32,11 @@ function init()
         if options.includeYouTubeID then
             youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]"
         end
-        filename = string.gsub(media:sub(1, 35), "^%s*(.-)%s*$", "%1") .. youtubeID
+        filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
     end
-    local pattern = '[^a-zA-Z0-9 %-_.&!%[%]()]'
-    title = filename:gsub(pattern, '_')
+    local pattern = '/[/\\?%*:|"<>]/g'
+    title = filename:gsub(pattern, '')
+    print(title)
 
     setFileDir()
 end
