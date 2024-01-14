@@ -40,7 +40,7 @@ local user_opts = {
     bottomhover = true,             -- if the osc should only display when hovering at the bottom
     raisesubswithosc = true,        -- whether to raise subtitles above the osc when it's shown
     thumbnailborder = 2,            -- the width of the thumbnail border
-    persistentprogress = true,      -- always show a small progress line at the bottom of the screen
+    persistentprogress = false,     -- always show a small progress line at the bottom of the screen
     persistentprogressheight = 18,  -- the height of the persistentprogress bar
     persistentbuffer = false,       -- on web videos, show the buffer on the persistent progress line
 
