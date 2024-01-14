@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Altered the default yt-dlp settings in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) to make it work better on more video players, these change be changed with `ytdlpQuality`
 - Added the `updatetitleyoutubestats` option in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua), which when enabled, updates the window/OSC title bar with YouTube video stats (views, likes, dislikes)
+- Added the `persistentprogressheight` option to [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua), [as part of](https://github.com/zydezu/mpvconfig/issues/9) 
 
 ### 2024-01-12
 

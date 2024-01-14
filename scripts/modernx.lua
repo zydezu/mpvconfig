@@ -40,7 +40,8 @@ local user_opts = {
     bottomhover = true,             -- if the osc should only display when hovering at the bottom
     raisesubswithosc = true,        -- whether to raise subtitles above the osc when it's shown
     thumbnailborder = 2,            -- the width of the thumbnail border
-    persistentprogress = false,     -- always show a small progress line at the bottom of the screen
+    persistentprogress = true,      -- always show a small progress line at the bottom of the screen
+    persistentprogressheight = 18,  -- the height of the persistentprogress bar
     persistentbuffer = false,       -- on web videos, show the buffer on the persistent progress line
 
     -- title and chapter settings --
@@ -943,6 +944,7 @@ function render_elements(master_ass)
 
                                 elem_ass:new_event()
                                 elem_ass:pos(thumbX * r_w, ty - thumbMarginY - thumbfast.height * r_h)
+                                elem_ass:an(7)
                                 elem_ass:append(osc_styles.Tooltip)
                                 elem_ass:draw_start()
                                 elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
@@ -1849,7 +1851,7 @@ layouts = function ()
     
     if (user_opts.persistentprogress) then
         lo = add_layout('persistentseekbar')
-        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = 16}
+        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistentprogressheight}
         lo.style = osc_styles.SeekbarFg
         lo.slider.gap = 7
         lo.slider.tooltip_an = 0   
