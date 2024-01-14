@@ -51,6 +51,7 @@ local user_opts = {
     title = '${media-title}',       -- title shown on OSC - turn off dynamictitle for this option to apply
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
                                     -- differ (like with playing urls, audio or some media)
+    updatetitleyoutubestats = false,-- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
     font = 'mpv-osd-symbols',	    -- default osc font
                                     -- to be shown as OSC title
     titlefontsize = 28,             -- the font size of the title text
@@ -92,7 +93,7 @@ local user_opts = {
     showontop = true,               -- show window on top button
     showinfo = false,               -- show the info button
     downloadbutton = true,          -- show download button for web videos
-    ytdlpQuality = '-S res,ext:mp4:m4a' -- what quality of video the download button uses (max quality mp4 by default)
+    ytdlpQuality = '-f bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' -- what quality of video the download button uses (max quality mp4 by default)
 }
 
 -- Icons for jump button depending on jumpamount 
@@ -1389,7 +1390,7 @@ function exec_dislikes(args, result)
 end
 
 function addLikeCountToTitle()
-    if (user_opts.dynamictitle) then
+    if (user_opts.updatetitleyoutubestats) then
         state.viewcount = tonumber(state.localDescriptionClick:match('Views: (%d+)')) 
         state.likecount = tonumber(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount and state.likecount and state.dislikecount) then
