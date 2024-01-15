@@ -52,7 +52,7 @@ local user_opts = {
     title = '${media-title}',       -- title shown on OSC - turn off dynamictitle for this option to apply
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
                                     -- differ (like with playing urls, audio or some media)
-    updatetitleyoutubestats = false,-- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
+    updatetitleyoutubestats = true,-- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
     font = 'mpv-osd-symbols',	    -- default osc font
                                     -- to be shown as OSC title
     titlefontsize = 28,             -- the font size of the title text
@@ -1265,11 +1265,17 @@ function checkWebLink()
             exec_filesize(command)
         end
 
-        -- Youtube Return Dislike API  
+        -- Youtube Return Dislike API
         state.dislikes = ""
         if path:find('youtu%.?be') then
-            exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. 
-            string.gsub(mp.get_property_osd("filename"), "watch%?v=", "")}) 
+            msg.info("WEB: Loading dislike count...")
+            local pattern = "v=([^&]+)"
+            local match = string.match(mp.get_property_osd("filename"), pattern)
+            if match then
+                exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. match})
+            else
+                msg.info("WEB: Failed to fetch dislikes (API error)")
+            end
         end
         if user_opts.showdescription then
             msg.info("WEB: Loading video information...")
@@ -1328,6 +1334,12 @@ function exec_description(args, result)
         capture_stderr = true,
     }, function(res, val, err)
         state.localDescriptionClick = mp.get_property("media-title") .. string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', "\\N")
+        if (state.dislikes == "") then
+            print("NO DISLIKES")
+            state.localDescriptionClick = mp.get_property("media-title") .. string.gsub(string.gsub(val.stdout, '\r', '\\N'), '\n', "\\N")
+            state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
+            print(state.localDescriptionClick)
+        end
         addLikeCountToTitle()
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
@@ -1383,7 +1395,7 @@ function exec_dislikes(args, result)
         end
 
         if (not state.descriptionLoaded) then
-            state.localDescriptionClick = state.localDescriptionClick .. state.dislikes
+            state.localDescriptionClick = state.localDescriptionClick .. '\\N' .. state.dislikes
             state.videoDescription = state.localDescriptionClick
         else
             addLikeCountToTitle()

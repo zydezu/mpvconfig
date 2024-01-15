@@ -171,8 +171,8 @@ local function save_lyrics(lyrics)
         lrc_path = lrc_path:gsub("/", "\\")
         dir_path = dir_path:gsub("/", "\\")
     end
-    print(lrc_path)
-    print(dir_path)
+    -- print(lrc_path)
+    -- print(dir_path)
     
     if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
         if not isWindows then
@@ -367,7 +367,6 @@ mp.add_key_binding('Alt+o', 'offset-sub', function()
         return
     end
 
-    print(mp.get_property_number('playback-time'))
     mp.set_property('sub-delay', mp.get_property_number('playback-time'))
     mp.command('sub-reload')
     mp.osd_message('Subtitles updated')

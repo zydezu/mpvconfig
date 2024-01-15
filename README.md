@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-01-15
+
+- Updated dislike formatting and error checking
+
 ### 2024-01-14
 
 - Altered the default yt-dlp settings in [modernx.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/modernx.lua) to make it work better on more video players, these change be changed with `ytdlpQuality`
