@@ -29,8 +29,14 @@ function init()
 
     if is_url(path) and path or nil then
         youtubeID = ""
+        local _, _, videoID = string.find(mp.get_property("filename"), "([%w_-]+)%?si=")
+        local videoIDMatch = mp.get_property("filename"):match('[?&]v=([^&]+)')
         if options.includeYouTubeID then
-            youtubeID = " [" .. mp.get_property("filename"):match('[?&]v=([^&]+)') .. "]"
+            if (videoIDMatch) then
+                youtubeID = " [" .. videoIDMatch .. "]"
+            elseif (videoID) then
+                youtubeID = " [" .. videoID .. "]"
+            end
         end
         filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
     end

@@ -35,6 +35,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-01-15
 
+- Fixed fetching dislikes via the YouTube Dislike API in `modernX` and screenshotting in `screenshotfolder.lua` when viewing YouTube short 'share' links, along with the `dynamictitle` option
+
+### 2024-01-15
+
 - Updated dislike formatting and error checking
 
 ### 2024-01-14

@@ -1123,7 +1123,7 @@ function checktitle()
     -- print(mp.get_property("filename/no-ext"))
 
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamictitle then
-        if (string.find(mp.get_property("path"), "watch?")) then
+        if mp.get_property("path"):find('youtu%.?be') then
             user_opts.title = "${media-title}" -- youtube videos
         elseif mp.get_property("filename/no-ext") ~= mediatitle then
             user_opts.title = "${media-title} | ${filename}" -- {filename/no-ext}
@@ -1269,12 +1269,18 @@ function checkWebLink()
         state.dislikes = ""
         if path:find('youtu%.?be') then
             msg.info("WEB: Loading dislike count...")
+            local filename = mp.get_property_osd("filename")
             local pattern = "v=([^&]+)"
-            local match = string.match(mp.get_property_osd("filename"), pattern)
+            local match = string.match(filename, pattern)
             if match then
                 exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. match})
             else
-                msg.info("WEB: Failed to fetch dislikes (API error)")
+                local _, _, videoID = string.find(filename, "([%w_-]+)%?si=")
+                if videoID then
+                    exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. videoID})
+                else
+                    msg.info("WEB: Failed to fetch dislikes")
+                end
             end
         end
         if user_opts.showdescription then
@@ -1335,10 +1341,8 @@ function exec_description(args, result)
     }, function(res, val, err)
         state.localDescriptionClick = mp.get_property("media-title") .. string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', "\\N")
         if (state.dislikes == "") then
-            print("NO DISLIKES")
             state.localDescriptionClick = mp.get_property("media-title") .. string.gsub(string.gsub(val.stdout, '\r', '\\N'), '\n', "\\N")
             state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
-            print(state.localDescriptionClick)
         end
         addLikeCountToTitle()
 
