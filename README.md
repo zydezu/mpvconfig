@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-01-23
 
 - Added `downloadpath` in `modernX`, fixing [https://github.com/zydezu/ModernX/issues/4](https://github.com/zydezu/ModernX/issues/4)
+- Fixed CJK characters in video description and uploader name
 
 ### 2024-01-15
 
