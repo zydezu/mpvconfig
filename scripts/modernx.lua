@@ -94,6 +94,7 @@ local user_opts = {
     showontop = true,               -- show window on top button
     showinfo = false,               -- show the info button
     downloadbutton = true,          -- show download button for web videos
+    downloadpath = "~~desktop/mpv/downloads", -- the download path for videos
     ytdlpQuality = '-f bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' -- what quality of video the download button uses (max quality mp4 by default)
 }
 
@@ -2510,7 +2511,7 @@ function osc_init()
     ne.eventresponder['mbtn_left_up'] =
         function ()
             if (not state.videoCantBeDownloaded) then
-                local localpathnormal = mp.command_native({"expand-path", "~~desktop/mpv/downloads"})
+                local localpathnormal = mp.command_native({"expand-path", user_opts.downloadpath})
                 local localpath = localpathnormal
 
                 local function openFolder()
