@@ -95,8 +95,23 @@ local user_opts = {
     showinfo = false,               -- show the info button
     downloadbutton = true,          -- show download button for web videos
     downloadpath = "~~desktop/mpv/downloads", -- the download path for videos
+    showyoutubecomments = false,    -- EXPERIMENTAL - not ready
+    commentsdownloadpath = "~~desktop/mpv/downloads/comments", -- the download path for the comment JSON file
     ytdlpQuality = '-f bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' -- what quality of video the download button uses (max quality mp4 by default)
 }
+
+function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+ end 
 
 -- Icons for jump button depending on jumpamount 
 local jumpicons = { 
@@ -307,6 +322,7 @@ local state = {
     localDescriptionIsClickable = false,
     videoCantBeDownloaded = false,
     youtubeuploader = "",
+    youtubecomments = {},
 }
 
 local thumbfast = {
@@ -1284,6 +1300,7 @@ function checkWebLink()
                 end
             end
         end
+
         if user_opts.showdescription then
             msg.info("WEB: Loading video information...")
             local uploader = (state.youtubeuploader and '\\N\\R') or "%(uploader)s"
@@ -1296,8 +1313,66 @@ function checkWebLink()
             }
             exec_description(command)
         end
+
+        if user_opts.showyoutubecomments then
+            function file_exists(file)
+                local f = io.open(file, "rb")
+                if f then f:close() end
+                return f ~= nil
+              end              
+
+            function lines_from(file)
+                if not file_exists(file) then return {} end
+                local lines = {}
+                for line in io.lines(file) do 
+                  lines[#lines + 1] = line
+                end
+                return lines
+              end              
+
+            local ret = mp.command_native_async({
+                name = "subprocess",
+                args = { 
+                    "yt-dlp",
+                    "--skip-download",
+                    "--write-comments",
+                    "-o%(title)s",
+                    "-P " .. mp.command_native({"expand-path", user_opts.commentsdownloadpath}),
+                    state.path 
+                },
+                capture_stdout = true,
+                capture_stderr = true
+            }, function() 
+                msg.info("WEB: Downloaded comments")
+                local filename = mp.command_native({"expand-path", user_opts.commentsdownloadpath .. '/'}) .. mp.get_property("media-title") .. ".info.json"
+                print(filename)
+                local lines = lines_from(filename)
+                local jsoncomments = utils.parse_json(lines[1]).comments
+
+                state.localDescriptionClick = state.localDescriptionClick .. '\\N----------\\N'
+                for i=1, #jsoncomments do
+                    local comment = jsoncomments[i]
+                    local commentconstruction = comment.author .. ' | '
+                    if (comment.like_count) then
+                        commentconstruction = commentconstruction .. comment.like_count .. " likes"
+                    else
+                        commentconstruction = commentconstruction .. "0 likes"
+                    end
+                    if (comment.is_favorited) then
+                        commentconstruction = commentconstruction .. (comment.is_favorited and ' | Favorited ♡\\N')
+                    else
+                        commentconstruction = commentconstruction .. '\\N'
+                    end
+                    commentconstruction = commentconstruction .. comment.text .. '\\N-----\\N'
+                    print(commentconstruction)
+                    state.youtubecomments[i] = commentconstruction
+                    state.localDescriptionClick = state.localDescriptionClick .. commentconstruction
+                end
+            end )
+        end
     end
 end
+
 
 function exec(args, callback)
     msg.info("WEB: Running: " .. table.concat(args, " "))
@@ -2554,7 +2629,7 @@ function osc_init()
                         "-P " .. localpathnormal,
                         state.path 
                     }
-                    local status = exec(command, downloadDone)
+                    local status = exec(command, downloadDone)                
                 end
             else
                 show_message("\\N{\\an9}Can't be downloaded")
