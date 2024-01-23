@@ -1120,10 +1120,6 @@ end
 function checktitle()
     local mediatitle = mp.get_property("media-title")
 
-    -- print(mediatitle)
-    -- print(mp.get_property("filename"))
-    -- print(mp.get_property("filename/no-ext"))
-
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamictitle then
         if mp.get_property("path"):find('youtu%.?be') then
             user_opts.title = "${media-title}" -- youtube videos
@@ -1144,6 +1140,9 @@ function checktitle()
     local album = mp.get_property("filtered-metadata/by-key/Album")
     local description = mp.get_property("filtered-metadata/by-key/Description")
     local date = mp.get_property("filtered-metadata/by-key/Date")
+
+    state.youtubeuploader = artist
+    state.ytdescription = mp.get_property_native('metadata').ytdl_description or ""
 
     state.localDescriptionClick = title .. "\\N----------\\N"
     if (description ~= nil) then
@@ -1287,12 +1286,12 @@ function checkWebLink()
         end
         if user_opts.showdescription then
             msg.info("WEB: Loading video information...")
-            state.youtubeuploader = mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
-            local uploader = (state.youtubeuploader and '\\N\\N') or "%(uploader)s"
+            local uploader = (state.youtubeuploader and '\\N\\R') or "%(uploader)s"
+            local description = (state.ytdescription and '\\N\\R\\R\\N') or "%(description)s"
             local command = { 
                 "yt-dlp",
                 "--no-download", 
-                "-O \\N----------\\N%(description)s\\N----------\\NUploaded by: " .. uploader .. "\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
+                "-O \\N----------\\N" .. description .. "\\N----------\\NUploaded by: " .. uploader .. "\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
                 path
             }
             exec_description(command)
@@ -1338,14 +1337,12 @@ function exec_description(args, result)
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
-        if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA') then
+        state.localDescriptionClick = state.localDescriptionClick:gsub('\\N\\R\\R\\N', state.ytdescription)
+        if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA' or #descriptionText < 4) then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
-        elseif (#descriptionText < 4) then
-            print("Description failed to load!")
-            state.localDescriptionClick = state.localDescriptionClick:gsub(descriptionText, "descriptionfailed:( 説明文の読み込みに失敗しました！")
         end
 
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: \\N\\N", "Uploaded by: " .. state.youtubeuploader)
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: \\N\\R", "Uploaded by: " .. state.youtubeuploader)
 
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
@@ -1358,9 +1355,10 @@ function exec_description(args, result)
         -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
         if beforeLastPattern then
-            beforeLastPattern = beforeLastPattern:sub(1, 160)
             if #beforeLastPattern > 160 then
-                beforeLastPattern = beforeLastPattern .. '...'
+                beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
+            else
+                beforeLastPattern = beforeLastPattern:sub(1, 160)
             end
             afterLastPattern = afterLastPattern:gsub("Views:", emoticon.view):gsub("Comments:", emoticon.comment):gsub("Likes:", emoticon.like):gsub("Dislikes:", emoticon.dislike)  -- replace with icons
             state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
