@@ -1303,8 +1303,8 @@ function checkWebLink()
 
         if user_opts.showdescription then
             msg.info("WEB: Loading video information...")
-            local uploader = (state.youtubeuploader and '\\N\\R') or "%(uploader)s"
-            local description = (state.ytdescription and '\\N\\R\\R\\N') or "%(description)s"
+            local uploader = (state.youtubeuploader and '\\N\\M') or "%(uploader)s"
+            local description = (state.ytdescription and '\\N\\M\\M\\N') or "%(description)s"
             local command = { 
                 "yt-dlp",
                 "--no-download", 
@@ -1412,12 +1412,12 @@ function exec_description(args, result)
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
-        state.localDescriptionClick = state.localDescriptionClick:gsub('\\N\\R\\R\\N', state.ytdescription)
+        state.localDescriptionClick = state.localDescriptionClick:gsub('\\N\\M\\M\\N', state.ytdescription:gsub('\r', '\\N'):gsub('\n', "\\N"))
         if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA' or #descriptionText < 4) then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
         end
 
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: \\N\\R", "Uploaded by: " .. state.youtubeuploader)
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: \\N\\M", "Uploaded by: " .. state.youtubeuploader)
 
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
