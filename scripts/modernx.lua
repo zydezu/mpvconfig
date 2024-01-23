@@ -306,6 +306,7 @@ local state = {
     localDescriptionClick = nil,
     localDescriptionIsClickable = false,
     videoCantBeDownloaded = false,
+    youtubeuploader = "",
 }
 
 local thumbfast = {
@@ -1286,10 +1287,12 @@ function checkWebLink()
         end
         if user_opts.showdescription then
             msg.info("WEB: Loading video information...")
+            state.youtubeuploader = mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
+            local uploader = (state.youtubeuploader and '\\N\\N') or "%(uploader)s"
             local command = { 
                 "yt-dlp",
                 "--no-download", 
-                "-O \\N----------\\N%(description)s\\N----------\\NUploaded by: %(uploader)s\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
+                "-O \\N----------\\N%(description)s\\N----------\\NUploaded by: " .. uploader .. "\nUploaded: %(upload_date>".. user_opts.dateformat ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
                 path
             }
             exec_description(command)
@@ -1319,20 +1322,6 @@ function downloadDone(success, result, error)
     state.downloading = false
 end
 
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
- end
- 
-
 function exec_description(args, result)
     local ret = mp.command_native_async({
         name = "subprocess",
@@ -1351,10 +1340,17 @@ function exec_description(args, result)
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
         if (descriptionText == '' or descriptionText == '\\N' or descriptionText == 'NA') then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
+        elseif (#descriptionText < 4) then
+            print("Description failed to load!")
+            state.localDescriptionClick = state.localDescriptionClick:gsub(descriptionText, "descriptionfailed:( 説明文の読み込みに失敗しました！")
         end
+
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: \\N\\N", "Uploaded by: " .. state.youtubeuploader)
+
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("Dislikes: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("NA", "")
@@ -1362,7 +1358,10 @@ function exec_description(args, result)
         -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
         if beforeLastPattern then
-            beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
+            beforeLastPattern = beforeLastPattern:sub(1, 160)
+            if #beforeLastPattern > 160 then
+                beforeLastPattern = beforeLastPattern .. '...'
+            end
             afterLastPattern = afterLastPattern:gsub("Views:", emoticon.view):gsub("Comments:", emoticon.comment):gsub("Likes:", emoticon.like):gsub("Dislikes:", emoticon.dislike)  -- replace with icons
             state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
             local startPos, endPos = state.videoDescription:find("\\N----------\\N")
