@@ -40,7 +40,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-01-23
 
 - Added `downloadpath` in `modernX`, fixing [https://github.com/zydezu/ModernX/issues/4](https://github.com/zydezu/ModernX/issues/4)
-- Fixed CJK characters in video description and uploader name
+- Fixed CJK characters in video description and uploader name, fixing [https://github.com/zydezu/mpvconfig/issues/12]
 - Added an experimental toggle to view comments of a video (very unstable)
 
 ### 2024-01-15
