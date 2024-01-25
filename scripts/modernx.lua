@@ -1144,8 +1144,6 @@ function checktitle()
         else
             user_opts.title = "${filename}" -- audio with the same title (without file extension) and filename
         end
-    else
-        user_opts.title = "${media-title}"
     end
 
     -- fake description using metadata
@@ -1388,7 +1386,7 @@ end
 
 function downloadDone(success, result, error)
     if success then
-        show_message("\\N{\\an9}Download saved to " .. mp.command_native({"expand-path", "~~desktop/mpv/downloads"}))
+        show_message("\\N{\\an9}Download saved to " .. mp.command_native({"expand-path", user_opts.downloadpath}))
         state.downloadedOnce = true
     else
         show_message("\\N{\\an9}WEB: Download failed - " .. (error or "Unknown error"))
