@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-01-25
 
 - Made switching between web videos in playlists in `modernX` more seamless, instantly clearing the description
+- Improved the description string splitting functions in `modernX`
 
 ### 2024-01-23
 
