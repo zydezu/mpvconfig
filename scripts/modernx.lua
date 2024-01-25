@@ -1125,6 +1125,12 @@ end
 
 -- downloading --
 
+function newfilereset()
+    request_init()
+    state.videoDescription = "Loading description..."
+    state.fileSizeNormalised = "Approximating size..."
+end
+
 function startupevents()
     state.videoDescription = "Loading description..."
     state.fileSizeNormalised = "Approximating size..."
@@ -1132,6 +1138,19 @@ function startupevents()
     checkWebLink()
     destroyscrollingkeys() -- close description
 end
+
+function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+end 
 
 function checktitle()
     local mediatitle = mp.get_property("media-title")
@@ -1157,6 +1176,8 @@ function checktitle()
 
     state.youtubeuploader = artist
     state.ytdescription = mp.get_property_native('metadata').ytdl_description or ""
+
+    print(dump(mp.get_property_native('metadata')))
 
     state.localDescriptionClick = title .. "\\N----------\\N"
     if (description ~= nil) then
@@ -1312,65 +1333,68 @@ function checkWebLink()
             exec_description(command)
         end
 
-        if user_opts.showyoutubecomments then
-            function file_exists(file)
-                local f = io.open(file, "rb")
-                if f then f:close() end
-                return f ~= nil
-              end              
-
-            function lines_from(file)
-                if not file_exists(file) then return {} end
-                local lines = {}
-                for line in io.lines(file) do 
-                  lines[#lines + 1] = line
-                end
-                return lines
-              end              
-
-            local ret = mp.command_native_async({
-                name = "subprocess",
-                args = { 
-                    "yt-dlp",
-                    "--skip-download",
-                    "--write-comments",
-                    "-o%(title)s",
-                    "-P " .. mp.command_native({"expand-path", user_opts.commentsdownloadpath}),
-                    state.path 
-                },
-                capture_stdout = true,
-                capture_stderr = true
-            }, function() 
-                msg.info("WEB: Downloaded comments")
-                local filename = mp.command_native({"expand-path", user_opts.commentsdownloadpath .. '/'}) .. mp.get_property("media-title") .. ".info.json"
-                print(filename)
-                local lines = lines_from(filename)
-                local jsoncomments = utils.parse_json(lines[1]).comments
-
-                state.localDescriptionClick = state.localDescriptionClick .. '\\N----------\\N'
-                for i=1, #jsoncomments do
-                    local comment = jsoncomments[i]
-                    local commentconstruction = comment.author .. ' | '
-                    if (comment.like_count) then
-                        commentconstruction = commentconstruction .. comment.like_count .. " likes"
-                    else
-                        commentconstruction = commentconstruction .. "0 likes"
-                    end
-                    if (comment.is_favorited) then
-                        commentconstruction = commentconstruction .. (comment.is_favorited and ' | Favorited ♡\\N')
-                    else
-                        commentconstruction = commentconstruction .. '\\N'
-                    end
-                    commentconstruction = commentconstruction .. comment.text .. '\\N-----\\N'
-                    print(commentconstruction)
-                    state.youtubecomments[i] = commentconstruction
-                    state.localDescriptionClick = state.localDescriptionClick .. commentconstruction
-                end
-            end )
-        end
+        checkcomments()
     end
 end
 
+function checkcomments()
+    if user_opts.showyoutubecomments then
+        function file_exists(file)
+            local f = io.open(file, "rb")
+            if f then f:close() end
+            return f ~= nil
+          end              
+
+        function lines_from(file)
+            if not file_exists(file) then return {} end
+            local lines = {}
+            for line in io.lines(file) do 
+              lines[#lines + 1] = line
+            end
+            return lines
+          end              
+
+        local ret = mp.command_native_async({
+            name = "subprocess",
+            args = { 
+                "yt-dlp",
+                "--skip-download",
+                "--write-comments",
+                "-o%(title)s",
+                "-P " .. mp.command_native({"expand-path", user_opts.commentsdownloadpath}),
+                state.path 
+            },
+            capture_stdout = true,
+            capture_stderr = true
+        }, function() 
+            msg.info("WEB: Downloaded comments")
+            local filename = mp.command_native({"expand-path", user_opts.commentsdownloadpath .. '/'}) .. mp.get_property("media-title") .. ".info.json"
+            print(filename)
+            local lines = lines_from(filename)
+            local jsoncomments = utils.parse_json(lines[1]).comments
+
+            state.localDescriptionClick = state.localDescriptionClick .. '\\N----------\\N'
+            for i=1, #jsoncomments do
+                local comment = jsoncomments[i]
+                local commentconstruction = comment.author .. ' | '
+                if (comment.like_count) then
+                    commentconstruction = commentconstruction .. comment.like_count .. " likes"
+                else
+                    commentconstruction = commentconstruction .. "0 likes"
+                end
+                if (comment.is_favorited) then
+                    commentconstruction = commentconstruction .. (comment.is_favorited and ' | Favorited ♡\\N')
+                else
+                    commentconstruction = commentconstruction .. '\\N'
+                end
+                commentconstruction = commentconstruction .. comment.text .. '\\N-----\\N'
+                print(commentconstruction)
+                state.youtubecomments[i] = commentconstruction
+                state.localDescriptionClick = state.localDescriptionClick .. commentconstruction
+            end
+        end )
+    end
+end
 
 function exec(args, callback)
     msg.info("WEB: Running: " .. table.concat(args, " "))
@@ -1428,10 +1452,11 @@ function exec_description(args, result)
         -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
         if beforeLastPattern then
-            if #beforeLastPattern > 160 then
-                beforeLastPattern = beforeLastPattern:sub(1, 160) .. '...'
+            local maxdescsize = 120
+            if #beforeLastPattern > maxdescsize then
+                beforeLastPattern = beforeLastPattern:sub(1, maxdescsize) .. '...'
             else
-                beforeLastPattern = beforeLastPattern:sub(1, 160)
+                beforeLastPattern = beforeLastPattern:sub(1, maxdescsize)
             end
             afterLastPattern = afterLastPattern:gsub("Views:", emoticon.view):gsub("Comments:", emoticon.comment):gsub("Likes:", emoticon.like):gsub("Dislikes:", emoticon.dislike)  -- replace with icons
             state.videoDescription = beforeLastPattern  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")
@@ -3442,7 +3467,7 @@ end
 
 validate_user_opts()
 
-mp.register_event('start-file', request_init)
+mp.register_event('start-file', newfilereset)
 mp.register_event("file-loaded", startupevents)
 mp.observe_property('track-list', nil, request_init)
 mp.observe_property('playlist', nil, request_init)
