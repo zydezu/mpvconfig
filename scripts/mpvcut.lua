@@ -65,8 +65,10 @@ function getfullpath()
 		if (o.usecacheforwebvideos and is_url(mp.get_property("path"))) then
 			local video = mp.get_property("video-format", "none")
 			local audio = mp.get_property("audio-codec-name", "none")
+			print(video)
+			print(audio)
 			local webm={vp8=true,vp9=true,av1=true,opus=true,vorbis=true,none=true}
-			local mp4={h264=true,hevc=true,av1=true,mp3=true,flac=true,aac=true,none=true}
+			local mp4={h264=true,hevc=true,av1=true,opus=true,mp3=true,flac=true,aac=true,none=true}
 			if webm[video] and webm[audio] then
 				webext = ".webm"
 			elseif mp4[video] and mp4[audio] then
