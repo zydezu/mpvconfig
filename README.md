@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-01-28
+
+- Fix [https://github.com/zydezu/ModernX/issues/6](https://github.com/zydezu/ModernX/issues/6)
+
 ### 2024-01-25
 
 - Made switching between web videos in playlists in `modernX` more seamless, instantly clearing the description
