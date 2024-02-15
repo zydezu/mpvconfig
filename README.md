@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-02-15
 
 - Added `showfilesize`, fixing [https://github.com/zydezu/ModernX/issues/7](https://github.com/zydezu/ModernX/issues/7)
+- Fixed persistentprogress handle bar size, [https://github.com/zydezu/ModernX/issues/8](https://github.com/zydezu/ModernX/issues/8)
 
 ### 2024-01-28
 

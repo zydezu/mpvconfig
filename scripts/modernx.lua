@@ -41,7 +41,7 @@ local user_opts = {
     raisesubswithosc = true,        -- whether to raise subtitles above the osc when it's shown
     thumbnailborder = 2,            -- the width of the thumbnail border
     persistentprogress = false,     -- always show a small progress line at the bottom of the screen
-    persistentprogressheight = 18,  -- the height of the persistentprogress bar
+    persistentprogressheight = 17,  -- the height of the persistentprogress bar
     persistentbuffer = false,       -- on web videos, show the buffer on the persistent progress line
 
     -- title and chapter settings --
@@ -800,7 +800,7 @@ function render_persistentprogressbar(master_ass)
             -- draw pos marker
             local pos = element.slider.posF()
             local seekRanges = element.slider.seekRangesF()
-            local rh = user_opts.seekbarhandlesize * elem_geo.h / 2 -- Handle radius
+            local rh = 0 -- Handle radius
             local xp
                 
             if pos then
