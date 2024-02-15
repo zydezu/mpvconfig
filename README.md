@@ -37,6 +37,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Added `showfilesize`, fixing [https://github.com/zydezu/ModernX/issues/7](https://github.com/zydezu/ModernX/issues/7)
 - Fixed persistentprogress handle bar size, [https://github.com/zydezu/ModernX/issues/8](https://github.com/zydezu/ModernX/issues/8)
+- Fixed [https://github.com/zydezu/mpvconfig/issues/13](https://github.com/zydezu/mpvconfig/issues/13)
+- Fixed description text positioning
 
 ### 2024-01-28
 

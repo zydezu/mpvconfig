@@ -1171,7 +1171,8 @@ function checktitle()
     if (description ~= nil) then
         description = string.gsub(description, '\n', '\\N')
         description = string.gsub(description, '\r', '\\N') -- old youtube videos seem to use /r
-        state.localDescription = description
+        state.localDescription = description:sub(1, 120)
+        state.localDescriptionClick = state.localDescriptionClick .. description .. "\\N----------"
         state.localDescriptionIsClickable = true
     end
     if (artist ~= nil) then
@@ -1180,8 +1181,8 @@ function checktitle()
             state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
             state.localDescriptionIsClickable = true
         else
-            state.localDescriptionClick = state.localDescriptionClick .. state.localDescription .. "\\N----------\\NBy: " .. artist
-            state.localDescription = state.localDescription:sub(1, 120) .. " | By: " .. artist
+            state.localDescriptionClick = state.localDescriptionClick .. "\\NBy: " .. artist
+            state.localDescription = state.localDescription .. " | By: " .. artist
         end
     end
     if (album ~= nil) then
@@ -2046,7 +2047,7 @@ layouts = function ()
         lo.geometry = geo
         lo.style = osc_styles.Description
         lo.alpha[3] = 0
-        lo.button.maxchars = geo.w / 5
+        lo.button.maxchars = geo.w / 8
     end
 
     -- Volumebar
