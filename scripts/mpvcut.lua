@@ -3,7 +3,7 @@ msg = require "mp.msg"
 
 local o = {
 	-- Save location
-	localsavetofolder = true, -- Save to `savedirectory` instead of the current folder
+	localsavetofolder = false, -- Save to `savedirectory` instead of the current folder
 	savedirectory = "~~desktop/mpv/clips", -- Required for web videos
 
 	-- Key config

@@ -48,6 +48,7 @@ local user_opts = {
     showtitle = true,		        -- show title in OSC
     showdescription = true,         -- show video description on web videos
     showwindowtitle = true,         -- show window title in borderless/fullscreen mode
+    showfilesize = true,            -- show the current file's size in the description
     titleBarStrip = true,           -- whether to make the title bar a singular bar instead of a black fade
     title = '${media-title}',       -- title shown on OSC - turn off dynamictitle for this option to apply
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
@@ -1227,15 +1228,17 @@ function checktitle()
         return string.format("%.2f %s", file_size, units[unit_index])
     end
 
-    file_size = mp.get_property_native("file-size")
-    if (file_size ~= nil) then
-        file_size = format_file_size(file_size)
-        if (state.localDescription == nil) then -- only metadata
-            state.localDescription = "Size: " .. file_size
-            state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
-            state.localDescriptionIsClickable = true
-        else
-            state.localDescriptionClick = state.localDescriptionClick .. "\\NSize: " .. file_size
+    if (user_opts.showfilesize) then
+        file_size = mp.get_property_native("file-size")
+        if (file_size ~= nil) then
+            file_size = format_file_size(file_size)
+            if (state.localDescription == nil) then -- only metadata
+                state.localDescription = "Size: " .. file_size
+                state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
+                state.localDescriptionIsClickable = true
+            else
+                state.localDescriptionClick = state.localDescriptionClick .. "\\NSize: " .. file_size
+            end
         end
     end
 end
