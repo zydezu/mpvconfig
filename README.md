@@ -33,6 +33,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-02-24
+
+- Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10)
+- Merged [https://github.com/zydezu/ModernX/pull/11](https://github.com/zydezu/ModernX/pull/11)
+
 ### 2024-02-15
 
 - Added `showfilesize`, fixing [https://github.com/zydezu/ModernX/issues/7](https://github.com/zydezu/ModernX/issues/7)
