@@ -35,8 +35,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-02-24
 
-- Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10)
-- Merged [https://github.com/zydezu/ModernX/pull/11](https://github.com/zydezu/ModernX/pull/11)
+- Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10), fixing some formatting in `modernX`
+- Merged [https://github.com/zydezu/ModernX/pull/11](https://github.com/zydezu/ModernX/pull/11), updaing the audio/subtitle icons in `modernX`
+- Fix reply icon
+- Merged [https://github.com/zydezu/ModernX/pull/12](https://github.com/zydezu/ModernX/pull/12), adding the option `keybindings` to `modernX`
 
 ### 2024-02-15
 
