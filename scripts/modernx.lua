@@ -1178,21 +1178,22 @@ function checktitle()
         description = description:gsub('\n', '\\N'):gsub('\r', '\\N') -- old youtube videos seem to use /r
         
         local utf8split, lastchar = splitUTF8(description, maxdescsize) -- account for CJK
+        local desc
         if utf8split then
             if #utf8split == #description then
-                description = utf8split
+                desc = utf8split
             else
-                description = utf8split .. '...'
+                desc = utf8split .. '...'
             end
         else
             if #description > maxdescsize then
-                description = description:sub(1, maxdescsize) .. '...'
+                desc = description:sub(1, maxdescsize) .. '...'
             else
-                description = description:sub(1, maxdescsize)
+                desc = description:sub(1, maxdescsize)
             end
         end
         
-        state.localDescription = description
+        state.localDescription = desc
         state.localDescriptionClick = state.localDescriptionClick .. description .. "\\N----------"
         state.localDescriptionIsClickable = true
     end
@@ -1445,7 +1446,8 @@ function splitUTF8(str, maxLength)
         elseif byte >= 192 and byte <= 223 then
             charLength = 2
         elseif byte >= 224 and byte <= 239 then
-            charLength = 3
+            charLength = 3 
+            -- CJK
         elseif byte >= 240 and byte <= 247 then
             charLength = 4
         else
@@ -1513,7 +1515,7 @@ function exec_description(args, result)
 
             if desc then
                 if utf8split then
-                    if #utf8split == #state.ytdescription then
+                    if #utf8split == #desc then
                         desc = utf8split
                     else
                         desc = utf8split .. '...'
@@ -3083,7 +3085,7 @@ function adjustSubtitles(visible)
         if h > 0 then
             local subpos = math.floor((osc_param.playresy - 175)/osc_param.playresy*100)
             if subpos < 0 then
-                subpos = 0
+                subpos = 100 -- out of screen, default to original position
             end
             mp.commandv('set', 'sub-pos', subpos) -- percentage
         end
