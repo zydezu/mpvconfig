@@ -54,7 +54,7 @@ local user_opts = {
     title = '${media-title}',       -- title shown on OSC - turn off dynamictitle for this option to apply
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
                                     -- differ (like with playing urls, audio or some media)
-    updatetitleyoutubestats = false,-- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
+    updatetitleyoutubestats = true, -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
     font = 'mpv-osd-symbols',       -- default osc font
                                     -- to be shown as OSC title
     titlefontsize = 28,             -- the font size of the title text
@@ -91,7 +91,7 @@ local user_opts = {
     compactmode = true,             -- replace the jump buttons with the chapter buttons, clicking the
                                     -- buttons will act as jumping, and shift clicking will act as
                                     -- skipping a chapter
-    showloop = false,               -- show the loop button
+    showloop = true,                -- show the loop button
     loopinpause = true,             -- activate looping by right clicking pause
     showontop = true,               -- show window on top button
     showinfo = false,               -- show the info button
@@ -138,8 +138,8 @@ local icons = {
   sub = '\239\140\164',
   minimize = '\239\133\172',
   fullscreen = '\239\133\173',  
-  loopoff = '\239\142\173',
-  loopon = '\239\142\174', 
+  loopoff = '',
+  loopon = '', 
   info = '\239\135\183',
   download = '\239\136\160',
   downloading = '\239\134\185',
@@ -1164,9 +1164,12 @@ function checktitle()
     local date = mp.get_property("filtered-metadata/by-key/Date")
 
     state.youtubeuploader = artist
-    state.ytdescription = mp.get_property_native('metadata').ytdl_description or ""
-
-    print(utils.to_string(mp.get_property_native('metadata')))
+    if mp.get_property_native('metadata') then
+        state.ytdescription = mp.get_property_native('metadata').ytdl_description or ""
+        print("Metadata: " .. utils.to_string(mp.get_property_native('metadata')))
+    else
+        print("Failed to load metadata")
+    end
 
     state.localDescriptionClick = title .. "\\N----------\\N"
     if (description ~= nil) then
@@ -1462,8 +1465,9 @@ function exec_description(args, result)
 
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
-        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N')
-        state.localDescriptionClick = state.localDescriptionClick:gsub('<$\\N!desc!\\N$>', state.ytdescription)
+        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%%%")
+        print(state.ytdescription)
+        state.localDescriptionClick = state.localDescriptionClick:gsub("<$\\N!desc!\\N$>", state.ytdescription)
         if (state.ytdescription == '' or state.ytdescription == '\\N' or state.ytdescription == 'NA' or #state.ytdescription < 4) then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
         end
@@ -3061,7 +3065,11 @@ function adjustSubtitles(visible)
     if visible and user_opts.raisesubswithosc and state.osc_visible == true and (state.fullscreen == false or user_opts.showfullscreen) then
         local w, h = mp.get_osd_size()
         if h > 0 then
-            mp.commandv('set', 'sub-pos', math.floor((osc_param.playresy - 175)/osc_param.playresy*100)) -- percentage
+            local subpos = math.floor((osc_param.playresy - 175)/osc_param.playresy*100)
+            if subpos < 0 then
+                subpos = 0
+            end
+            mp.commandv('set', 'sub-pos', subpos) -- percentage
         end
     elseif user_opts.raisesubswithosc then
         mp.commandv('set', 'sub-pos', 100)
