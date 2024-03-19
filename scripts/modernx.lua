@@ -1399,7 +1399,6 @@ function exec(args, callback)
         capture_stdout = true,
         capture_stderr = true
     }, callback)
-    msg.info("WEB: Download complete.")
     return ret.status
 end
 
@@ -1407,8 +1406,10 @@ function downloadDone(success, result, error)
     if success then
         show_message("\\N{\\an9}Download saved to " .. mp.command_native({"expand-path", user_opts.downloadpath}))
         state.downloadedOnce = true
+        msg.info("WEB: Download complete")
     else
         show_message("\\N{\\an9}WEB: Download failed - " .. (error or "Unknown error"))
+        msg.info("WEB: Download failed")
     end
     state.downloading = false
 end
@@ -1466,7 +1467,6 @@ function exec_description(args, result)
         -- check if description exists, if it doesn't get rid of the extra "----------"
         local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
         state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%%%")
-        print(state.ytdescription)
         state.localDescriptionClick = state.localDescriptionClick:gsub("<$\\N!desc!\\N$>", state.ytdescription)
         if (state.ytdescription == '' or state.ytdescription == '\\N' or state.ytdescription == 'NA' or #state.ytdescription < 4) then
             state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
