@@ -334,6 +334,8 @@ local thumbfast = {
     available = false
 }
 
+local maxdescsize = 120
+
 local window_control_box_width = 138
 local tick_delay = 0.03
 
@@ -1173,9 +1175,24 @@ function checktitle()
 
     state.localDescriptionClick = title .. "\\N----------\\N"
     if (description ~= nil) then
-        description = string.gsub(description, '\n', '\\N')
-        description = string.gsub(description, '\r', '\\N') -- old youtube videos seem to use /r
-        state.localDescription = description:sub(1, 120)
+        description = description:gsub('\n', '\\N'):gsub('\r', '\\N') -- old youtube videos seem to use /r
+        
+        local utf8split, lastchar = splitUTF8(description, maxdescsize) -- account for CJK
+        if utf8split then
+            if #utf8split == #description then
+                description = utf8split
+            else
+                description = utf8split .. '...'
+            end
+        else
+            if #description > maxdescsize then
+                description = description:sub(1, maxdescsize) .. '...'
+            else
+                description = description:sub(1, maxdescsize)
+            end
+        end
+        
+        state.localDescription = description
         state.localDescriptionClick = state.localDescriptionClick .. description .. "\\N----------"
         state.localDescriptionIsClickable = true
     end
@@ -1487,8 +1504,7 @@ function exec_description(args, result)
         state.localDescriptionClick = state.localDescriptionClick:gsub("Dislikes: NA\\N", "")
         state.localDescriptionClick = state.localDescriptionClick:gsub("NA", "")
 
-        local maxdescsize = 120
-        local utf8split, lastchar = splitUTF8(state.ytdescription, maxdescsize)
+        local utf8split, lastchar = splitUTF8(state.ytdescription, maxdescsize) -- account for CJK
         
         -- segment localDescriptionClick parts with " | "
         local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
