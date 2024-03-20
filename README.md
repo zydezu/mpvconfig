@@ -33,6 +33,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 # Updates
 
+### 2024-03-20
+
+- Fix yt descriptions with % crashing modernX
+- Fix command message placement in modernX
+- Made description splitting consistant between online and local videos
+
 ### 2024-02-24
 
 - Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10), fixing some formatting in `modernX`
