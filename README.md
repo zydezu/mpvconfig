@@ -37,7 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Fix yt descriptions with % crashing modernX
 - Fix command message placement in modernX
-- Made description splitting consistant between online and local videos
+- Made description splitting consistent between online and local videos
 - Added the ability to toggle the persistent progress bar, with the `b` key, if `persistentprogresstoggle` is enabled
 
 ### 2024-02-24
