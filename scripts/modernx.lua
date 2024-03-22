@@ -103,19 +103,6 @@ local user_opts = {
     ytdlpQuality = '-f bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' -- what quality of video the download button uses (max quality mp4 by default)
 }
 
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
- end 
-
 -- Icons for jump button depending on jumpamount 
 local jumpicons = { 
     [5] = {'\239\142\177', '\239\142\163'}, 
@@ -1159,7 +1146,7 @@ function checktitle()
     end
 
     -- fake description using metadata
-    state.localDescription = nil
+    state.localDescription = nil`
     state.localDescriptionClick = nil
     local title = mp.get_property("media-title")
     local artist = mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
