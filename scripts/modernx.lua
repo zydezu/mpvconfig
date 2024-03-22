@@ -1146,7 +1146,7 @@ function checktitle()
     end
 
     -- fake description using metadata
-    state.localDescription = nil`
+    state.localDescription = nil
     state.localDescriptionClick = nil
     local title = mp.get_property("media-title")
     local artist = mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
