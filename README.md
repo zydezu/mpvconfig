@@ -35,8 +35,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-03-23
 
-- Fixed a random error
 - Fixed downloading not working on a playlist of videos
+
+### 2024-03-22
+
+- Removed debug code
 
 ### 2024-03-20
 
