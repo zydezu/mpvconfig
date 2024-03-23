@@ -1120,6 +1120,7 @@ end
 
 function newfilereset()
     request_init()
+    state.downloadedOnce = false
     state.videoDescription = "Loading description..."
     state.fileSizeNormalised = "Approximating size..."
 end
