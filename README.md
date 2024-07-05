@@ -29,6 +29,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-07-05
+
+- Prevent downloading comments if the option is disabled on web videos in `modernx.lua`
+- Stopped auto downloading lyrics on songs in `autolyrics.lua`
+
 ### 2024-06-22
 
 - Fix crashing when no comments are loaded
