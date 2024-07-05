@@ -5,6 +5,7 @@ local options = {
     lyricsstore = "~~desktop/mpv/lrcdownloads/",
     storelyricsseperate = true, -- store lyrics in ~~desktop/mpv/lrcdownloads/
     cacheloading = true, -- try to load lyrics that were already downloaded
+    runautomatically = false -- run this script without pressing Alt+m
 }
 require 'mp.options'.read_options(options)
 local utils = require 'mp.utils'
@@ -210,8 +211,7 @@ end
 
 mp.add_key_binding('Alt+m', 'musixmatch-download', function() 
     manualrun = true
-    options.downloadforall = true
-    musixmatchdownload() 
+    autodownload()
 end)
 
 function musixmatchdownload()
@@ -295,7 +295,7 @@ function neteasedownload()
         'curl',
         '--silent',
         '--get',
-        'https://music.xianqiao.wang/neteaseapiv2/search?limit=10',
+        'https://music.xianqiao.wang/neteaseapiv2/search?limit=9',
         '--data-urlencode', 'keywords=' .. title .. ' ' .. artist,
     })
 
@@ -376,6 +376,21 @@ function get_subtitle_count()
 end
 
 function autodownload()
+    if (old_subtitle_count ~= subtitle_count) and options.cacheloading then
+        print("Subs previously downloaded - not downloading again")
+    else
+        gotlyrics = false
+        musixmatchdownload()
+        if not gotlyrics then
+            neteasedownload()
+        end
+        if withoutTimestamps then
+            mp.osd_message('Lyrics without timestamps downloaded automatically')
+        end
+    end
+end
+
+function checkdownloadedsubs()
     local old_subtitle_count, subtitle_count = get_subtitle_count(), nil
 
     if old_subtitle_count > 0 then
@@ -391,18 +406,9 @@ function autodownload()
         subtitle_count = get_subtitle_count()
     end
 
-    if (old_subtitle_count ~= subtitle_count) and options.cacheloading then
-        print("Subs previously downloaded - not downloading again")
-    else
-        gotlyrics = false
-        musixmatchdownload()
-        if not gotlyrics then
-            neteasedownload()
-        end
-        if withoutTimestamps then
-            mp.osd_message('Lyrics without timestamps downloaded automatically')
-        end
+    if options.runautomatically then
+        autodownload()
     end
 end
 
-mp.register_event("file-loaded", autodownload)
+checkdownloadedsubs()
