@@ -62,7 +62,7 @@ local function get_metadata()
                 title = mp.get_property("media-title")
                 title = title:gsub('%b[]', '') .. " "
             end
-            artist = metadata.artist or metadata.ARTIST or metadata.Artist or mp.get_property("filtered-metadata/by-key/Uploader")
+            artist = metadata.artist or metadata.ARTIST or metadata.Artist or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
             if options.downloadforall and not artist then
                 artist = " "
             end
@@ -152,6 +152,8 @@ local function save_lyrics(lyrics)
         end
     end    
 
+    downloadingName = downloadingName:gsub("\\", " "):gsub("/", " ")
+
     local path = mp.get_property('path')
     local media = downloadingName .. " [" .. mp.get_property("filename/no-ext") .. "]"
     local pattern = '[\\/:*?"<>|]'
@@ -169,7 +171,9 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = path .. '.lrc'
+    print(downloadingName)
+
+    local lrc_path = (path .. '.lrc')
     local dir_path = lrc_path:match("(.+[\\/])")
     if isWindows then
         lrc_path = lrc_path:gsub("/", "\\")
@@ -185,6 +189,7 @@ local function save_lyrics(lyrics)
         end
         createDirectory(dir_path)
     end
+
 
     local lrc = io.open(lrc_path, 'w')
     if lrc == nil then

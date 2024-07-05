@@ -33,6 +33,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Prevent downloading comments if the option is disabled on web videos in `modernx.lua`
 - Stopped auto downloading lyrics on songs in `autolyrics.lua`
+- Fixed album artist not registering in `autolyrics.lua`
+- Fixed trying to save lyric files with "/" or "\" in their names in `autolyrics.lua`
 
 ### 2024-06-22
 
