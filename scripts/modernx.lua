@@ -1312,6 +1312,11 @@ function normaliseDate(date)
 end
 
 function is_url(s)
+    if (not s) then
+        user_opts.downloadbutton = false
+        return false
+    end
+
     return nil ~=
         string.match(s,
             "^[%w]-://[-a-zA-Z0-9@:%._\\+~#=]+%." ..
