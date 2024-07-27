@@ -17,38 +17,44 @@ local o = {
     open_keybind = 'o'
 }
 (require "mp.options").read_options(o)
+manuallydisabled = false
 
 function set_loop()
-    mp.osd_message("")
-    local duration = mp.get_property_native("duration")
+    if not manuallydisabled then
+        mp.osd_message("")
+        local duration = mp.get_property_native("duration")
 
-    -- Checks whether the loop status was changed for the last file
-    was_loop = mp.get_property_native("loop-file")
+        -- Checks whether the loop status was changed for the last file
+        was_loop = mp.get_property_native("loop-file")
 
-    -- Cancel operation if there is no file duration
-    if not duration then
-        return
-    end
-
-    -- Loops file if was_loop is false, and file meets requirements
-    if not was_loop then
-        if duration <= o.autoloop_duration then
-            print("Autolooped file")
-            mp.set_property_native("loop-file", true)
+        -- Cancel operation if there is no file duration
+        if not duration then
+            return
         end
-        if duration <= o.autoloop_duration or duration <= o.dontsaveduration or 
-        (mp.get_property_native("current-tracks/video") == nil) or (mp.get_property_native("current-tracks/video")["albumart"] == true) then
-            print("Not saving video position")
-            mp.set_property_bool("file-local-options/save-position-on-quit", false)
-            mp.set_property("file-local-options/watch-later-options", "start") -- so videos don't load paused
-            if o.playfromstart and mp.get_property_number("playback-time") > 0 then -- always play video from the start
-                mp.commandv("seek", 0, "absolute-percent", "exact")
+
+        -- Loops file if was_loop is false, and file meets requirements
+        if not was_loop then
+            if duration <= o.autoloop_duration then
+                print("Autolooped file")
+                mp.set_property_native("loop-file", true)
             end
+            if duration <= o.autoloop_duration or duration <= o.dontsaveduration or 
+            (mp.get_property_native("current-tracks/video") == nil) or (mp.get_property_native("current-tracks/video")["albumart"] == true) then
+                print("Not saving video position")
+                mp.set_property_bool("file-local-options/save-position-on-quit", false)
+                mp.set_property("file-local-options/watch-later-options", "start") -- so videos don't load paused
+                if o.playfromstart and mp.get_property_number("playback-time") > 0 then -- always play video from the start
+                    mp.commandv("seek", 0, "absolute-percent", "exact")
+                end
+            end
+        -- Unloops file if was_loop is true, and file does not meet requirements
+        elseif was_loop and duration > o.autoloop_duration then
+            mp.set_property_native("loop-file", false)
         end
-    -- Unloops file if was_loop is true, and file does not meet requirements
-    elseif was_loop and duration > o.autoloop_duration then
-        mp.set_property_native("loop-file", false)
     end
+    mp.observe_property('loop-file', 'bool',
+        function(name, val) manuallydisabled = true end
+    )
 end
 
 mp.register_event("file-loaded", set_loop)

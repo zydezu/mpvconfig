@@ -21,13 +21,22 @@ Please note that many of these scripts have been slightly modified from their in
 | -------------- | --------------- |
 | [autoload](https://github.com/mpv-player/mpv/blob/master/TOOLS/lua/autoload.lua) loads files in the directory to play through | None |
 | [autoloop](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua) loops files by default that are smaller than a set duration | **Ctrl+c** - Copy file path or URL to clipboard<br>**Ctrl+v** - Paste file path or URL and play it<br>**o** - Open file location or URL in browser |
-| [modernx](https://github.com/zydezu/modernx) an modern OSC for mpv with many additional features | **x** - Cycle through audio tracks <br>**c** - Cycle through subtitle tracks <br>**p** - Pin or unpin the window <br>**Tab** - Show chapter list <br> For more: [Check repository](https://github.com/zydezu/modernx#buttons) |
-| [mpvcut](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua.disable) allows clipping a segment of a video | **z** - Mark start segment <br> **z (again)** - Clip the video <br> **Shift+z** - Cancel the clip <br> **a** - Change mode (copy, encode, compress) |
-| [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) saves screenshots to a designated `~desktop/mpv/.../` folder | **s** - Take a screenshot |
-| [thumbfast](https://github.com/po5/thumbfast) show thumbnails on the scrubbing bar | None |
+| [modernx](https://github.com/zydezu/modernx) a modern OSC for mpv with many additional features | **x** - Cycle through audio tracks <br>**c** - Cycle through subtitle tracks <br>**p** - Pin or unpin the window <br>**Tab** - Show chapter list <br> For more: [See repository](https://github.com/zydezu/modernx#buttons) |
+| [mpvcut](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) allows clipping a segment of a video | **z** - Mark start segment <br> **z (again)** - Clip the video <br> **Shift+z** - Cancel the clip <br> **a** - Change mode (copy, encode, compress) |
+| [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) saves screenshots to a designated folder | **s** - Take a screenshot |
+| [selectformat](https://github.com/koonix/mpv-selectformat) allows you to change the quality of internet videos on the fly | **s** - Take a screenshot |
+| [sponsorblock](https://github.com/po5/mpv_sponsorblock) a fully-featured port of SponsorBlock for mpv | [See repository](https://github.com/po5/mpv_sponsorblock?tab=readme-ov-file#usage) |
+| [thumbfast](https://github.com/po5/thumbfast) show thumbnails when hovering the progress bar | None |
 | [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
 
 ## Updates
+
+### 2024-07-24
+
+- Fixed thumbnail being behind OSC text
+- Added [`selectformat.lua`](https://github.com/koonix/mpv-selectformat), allowing you to change the quality of internet videos on the fly
+- [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) now stops overwriting previously cut files
+- Fixed `autoloop` not staying disabled over a playlist of files
 
 ### 2024-07-05
 

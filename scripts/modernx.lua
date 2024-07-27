@@ -339,7 +339,7 @@ local maxdescsize = 125
 local commentsperpage = 25
 
 local window_control_box_width = 138
-local tick_delay = 0.01
+local tick_delay = 0.01 -- 100FPS
 
 local is_december = os.date("*t").month == 12
 
@@ -973,21 +973,23 @@ function render_elements(master_ass)
                                 thumbX = math.floor(thumbX + 0.5)
                                 thumbY = math.floor(thumbY + 0.5)
 
-                                elem_ass:new_event()
-                                elem_ass:pos(thumbX * r_w, ty - thumbMarginY - thumbfast.height * r_h)
-                                elem_ass:an(7)
-                                elem_ass:append(osc_styles.Tooltip)
-                                elem_ass:draw_start()
-                                elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
-                                elem_ass:draw_stop()
+                                if (state.anitype == nil) then
+                                    elem_ass:new_event()
+                                    elem_ass:pos(thumbX * r_w, ty - thumbMarginY - thumbfast.height * r_h)
+                                    elem_ass:an(7)
+                                    elem_ass:append(osc_styles.Tooltip)
+                                    elem_ass:draw_start()
+                                    elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
+                                    elem_ass:draw_stop()
 
-                                -- force tooltip to be centered on the thumb, even at far left/right of screen
-                                tx = (thumbX + thumbfast.width / 2) * r_w
-                                an = 2
+                                    -- force tooltip to be centered on the thumb, even at far left/right of screen
+                                    tx = (thumbX + thumbfast.width / 2) * r_w
+                                    an = 2
 
-                                mp.commandv("script-message-to", "thumbfast", "thumb",
-                                    hover_sec, thumbX, thumbY)
+                                    mp.commandv("script-message-to", "thumbfast", "thumb", hover_sec, thumbX, thumbY)
+                                end
 
+                                
                                 -- chapter title
                                 local se, ae = state.slider_element, elements[state.active_element]
                                 if user_opts.chapterformat ~= "no" and state.touchingprogressbar then

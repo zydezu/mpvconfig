@@ -30,7 +30,7 @@ local options = {
     tone_mapping = "auto",
 
     -- Overlay id
-    overlay_id = 42,
+    overlay_id = 46,
 
     -- Spawn thumbnailer on file load for faster initial thumbnails
     spawn_first = false,
