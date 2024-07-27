@@ -17,7 +17,7 @@ local o = {
 	-- File size target (MB)
 	compresssize = 24.00,
 	resolution = 720, -- Target resolution to compress to
-	aggressiveness = 1, -- Increase this to further compress
+	aggressiveness = 0.5, -- Increase this to further compress
 
 	-- Web videos/cache
 	usecacheforwebvideos = true,
@@ -214,7 +214,7 @@ ACTIONS.COMPRESS = function(d)
 	}
 	if (videoheight > o.resolution) then
 		resline = "scale=trunc(oh*a/2)*2:" .. o.resolution
-		target_bitrate = target_bitrate / ((videoheight / o.resolution) * o.aggressiveness)
+		target_bitrate = (target_bitrate * ((o.resolution / videoheight)) + target_bitrate) / 2 
 		args = {
 			"ffmpeg",
 			"-nostdin", "-y",
