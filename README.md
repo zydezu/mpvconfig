@@ -31,12 +31,13 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
-### 2024-07-24
+### 2024-07-28
 
 - Fixed thumbnail being behind OSC text
 - Added [`selectformat.lua`](https://github.com/koonix/mpv-selectformat), allowing you to change the quality of internet videos on the fly
 - [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) now stops overwriting previously cut files
 - Fixed `autoloop` not staying disabled over a playlist of files
+- Implement [https://github.com/dexeonify/mpv-config/commit/583faf0](https://github.com/dexeonify/mpv-config/commit/583faf0)
 
 ### 2024-07-05
 

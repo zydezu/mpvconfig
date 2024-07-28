@@ -86,10 +86,9 @@ local user_opts = {
     timefontsize = 18,              -- the font size of the time
     jumpamount = 5,                 -- change the jump amount (in seconds by default)
     jumpiconnumber = true,          -- show different icon when jumpamount is 5, 10, or 30
-    jumpmode = 'exact',             -- seek mode for jump buttons. e.g.
-                                    -- 'exact', 'relative+keyframes', etc.
+    jumpmode = 'exact',             -- seek mode for jump buttons - https://mpv.io/manual/stable/#command-interface-seek-%3Ctarget%3E-[%3Cflags%3E]
     volumecontrol = true,           -- whether to show mute button and volume slider
-    volumecontroltype = 'linear',   -- use linear or logarithmic volume scale
+    volumecontroltype = 'linear',   -- use 'linear' or 'log' (logarithmic) volume scale
     showjump = true,                -- show "jump forward/backward 5 seconds" buttons 
     showskip = true,                -- show the skip back and forward (chapter) buttons
     compactmode = true,             -- replace the jump buttons with the chapter buttons, clicking the
@@ -2359,11 +2358,11 @@ layouts = function ()
 
     -- Time
     lo = add_layout('tc_left')
-    lo.geometry = {x = 25, y = refY - 84, an = 7, w = 64, h = 20}
+    lo.geometry = {x = 25, y = refY - 84, an = 7, w = 100, h = 20}
     lo.style = osc_styles.Time
         
     lo = add_layout('tc_right')
-    lo.geometry = {x = osc_geo.w - 25 , y = refY -84, an = 9, w = 64, h = 20}
+    lo.geometry = {x = osc_geo.w - 25 , y = refY -84, an = 9, w = 100, h = 20}
     lo.style = osc_styles.Time
 
     -- Audio/Subtitle
