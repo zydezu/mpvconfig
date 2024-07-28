@@ -46,7 +46,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Stopped auto downloading lyrics on songs in `autolyrics.lua`
 - Fixed album artist not registering in `autolyrics.lua`
 - Fixed trying to save lyric files with "/" or "\" in their names in `autolyrics.lua`
-- In `modernx.lua` album artists and artists (from the file metadata) and now displayed seperately, instead of where previously 'artist' would override 'album artist'
+- In `modernx.lua` album artists and artists (from the file metadata) and now displayed separately, instead of where previously 'artist' would override 'album artist'
 
 ### 2024-06-22
 
