@@ -38,6 +38,7 @@ Please note that many of these scripts have been slightly modified from their in
 - [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) now stops overwriting previously cut files
 - Fixed `autoloop` not staying disabled over a playlist of files
 - Implement [https://github.com/dexeonify/mpv-config/commit/583faf0](https://github.com/dexeonify/mpv-config/commit/583faf0)
+- In modernX, `shift+left click` on the seekbar now scrubs to the exact position, whilst `left click` now scrubs to the keyframe position (faster)
 
 ### 2024-07-05
 

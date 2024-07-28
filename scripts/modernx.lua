@@ -60,8 +60,7 @@ local user_opts = {
                                     -- to be shown as OSC title
     titlefontsize = 30,             -- the font size of the title text
     chapterformat = 'Chapter: %s',  -- chapter print format for seekbar-hover. "no" to disable
-    dateformat = "%Y-%m-%d",        -- how dates should be formatted, when read from metadata 
-                                    -- (uses standard lua date formatting)
+    dateformat = "%Y-%m-%d",        -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
     osc_color = '000000',           -- accent of the OSC and the title bar, in format BBGGRR - http://www.tcax.org/docs/ass-specs.htm
     OSCfadealpha = 150,             -- alpha of the background box for the OSC
     boxalpha = 75,                  -- alpha of the window title bar
@@ -73,7 +72,7 @@ local user_opts = {
     seekbarbg_color = 'FFFFFF',     -- color of the remaining seekbar, in format BBGGRR - http://www.tcax.org/docs/ass-specs.htm
     seekbarkeyframes = false,       -- use keyframes when dragging the seekbar
     automatickeyframemode = true,   -- set seekbarkeyframes based on video length to prevent laggy scrubbing on long videos 
-    automatickeyframelimit = 1800,  -- videos of above this length (in seconds) will have seekbarkeyframes on
+    automatickeyframelimit = 600,   -- videos of above this length (in seconds) will have seekbarkeyframes on
     seekbarhandlesize = 0.8,        -- size ratio of the slider handle, range 0 ~ 1
     seekrange = true,               -- show seekrange overlay
     seekrangealpha = 150,           -- transparency of seekranges
@@ -86,7 +85,7 @@ local user_opts = {
     timefontsize = 18,              -- the font size of the time
     jumpamount = 5,                 -- change the jump amount (in seconds by default)
     jumpiconnumber = true,          -- show different icon when jumpamount is 5, 10, or 30
-    jumpmode = 'exact',             -- seek mode for jump buttons - https://mpv.io/manual/stable/#command-interface-seek-%3Ctarget%3E-[%3Cflags%3E]
+    jumpmode = 'relative',          -- seek mode for jump buttons - https://mpv.io/manual/stable/#command-interface-seek-%3Ctarget%3E-[%3Cflags%3E]
     volumecontrol = true,           -- whether to show mute button and volume slider
     volumecontroltype = 'linear',   -- use 'linear' or 'log' (logarithmic) volume scale
     showjump = true,                -- show "jump forward/backward 5 seconds" buttons 
@@ -3068,7 +3067,12 @@ function osc_init()
             end
 
         end
-    ne.eventresponder['mbtn_left_down'] = --exact seeks on single clicks
+    ne.eventresponder['mbtn_left_down'] =
+        function (element)
+            element.state.mbtnleft = true
+            mp.commandv('seek', get_slider_value(element), 'absolute-percent')
+        end
+    ne.eventresponder['shift+mbtn_left_down'] = --exact seeks on shift + left click
         function (element)
             element.state.mbtnleft = true
             mp.commandv('seek', get_slider_value(element), 'absolute-percent', 'exact')
