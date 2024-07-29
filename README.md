@@ -34,6 +34,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-07-29
 
 - Fix [https://github.com/zydezu/ModernX/issues/36](https://github.com/zydezu/ModernX/issues/36), reverting the keyframe change (button functions are swapped)
+- Fix [https://github.com/zydezu/ModernX/issues/35](https://github.com/zydezu/ModernX/issues/35)
 
 ### 2024-07-28
 
