@@ -165,7 +165,7 @@ function resetBitrate()
 end
 
 function getBitrate()
-	local video_bitrate = mp.get_property_number("video-bitrate")
+	local video_bitrate = mp.get_property_number("video-bitrate") / 1000
 	if video_bitrate then
 		avgCount = avgCount + 1
 		if averageBitrate == 9999999999999 then
@@ -180,7 +180,7 @@ mp.register_event("file-loaded", resetBitrate)
 mp.add_periodic_timer(2, getBitrate)
 
 ACTIONS.COMPRESS = function(d)
-	local target_bitrate = (o.compresssize * 8192) / d.duration -- Video bitrate (kilobytes)
+	local target_bitrate = ((o.compresssize * 8192) / d.duration * 0.9) -- Video bitrate (kilobytes)
 	msg.info("Initial bitrate: " .. target_bitrate)
 	local max_bitrate = target_bitrate
 	local video_bitrate = averageBitrate

@@ -33,7 +33,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-08-02
 
-- Fixed mpvcut.lua breaking when 'compressing' audio files
+- Fixed bitrate calculations in [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua)
+- Fixed [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) breaking when 'compressing' audio files
 
 ### 2024-07-29
 
