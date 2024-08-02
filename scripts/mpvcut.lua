@@ -185,7 +185,7 @@ ACTIONS.COMPRESS = function(d)
 	msg.info("Initial bitrate: " .. target_bitrate)
 	local max_bitrate = target_bitrate
 	local video_bitrate = averageBitrate
-	if video_bitrate then -- the average bitrate system is to stop small cuts from becoming too big
+	if video_bitrate and video_bitrate ~= -1 then -- the average bitrate system is to stop small cuts from becoming too big
 		max_bitrate = video_bitrate
 		msg.info("Max bitrate: " .. max_bitrate)
 		if target_bitrate > max_bitrate then
