@@ -173,7 +173,6 @@ function getBitrate()
 			averageBitrate = video_bitrate
 		else
 			averageBitrate = ((avgCount-1) * averageBitrate + video_bitrate) / avgCount
-			print(averageBitrate)
 		end
 	end
 end
