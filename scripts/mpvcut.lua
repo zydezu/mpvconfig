@@ -156,22 +156,24 @@ ACTIONS.COPY = function(d)
 	}, function() print("Saved clip!") end)
 end
 
-averageBitrate = 9999999999999
+averageBitrate = -1
 avgCount = 1
 
 function resetBitrate()
-	averageBitrate = 9999999999999
+	averageBitrate = -1
 	avgCount = 1
 end
 
 function getBitrate()
-	local video_bitrate = mp.get_property_number("video-bitrate") / 1000
+	local video_bitrate = mp.get_property_number("video-bitrate")
 	if video_bitrate then
+		video_bitrate = video_bitrate / 1000
 		avgCount = avgCount + 1
-		if averageBitrate == 9999999999999 then
+		if averageBitrate == -1 then
 			averageBitrate = video_bitrate
 		else
 			averageBitrate = ((avgCount-1) * averageBitrate + video_bitrate) / avgCount
+			print(averageBitrate)
 		end
 	end
 end
