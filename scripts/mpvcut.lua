@@ -17,7 +17,6 @@ local o = {
 	-- File size target (MB)
 	compresssize = 24.00,
 	resolution = 720, -- Target resolution to compress to
-	aggressiveness = 0.5, -- Increase this to further compress
 
 	-- Web videos/cache
 	usecacheforwebvideos = true,
@@ -186,13 +185,13 @@ ACTIONS.COMPRESS = function(d)
 	local max_bitrate = target_bitrate
 	local video_bitrate = averageBitrate
 	if video_bitrate then -- the average bitrate system is to stop small cuts from becoming too big
-		max_bitrate = video_bitrate / 900 -- account for 10% error
+		max_bitrate = video_bitrate
 		msg.info("Max bitrate: " .. max_bitrate)
 		if target_bitrate > max_bitrate then
 			target_bitrate = max_bitrate
 		end
 	end
-	msg.info("Adjusted bitrate: " .. target_bitrate)
+	msg.info("Using bitrate: " .. target_bitrate)
 
 	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
 	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
@@ -212,23 +211,25 @@ ACTIONS.COMPRESS = function(d)
 		"-c:a", "copy",
 		resultpath
 	}
-	if (videoheight > o.resolution) then
-		resline = "scale=trunc(oh*a/2)*2:" .. o.resolution
-		target_bitrate = (target_bitrate * ((o.resolution / videoheight)) + target_bitrate) / 2 
-		args = {
-			"ffmpeg",
-			"-nostdin", "-y",
-			"-loglevel", "error",
-			"-ss", d.start_time,
-			"-t", d.duration,
-			"-i", d.inpath,
-			"-vf", resline,
-			"-pix_fmt", "yuv420p",
-			"-c:v", "libx264",
-			"-b:v", target_bitrate .. "k",
-			"-c:a", "copy",
-			resultpath
-		}
+	if (videoheight) then
+		if (videoheight > o.resolution) then
+			resline = "scale=trunc(oh*a/2)*2:" .. o.resolution
+			target_bitrate = target_bitrate
+			args = {
+				"ffmpeg",
+				"-nostdin", "-y",
+				"-loglevel", "error",
+				"-ss", d.start_time,
+				"-t", d.duration,
+				"-i", d.inpath,
+				"-vf", resline,
+				"-pix_fmt", "yuv420p",
+				"-c:v", "libx264",
+				"-b:v", target_bitrate .. "k",
+				"-c:a", "copy",
+				resultpath
+			}
+		end
 	end
 
 	print("Saving clip...")
