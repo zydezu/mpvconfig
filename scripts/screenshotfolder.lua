@@ -23,7 +23,7 @@ function init()
                 "[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
     end
 
-    local filename = mp.get_property("filename")
+    local filename = mp.get_property("filename/no-ext")
     local media = mp.get_property("media-title")
     local path = mp.get_property("path")
 
@@ -52,7 +52,7 @@ function setFileDir()
     count = 0
     mp.set_property("screenshot-directory", "~~desktop/mpv/screenshots/"..title.."/")
     if options.saveAsTimeStamp then
-        mp.set_property("screenshot-template", currentTime)
+        mp.set_property("screenshot-template", "%tX")
     end
     mp.set_property("screenshot-format", options.fileExtension)
 end
@@ -65,7 +65,7 @@ function screenshotdone()
     mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}) .. mp.get_property("screenshot-template"))
     count = count + 1
     if options.saveAsTimeStamp then
-        mp.set_property("screenshot-template", currentTime .. "(" .. count .. ")")
+        mp.set_property("screenshot-template", "%tY-%tm-%td_%tH-%tM-%tS" .. "(" .. count .. ")")
     end
 end
 
