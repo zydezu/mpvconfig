@@ -1930,6 +1930,7 @@ function show_description(text)
             state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
             resetDescTimer()
             request_tick()
+            state.scrolledlines = 25
         else
             destroyscrollingkeys()
         end
