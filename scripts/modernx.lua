@@ -98,7 +98,7 @@ local user_opts = {
     showontop = true,               -- show window on top button
     showinfo = false,               -- show the info button
     downloadbutton = true,          -- show download button for web videos
-    screenshotbutton = true,        -- show screenshot button
+    screenshotbutton = false,        -- show screenshot button
     downloadpath = "~~desktop/mpv/downloads", -- the download path for videos
     showyoutubecomments = false,    -- EXPERIMENTAL - not ready
     commentsdownloadpath = "~~desktop/mpv/downloads/comments", -- the download path for the comment JSON file
@@ -1455,7 +1455,7 @@ function checkcomments()
 end
 
 function loadSetOfComments(startIndex) 
-    if (state.jsoncomments < 1) then
+    if (#state.jsoncomments < 1) then
         return
     end
 
@@ -1897,7 +1897,11 @@ function show_description(text)
     duration = 10
     if (state.isWebVideo and user_opts.showyoutubecomments) then
         if (state.commentsParsed and user_opts.showyoutubecomments) then
-            state.commentsAdditionalText = '\\N----------\\NPress LEFT/RIGHT to view comments\\N' .. state.maxCommentPages .. ' pages (' .. #state.jsoncomments .. ' comments)'
+            local pageText = "pages"
+            if state.maxCommentPages == 1 then
+                pageText = "page"
+            end
+            state.commentsAdditionalText = '\\N----------\\NPress LEFT/RIGHT to view comments\\N' .. state.maxCommentPages .. ' ' .. pageText .. ' (' .. #state.jsoncomments .. ' comments)'
             text = text .. state.commentsAdditionalText
         else
             text = text .. '\\N----------\\NComments loading...'
@@ -1930,6 +1934,17 @@ function show_description(text)
             destroyscrollingkeys()
         end
     end) -- close menu using ESC
+
+    local function returnMessageText()
+        local totalCommentCount = #state.jsoncomments
+        local firstCommentCount = (state.commentsPage - 1) * commentsperpage + 1
+        local lastCommentCount = (state.commentsPage) * commentsperpage
+        if lastCommentCount > totalCommentCount then
+            lastCommentCount = totalCommentCount
+        end
+        loadSetOfComments(firstCommentCount)
+        return 'Comments\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. firstCommentCount .. '/' .. #state.jsoncomments .. ')\\N----------' .. state.commentDescription:gsub('\n', '\\N') ..  '\\N----------\\NEnd of page\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. lastCommentCount .. '/' .. totalCommentCount .. ')'
+    end
     
     state.commentsPage = 0
     if (state.isWebVideo and user_opts.showyoutubecomments) then
@@ -1939,12 +1954,10 @@ function show_description(text)
                 if (state.commentsPage == 0) then
                     state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
                 elseif (state.commentsPage > 0) then
-                    loadSetOfComments((state.commentsPage - 1) * commentsperpage + 1)
-                    state.message_text = 'Comments | Page ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. (state.commentsPage - 1) * commentsperpage + 1 .. '/' .. #state.jsoncomments .. ')\\N----------' .. state.commentDescription:gsub('\n', '\\N')
+                    state.message_text = returnMessageText()
                 else
                     state.commentsPage = state.maxCommentPages
-                    loadSetOfComments((state.commentsPage - 1) * commentsperpage + 1)
-                    state.message_text = 'Comments | Page ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. (state.commentsPage - 1) * commentsperpage + 1 .. '/' .. #state.jsoncomments .. ')\\N----------' .. state.commentDescription:gsub('\n', '\\N')
+                    state.message_text = returnMessageText()
                 end
                 state.scrolledlines = 25
             end
@@ -1958,8 +1971,7 @@ function show_description(text)
                     state.commentsPage = 0
                     state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
                 else
-                    loadSetOfComments((state.commentsPage - 1) * commentsperpage + 1)
-                    state.message_text = 'Comments | Page ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. (state.commentsPage - 1) * commentsperpage + 1 .. '/' .. #state.jsoncomments .. ')\\N----------' .. state.commentDescription:gsub('\n', '\\N')    
+                    state.message_text = returnMessageText()
                 end
                 state.scrolledlines = 25
             end

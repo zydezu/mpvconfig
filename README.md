@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Changed some configs
 - Added an option for a screenshot button to `modernX.lua` [https://github.com/zydezu/ModernX/pull/40](https://github.com/zydezu/ModernX/pull/40)
 - Update `screenshotfolder.lua` to not include file extensions in folder directories
+- Improved YouTube comment parsing and viewing in `modernX.lua`
 
 ### 2024-08-02
 
