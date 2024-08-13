@@ -31,6 +31,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-08-13
+
+- Changed some configs
+- Added an option for a screenshot button to `modernX.lua` [https://github.com/zydezu/ModernX/pull/40](https://github.com/zydezu/ModernX/pull/40)
+- Update `screenshotfolder.lua` to not include file extensions in folder directories
+
 ### 2024-08-02
 
 - Fixed bitrate calculations in [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua)
