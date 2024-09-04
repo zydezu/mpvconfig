@@ -192,6 +192,9 @@ ACTIONS.COMPRESS = function(d)
 			target_bitrate = max_bitrate
 		end
 	end
+	if target_bitrate > 128 then
+		target_bitrate = target_bitrate - 128 -- minus audio bitrate
+	end
 	msg.info("Using bitrate: " .. target_bitrate)
 
 	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
