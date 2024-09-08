@@ -31,6 +31,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-09-08
+
+- Implement [https://github.com/zydezu/ModernX/issues/45](https://github.com/zydezu/ModernX/issues/45)
+
 ### 2024-08-13
 
 - Changed some configs
