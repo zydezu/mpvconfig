@@ -33,7 +33,6 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-10-03
 
-- Implement [https://github.com/zydezu/ModernX/issues/45](https://github.com/zydezu/ModernX/issues/45)
 - Implement [https://github.com/zydezu/ModernX/issues/50](https://github.com/zydezu/ModernX/issues/50)
 - Implement [https://github.com/zydezu/ModernX/issues/51](https://github.com/zydezu/ModernX/issues/51)
 - Implement [https://github.com/zydezu/ModernX/issues/54](https://github.com/zydezu/ModernX/issues/54)
