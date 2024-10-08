@@ -226,15 +226,18 @@ function musixmatchdownload()
         return
     end
 
-    if artist then
-        print("Requesting: "..title.." - "..artist)
-    end
+
 
     mp.msg.info('Fetching lyrics (musixmatch)')
     if manualrun then
         mp.osd_message('Fetching lyrics (musixmatch)')
     end
 
+    if artist then
+        mp.msg.info('Requesting: ' .. title .. ' - ' .. artist)
+    else 
+        mp.msg.info('Requesting: ' .. title)
+    end
     local response = curl({
         'curl',
         '--silent',
@@ -296,6 +299,11 @@ function neteasedownload()
         mp.osd_message('Fetching lyrics (netease)')
     end
 
+    if artist then
+        mp.msg.info('Requesting: ' .. title .. ' - ' .. artist)
+    else 
+        mp.msg.info('Requesting: ' .. title)
+    end
     local response = curl({
         'curl',
         '--silent',
