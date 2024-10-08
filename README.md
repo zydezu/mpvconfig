@@ -31,6 +31,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-10-08
+
+- Change subtitles styling
+- Better logging for `autolyrics.lua`
+
 ### 2024-10-03
 
 - Implement [https://github.com/zydezu/ModernX/issues/50](https://github.com/zydezu/ModernX/issues/50)
