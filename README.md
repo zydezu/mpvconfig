@@ -37,6 +37,11 @@ Please note that many of these scripts have been slightly modified from their in
 - Implement [https://github.com/zydezu/ModernX/pull/59](https://github.com/zydezu/ModernX/pull/59)
 - Add `dynamictimeformat` option to `modernX.lua`
 
+### 2024-10-17
+
+- Fix the 2K rendering profile (don't include only audio files with large album art in the condition)
+- Change subtitles styling
+
 ### 2024-10-08
 
 - Change subtitles styling
