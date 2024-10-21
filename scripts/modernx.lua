@@ -54,12 +54,14 @@ local user_opts = {
     showfilesize = true,            -- show the current file's size in the description
     titleBarStrip = true,           -- whether to make the title bar a singular bar instead of a black fade
     title = '${media-title}',       -- title shown on OSC - turn off dynamictitle for this option to apply
+    windowcontrols_title = "${media-title}",    -- same as title but for windowcontrols
     dynamictitle = true,            -- change the title depending on if {media-title} and {filename} 
                                     -- differ (like with playing urls, audio or some media)
     updatetitleyoutubestats = true, -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
     font = 'mpv-osd-symbols',       -- mpv-osd-symbols = default osc font (or the one set in mpv.conf)
                                     -- to be shown as OSC title
     titlefontsize = 30,             -- the font size of the title text
+    dynamictimeformat = true,      -- don't show hh on times less than 1 hour
     chapterformat = 'Chapter: %s',  -- chapter print format for seekbar-hover. "no" to disable
     dateformat = "%Y-%m-%d",        -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
     osc_color = '#000000',           -- accent of the OSC and the title bar, in Hex color format
@@ -69,8 +71,8 @@ local user_opts = {
     descriptionBoxAlpha = 100,      -- alpha of the description background box
 
     -- seekbar settings --
-    seekbarfg_color = '#429CE3',     -- color of the seekbar progress and handle, in Hex color format
-    seekbarbg_color = '#FFFFFF',     -- color of the remaining seekbar, in Hex color format
+    seekbarfg_color = '#429CE3',    -- color of the seekbar progress and handle, in Hex color format
+    seekbarbg_color = '#FFFFFF',    -- color of the remaining seekbar, in Hex color format
     seekbarkeyframes = false,       -- use keyframes when dragging the seekbar
     automatickeyframemode = true,   -- set seekbarkeyframes based on video length to prevent laggy scrubbing on long videos 
     automatickeyframelimit = 600,   -- videos of above this length (in seconds) will have seekbarkeyframes on
@@ -2155,7 +2157,7 @@ function window_controls()
     if user_opts.showwindowtitle then
         ne = new_element("windowtitle", "button")
         ne.content = function ()
-            local title = mp.command_native({"expand-text", mp.get_property('title')})
+            local title = mp.command_native({"expand-text", user_opts.windowcontrols_title})
             -- escape ASS, and strip newlines and trailing slashes
             title = title:gsub("\\n", " "):gsub("\\$", ""):gsub("{","\\{")
             local titleval = not (title == "") and title or "mpv video"
@@ -3059,7 +3061,7 @@ function osc_init()
         local duration = mp.get_property_number('duration', nil)
         if not ((duration == nil) or (pos == nil)) then
             possec = duration * (pos / 100)
-            return mp.format_time(possec)
+            return format_time(possec, true)
         else
             return ''
         end
@@ -3246,43 +3248,79 @@ function osc_init()
     ne.eventresponder["wheel_down_press"] =
         function () mp.commandv("osd-auto", "add", "volume", -5) end
     
-    -- tc_left (current pos)
-    ne = new_element('tc_left', 'button')
-    ne.content = function ()
-    if (state.fulltime) then
-        return mp.get_property_osd('playback-time/full'):gsub('-', '')
-    else
-        return mp.get_property_osd('playback-time'):gsub('-', '')
+    -- Helper function to format time
+    function format_time(seconds, dontincludems)
+        if not seconds then return "--:--" end
+        
+        local hours = math.floor(seconds / 3600)
+        local minutes = math.floor((seconds % 3600) / 60)
+        local whole_seconds = math.floor(seconds % 60)
+        local milliseconds = state.tc_ms and math.floor((seconds % 1) * 1000) or nil
+
+        -- Format string templates
+        local format_with_ms = hours > 0 and "%02d:%02d:%02d.%03d" or "%02d:%02d.%03d"
+        local format_without_ms = hours > 0 and "%02d:%02d:%02d" or "%02d:%02d"
+
+        if state.tc_ms and not dontincludems then
+            if user_opts.dynamictimeformat then
+                return string.format(format_with_ms, 
+                    hours > 0 and hours or minutes,
+                    hours > 0 and minutes or whole_seconds,
+                    hours > 0 and whole_seconds or milliseconds,
+                    hours > 0 and milliseconds or nil)
+            else
+                return string.format(format_with_ms, 
+                    hours > 0 and hours or minutes,
+                    hours > 0 and minutes or whole_seconds,
+                    hours > 0 and whole_seconds or milliseconds,
+                    hours > 0 and milliseconds or nil)
+            end
+        else
+            if user_opts.dynamictimeformat then
+                return string.format(format_without_ms,
+                    hours > 0 and hours or minutes,
+                    hours > 0 and minutes or whole_seconds,
+                    hours > 0 and whole_seconds or nil)
+            else
+                return string.format("%02d:%02d:%02d", 
+                    hours,
+                    minutes,
+                    whole_seconds)
+            end
+        end
     end
+
+    -- Current position time display
+    ne = new_element("tc_left", "button")
+    ne.content = function()
+        local playback_time = mp.get_property_number("playback-time", 0)
+        return format_time(playback_time, false)
     end
-    ne.eventresponder["mbtn_left_up"] = function ()
-        state.fulltime = not state.fulltime
+    ne.eventresponder["mbtn_left_up"] = function()
+        state.tc_ms = not state.tc_ms
         request_init()
     end
 
-    -- tc_right (total/remaining time)
-    ne = new_element('tc_right', 'button')
+    -- Total/remaining time display
+    ne = new_element("tc_right", "button")
     ne.visible = (mp.get_property_number("duration", 0) > 0)
-    ne.content = function ()
-        if (mp.get_property_number('duration', 0) <= 0) then return '--:--:--' end
-        if (state.rightTC_trem) then
-        if (state.fulltime) then
-            return ('-'..mp.get_property_osd('playtime-remaining/full'))
-        else
-            return ('-'..mp.get_property_osd('playtime-remaining'))
-        end
-        else
-        if (state.fulltime) then
-            return (mp.get_property_osd('duration/full'))
-        else
-            return (mp.get_property_osd('duration'))
-        end
-
-        end
+    ne.content = function()
+        local duration = mp.get_property_number("duration", 0)
+        if duration <= 0 then return "--:--" end
+        
+        local time_to_display = state.rightTC_trem and 
+            mp.get_property_number("playtime-remaining", 0) or 
+            duration
+            
+        local prefix = state.rightTC_trem and 
+            (user_opts.unicodeminus and UNICODE_MINUS or "-") or 
+            ""
+            
+        return prefix .. format_time(time_to_display, false)
     end
-    ne.eventresponder['mbtn_left_up'] =
-        function () state.rightTC_trem = not state.rightTC_trem end
-
+    ne.eventresponder["mbtn_left_up"] = function()
+        state.rightTC_trem = not state.rightTC_trem
+    end
 
     -- load layout
     layouts()

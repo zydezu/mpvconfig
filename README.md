@@ -31,6 +31,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-10-21
+
+- Implement [https://github.com/zydezu/ModernX/pull/58](https://github.com/zydezu/ModernX/pull/58)
+- Implement [https://github.com/zydezu/ModernX/pull/59](https://github.com/zydezu/ModernX/pull/59)
+- Add `dynamictimeformat` option to `modernX.lua`
+
 ### 2024-10-08
 
 - Change subtitles styling
