@@ -173,7 +173,7 @@ local function save_lyrics(lyrics)
 
     print(downloadingName)
 
-    local lrc_path = (path .. '.lrc')
+    local lrc_path = (path:gsub("?", "") .. '.lrc')
     local dir_path = lrc_path:match("(.+[\\/])")
     if isWindows then
         lrc_path = lrc_path:gsub("/", "\\")
