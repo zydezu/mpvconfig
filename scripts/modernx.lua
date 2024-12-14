@@ -1,20 +1,18 @@
--- mpv-osc-modern by maoiscat
--- email:valarmor@163.com
--- https://github.com/maoiscat/mpv-osc-modern
+-- ModernX (https://github.com/zydezu/ModernZ)
+--
+-- This script is a result of the original mpv-osc-modern by maoiscat 
+-- and it's subsequent forks:
+--   * cyl0/ModernX
+--   * dexeonify/ModernX
 
--- fork by cyl0 - https://github.com/cyl0/ModernX/
-
--- further fork by zydezu
-
--- added some changes from dexeonify - https://github.com/dexeonify/mpv-config#difference-between-upstream-modernx
-
-local assdraw = require 'mp.assdraw'
-local msg = require 'mp.msg'
-local utils = require 'mp.utils'
+local assdraw = require "mp.assdraw"
+local msg = require "mp.msg"
+local opt = require "mp.options"
+local utils = require "mp.utils"
 
 -- Parameters
 -- default user option values
--- change them using osc.conf
+-- change them using modernx.conf
 local user_opts = {
     -- general settings --
     language = 'en',                -- en:English, chs:Chinese, pl:Polish, jp:Japanese
@@ -79,7 +77,6 @@ local user_opts = {
     seekbarhandlesize = 0.8,        -- size ratio of the slider handle, range 0 ~ 1
     seekrange = true,               -- show seekrange overlay
     seekrangealpha = 150,           -- transparency of seekranges
-    iconstyle = 'round',            -- icon style, 'solid' or 'round'
     hovereffect = true,             -- whether buttons have a glowing effect when hovered over
 
     -- button settings --
@@ -96,7 +93,7 @@ local user_opts = {
     compactmode = true,             -- replace the jump buttons with the chapter buttons, clicking the
                                     -- buttons will act as jumping, and shift clicking will act as
                                     -- skipping a chapter
-    showloop = true,                -- show the loop button
+    showloop = false,                -- show the loop button
     loopinpause = true,             -- activate looping by right clicking pause
     showontop = true,               -- show window on top button
     showinfo = false,               -- show the info button
@@ -108,54 +105,12 @@ local user_opts = {
     ytdlpQuality = '' -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 }
 
-
-
--- Icons for jump button depending on jumpamount 
-local jumpicons = { 
-    [5] = {'\239\142\177', '\239\142\163'}, 
-    [10] = {'\239\142\175', '\239\142\161'}, 
-    [30] = {'\239\142\176', '\239\142\162'}, 
-    default = {'\239\142\178    ', '\239\142\178'}, -- second icon is mirrored in layout() 
-} 
-
-local icons = {
-  previous = '\239\142\181',
-  next = '\239\142\180',
-  play = '\239\142\170',
-  pause = '\239\142\167',
-  replay = '', -- copied private use character
-  backward = '\239\142\160',
-  forward = '\239\142\159',
-  audio = '\239\142\183',
-  volume = '\239\142\188',
-  volumelow = '\239\142\185',
-  volumemute = '\239\142\187',
-  sub = '\239\140\164',
-  minimize = '\239\133\172',
-  fullscreen = '\239\133\173',  
-  loopoff = '',
-  loopon = '', 
-  info = '\239\135\183',
-  download = '\239\136\160',
-  downloading = '\239\134\185',
-  ontopon = '\239\142\150',
-  ontopoff = '\239\142\149',
-  screenshot = ''
-}
-
-local emoticon = {
-    view = "👁️",
-    comment = "💬",
-    like = "👍",
-    dislike = "👎"
-}
-
 -- Localization
 local language = {
     ['en'] = {
-        welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}Drop files or URLs to play here.',  -- this text appears when mpv starts
+        welcome = 'Drop files or URLs here to play',  -- this text appears when mpv starts
         off = 'OFF',
-        na = 'n/a',
+        na = 'Not available',
         none = 'None available',
         video = 'Video',
         audio = 'Audio',
@@ -164,79 +119,38 @@ local language = {
         noaudio = 'No audio tracks available',
         track = ' tracks:',
         playlist = 'Playlist',
-        nolist = 'Empty playlist.',
+        nolist = 'Playlist is empty',
         chapter = 'Chapter',
-        nochapter = 'No chapters.',
+        nochapter = 'No chapters available',
         ontop = 'Pin window',
         ontopdisable = 'Unpin window',
-        loopenable = 'Enable looping',
-        loopdisable = 'Disable looping',
-    },
-    ['chs'] = {
-        welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}将文件或URL放在这里播放',  -- this text appears when mpv starts
-        off = '关闭',
-        na = 'n/a',
-        none = '无数据',
-        video = '视频',
-        audio = '音频',
-        subtitle = '字幕',
-        nosub = "没有字幕", -- please check these translations
-        noaudio = "不提供音轨", -- please check these translations
-        track = '：',
-        playlist = '播放列表',
-        nolist = '无列表信息',
-        chapter = '章节',
-        nochapter = '无章节信息',
-        ontop = '启用窗口停留在顶层',  -- please check these translations
-        ontopdisable = '禁用停留在顶层的窗口',  -- please check these translations
-        loopenable = '启用循环功能',
-        loopdisable = '禁用循环功能',
-    },
-    ['pl'] = {
-        welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}Upuść plik lub łącze URL do odtworzenia.',  -- this text appears when mpv starts
-        off = 'WYŁ.',
-        na = 'n/a',
-        none = 'nic',
-        video = 'Wideo',
-        audio = 'Audio',
-        subtitle = 'Napisy',
-        nosub = 'Brak dostępnych napisów', -- please check these translations
-        noaudio = 'Brak dostępnych ścieżek dźwiękowych', -- please check these translations
-        track = ' ścieżki:',
-        playlist = 'Lista odtwarzania',
-        nolist = 'Lista odtwarzania pusta.',
-        chapter = 'Rozdział',
-        nochapter = 'Brak rozdziałów.',
-        ontop = 'Przypnij okno do góry',
-        ontopdisable = 'Odepnij okno od góry',
-        loopenable = 'Włączenie zapętlenia',
-        loopdisable = 'Wyłączenie zapętlenia',
-    },
-    ['jp'] = {
-        welcome = '{\\fs24\\1c&H0&\\1c&HFFFFFF&}ファイルやURLのリンクをここにドロップすると再生されます。',  -- this text appears when mpv starts
-        off = 'OFF',
-        na = 'n/a',
-        none = 'なし',
-        video = 'ビデオ',
-        audio = 'オーディオ',
-        subtitle = 'サブタイトル',
-        nosub = '字幕はありません',
-        noaudio = 'オーディオトラックはありません',
-        track = 'トラック:',
-        playlist = 'プレイリスト',
-        nolist = '空のプレイリスト.',
-        chapter = 'チャプター',
-        nochapter = '利用可能なチャプターはありません.',
-        ontop = 'ピンウィンドウをトップに表示',
-        ontopdisable = 'ウィンドウを上からアンピンする',
-        loopenable = 'ループON',
-        loopdisable = 'ループOFF',
+        loopenable = 'Enable loop',
+        loopdisable = 'Disable loop',
+        screenshot = "Screenshot",
+        statsinfo = "Information",
     }
 }
--- read options from config and command-line
-(require 'mp.options').read_options(user_opts, 'modernx', function(list) update_options(list) end)
+
 -- apply lang opts
-local texts = language[user_opts.language]
+local texts = language[user_opts.language] or language["en"]
+
+local thumbfast = {
+    width = 0,
+    height = 0,
+    disabled = true,
+    available = false
+}
+
+local tick_delay = 0.01 -- 100FPS
+local window_control_box_width = 138
+local maxdescsize = 125
+local commentsperpage = 25
+local is_december = os.date("*t").month == 12
+
+local function osc_color_convert(color)
+    return color:sub(6,7) .. color:sub(4,5) ..  color:sub(2,3)
+end
+
 local osc_param = {                         -- calculated by osc_init()
     playresy = 0,                           -- canvas size Y
     playresx = 0,                           -- canvas size X
@@ -245,11 +159,51 @@ local osc_param = {                         -- calculated by osc_init()
     areas = {},
 }
 
-local iconfont = user_opts.iconstyle == 'round' and 'Material-Design-Iconic-Round' or 'Material-Design-Iconic-Font'
+local icons = {
+    play = "\238\166\143",
+    pause = "\238\163\140",
+    replay = "\238\189\191",
+    previous = "\239\152\167",
+    next = "\239\149\168",
+    rewind = "\238\168\158",
+    forward = "\238\152\135",
 
-local function osc_color_convert(color)
-    return color:sub(6,7) .. color:sub(4,5) ..  color:sub(2,3)
-end
+    audio = "\238\175\139",
+    subtitle = "\238\175\141",
+    volume_mute = "\238\173\138",
+    volume_quiet = "\238\172\184",
+    volume_low = "\238\172\189",
+    volume_high = "\238\173\130",
+
+    download = "\239\133\144",
+    downloading = "\239\140\174",
+    loop_off = "\239\133\178",
+    loop_on = "\239\133\181",
+    info = "\239\146\164",
+    ontop_on = "\238\165\190",
+    ontop_off = "\238\166\129",
+    screenshot = "\239\154\142",
+    fullscreen = "\239\133\160",
+    fullscreen_exit = "\239\133\166",
+
+    jumpicons = { 
+        [5] = {"\238\171\186", "\238\171\187"}, 
+        [10] = {"\238\171\188", "\238\172\129"}, 
+        [30] = {"\238\172\133", "\238\172\134"}, 
+        default = {"\238\172\138", "\238\172\138"}, -- second icon is mirrored in layout() 
+    },
+
+    emoticon = {
+        view = "👁️",
+        comment = "💬",
+        like = "👍",
+        dislike = "👎"
+    },
+
+    playlist = "\238\161\159", -- unused rn
+}
+
+local iconfont = 'fluent-system-icons'
 
 local osc_styles = {
     TransBg = "{\\blur100\\bord" .. user_opts.OSCfadealpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
@@ -257,7 +211,7 @@ local osc_styles = {
     SeekbarFg = "{\\blur1\\bord1\\1c&H" .. osc_color_convert(user_opts.seekbarfg_color) .. "&}",
     VolumebarBg = '{\\blur0\\bord0\\1c&H999999&}',
     VolumebarFg = '{\\blur1\\bord1\\1c&HFFFFFF&}',
-    Ctrl1 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs36\\fn' .. iconfont .. '}',
+    Ctrl1 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs30\\fn' .. iconfont .. '}',
     Ctrl2 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. iconfont .. '}',
     Ctrl2Flip = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. iconfont .. '\\fry180',
     Ctrl3 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. iconfont .. '}',
@@ -270,6 +224,31 @@ local osc_styles = {
     elementDown = '{\\1c&H999999&}',
     elementHover = "{\\blur5\\2c&HFFFFFF&}",
     wcBar = "{\\1c&H" .. osc_color_convert(user_opts.osc_color) .. "}",
+}
+
+local logo_lines = {
+    -- White border
+    "{\\c&HE5E5E5&\\p6}m 895 10 b 401 10 0 410 0 905 0 1399 401 1800 895 1800 1390 1800 1790 1399 1790 905 1790 410 1390 10 895 10 {\\p0}",
+    -- Purple fill
+    "{\\c&H682167&\\p6}m 925 42 b 463 42 87 418 87 880 87 1343 463 1718 925 1718 1388 1718 1763 1343 1763 880 1763 418 1388 42 925 42{\\p0}",
+    -- Darker fill
+    "{\\c&H430142&\\p6}m 1605 828 b 1605 1175 1324 1456 977 1456 631 1456 349 1175 349 828 349 482 631 200 977 200 1324 200 1605 482 1605 828{\\p0}",
+    -- White fill
+    "{\\c&HDDDBDD&\\p6}m 1296 910 b 1296 1131 1117 1310 897 1310 676 1310 497 1131 497 910 497 689 676 511 897 511 1117 511 1296 689 1296 910{\\p0}",
+    -- Triangle
+    "{\\c&H691F69&\\p6}m 762 1113 l 762 708 b 881 776 1000 843 1119 911 1000 978 881 1046 762 1113{\\p0}",
+}
+
+local santa_hat_lines = {
+    -- Pompoms
+    "{\\c&HC0C0C0&\\p6}m 500 -323 b 491 -322 481 -318 475 -311 465 -312 456 -319 446 -318 434 -314 427 -304 417 -297 410 -290 404 -282 395 -278 390 -274 387 -267 381 -265 377 -261 379 -254 384 -253 397 -244 409 -232 425 -228 437 -228 446 -218 457 -217 462 -216 466 -213 468 -209 471 -205 477 -203 482 -206 491 -211 499 -217 508 -222 532 -235 556 -249 576 -267 584 -272 584 -284 578 -290 569 -305 550 -312 533 -309 523 -310 515 -316 507 -321 505 -323 503 -323 500 -323{\\p0}",
+    "{\\c&HE0E0E0&\\p6}m 315 -260 b 286 -258 259 -240 246 -215 235 -210 222 -215 211 -211 204 -188 177 -176 172 -151 170 -139 163 -128 154 -121 143 -103 141 -81 143 -60 139 -46 125 -34 129 -17 132 -1 134 16 142 30 145 56 161 80 181 96 196 114 210 133 231 144 266 153 303 138 328 115 373 79 401 28 423 -24 446 -73 465 -123 483 -174 487 -199 467 -225 442 -227 421 -232 402 -242 384 -254 364 -259 342 -250 322 -260 320 -260 317 -261 315 -260{\\p0}",
+    -- Main cap
+    "{\\c&H0000F0&\\p6}m 1151 -523 b 1016 -516 891 -458 769 -406 693 -369 624 -319 561 -262 526 -252 465 -235 479 -187 502 -147 551 -135 588 -111 1115 165 1379 232 1909 761 1926 800 1952 834 1987 858 2020 883 2053 912 2065 952 2088 1000 2146 962 2139 919 2162 836 2156 747 2143 662 2131 615 2116 567 2122 517 2120 410 2090 306 2089 199 2092 147 2071 99 2034 64 1987 5 1928 -41 1869 -86 1777 -157 1712 -256 1629 -337 1578 -389 1521 -436 1461 -476 1407 -509 1343 -507 1284 -515 1240 -519 1195 -521 1151 -523{\\p0}",
+    -- Cap shadow
+    "{\\c&H0000AA&\\p6}m 1657 248 b 1658 254 1659 261 1660 267 1669 276 1680 284 1689 293 1695 302 1700 311 1707 320 1716 325 1726 330 1735 335 1744 347 1752 360 1761 371 1753 352 1754 331 1753 311 1751 237 1751 163 1751 90 1752 64 1752 37 1767 14 1778 -3 1785 -24 1786 -45 1786 -60 1786 -77 1774 -87 1760 -96 1750 -78 1751 -65 1748 -37 1750 -8 1750 20 1734 78 1715 134 1699 192 1694 211 1689 231 1676 246 1671 251 1661 255 1657 248 m 1909 541 b 1914 542 1922 549 1917 539 1919 520 1921 502 1919 483 1918 458 1917 433 1915 407 1930 373 1942 338 1947 301 1952 270 1954 238 1951 207 1946 214 1947 229 1945 239 1939 278 1936 318 1924 356 1923 362 1913 382 1912 364 1906 301 1904 237 1891 175 1887 150 1892 126 1892 101 1892 68 1893 35 1888 2 1884 -9 1871 -20 1859 -14 1851 -6 1854 9 1854 20 1855 58 1864 95 1873 132 1883 179 1894 225 1899 273 1908 362 1910 451 1909 541{\\p0}",
+    -- Brim and tip pompom
+    "{\\c&HF8F8F8&\\p6}m 626 -191 b 565 -155 486 -196 428 -151 387 -115 327 -101 304 -47 273 2 267 59 249 113 219 157 217 213 215 265 217 309 260 302 285 283 373 264 465 264 555 257 608 252 655 292 709 287 759 294 816 276 863 298 903 340 972 324 1012 367 1061 394 1125 382 1167 424 1213 462 1268 482 1322 506 1385 546 1427 610 1479 662 1510 690 1534 725 1566 752 1611 796 1664 830 1703 880 1740 918 1747 986 1805 1005 1863 991 1897 932 1916 880 1914 823 1945 777 1961 725 1979 673 1957 622 1938 575 1912 534 1862 515 1836 473 1790 417 1755 351 1697 305 1658 266 1633 216 1593 176 1574 138 1539 116 1497 110 1448 101 1402 77 1371 37 1346 -16 1295 15 1254 6 1211 -27 1170 -62 1121 -86 1072 -104 1027 -128 976 -133 914 -130 851 -137 794 -162 740 -181 679 -168 626 -191 m 2051 917 b 1971 932 1929 1017 1919 1091 1912 1149 1923 1214 1970 1254 2000 1279 2027 1314 2066 1325 2139 1338 2212 1295 2254 1238 2281 1203 2287 1158 2282 1116 2292 1061 2273 1006 2229 970 2206 941 2167 938 2138 918{\\p0}",
 }
 
 -- internal states, do not touch
@@ -334,21 +313,6 @@ local state = {
     commentsAdditionalText = "",
     persistentprogresstoggle = user_opts.persistentprogress,
 }
-
-local thumbfast = {
-    width = 0,
-    height = 0,
-    disabled = true,
-    available = false
-}
-
-local maxdescsize = 125
-local commentsperpage = 25
-
-local window_control_box_width = 138
-local tick_delay = 0.01 -- 100FPS
-
-local is_december = os.date("*t").month == 12
 
 --- Automatically disable OSC
 local builtin_osc_enabled = mp.get_property_native('osc')
@@ -944,13 +908,13 @@ function render_elements(master_ass)
 
                         local tx = get_virt_mouse_pos()
                         if (slider_lo.adjust_tooltip) then
-                            if (an == 2) then
-                                if (sliderpos < (s_min + 3)) then
+                            if an == 2 then
+                                if sliderpos < (s_min + 3) then
                                     an = an - 1
-                                elseif (sliderpos > (s_max - 3)) then
+                                elseif sliderpos > (s_max - 3) then
                                     an = an + 1
                                 end
-                            elseif (sliderpos > (s_max-s_min)/2) then
+                            elseif (sliderpos > (s_max+s_min)/2) then
                                 an = an + 1
                                 tx = tx - 5
                             else
@@ -1034,11 +998,11 @@ function render_elements(master_ass)
             local buttontext
             if type(element.content) == 'function' then
                 buttontext = element.content() -- function objects
-            elseif not (element.content == nil) then
+            elseif element.content ~= nil then
                 buttontext = element.content -- text objects
             end
-            buttontext = buttontext:gsub(':%((.?.?.?)%) unknown ', ':%(%1%)')  --gsub('%) unknown %(\'', '')
-
+            buttontext = buttontext:gsub(":%((.?.?.?)%) unknown ", ":%(%1%)")  --gsub('%) unknown %(\'', '')
+            
             local maxchars = element.layout.button.maxchars
             if not (maxchars == nil) and (#buttontext > maxchars) then
                 local max_ratio = 1.25  -- up to 25% more chars while shrinking
@@ -1666,7 +1630,7 @@ function exec_description(args, result)
                     end
                 end
 
-                afterLastPattern = afterLastPattern:gsub("Views:", emoticon.view):gsub("Comments:", emoticon.comment):gsub("Likes:", emoticon.like):gsub("Dislikes:", emoticon.dislike)  -- replace with icons
+                afterLastPattern = afterLastPattern:gsub("Views:", icons.emoticon.view):gsub("Comments:", icons.emoticon.comment):gsub("Likes:", icons.emoticon.like):gsub("Dislikes:", icons.emoticon.dislike)  -- replace with icons
                 tempDesc = desc  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")            
                 tempDesc = tempDesc:gsub("\\N----------\\N", " | ")
             else
@@ -1737,13 +1701,13 @@ function addLikeCountToTitle()
         state.likecount = commas(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount ~= '' and state.likecount ~= '' and state.dislikecount) then
             mp.set_property("title", mp.get_property("media-title") .. 
-            " | " .. emoticon.view .. state.viewcount .. 
-            " | " .. emoticon.like .. state.likecount .. 
-            " | " .. emoticon.dislike .. state.dislikecount)
+            " | " .. icons.emoticon.view .. state.viewcount .. 
+            " | " .. icons.emoticon.like .. state.likecount .. 
+            " | " .. icons.emoticon.dislike .. state.dislikecount)
         elseif (state.viewcount ~= '' and state.likecount ~= '') then
             mp.set_property("title", mp.get_property("media-title") .. 
-            " | " .. emoticon.view .. state.viewcount .. 
-            " | " .. emoticon.like .. state.likecount)
+            " | " .. icons.emoticon.view .. state.viewcount .. 
+            " | " .. icons.emoticon.like .. state.likecount)
         end    
     end
 end
@@ -2619,7 +2583,6 @@ function osc_init()
     --play control buttons
     --playpause
     ne = new_element('playpause', 'button')
-
     ne.content = function ()
         if mp.get_property("eof-reached") == "yes" then
             return (icons.replay)
@@ -2654,16 +2617,16 @@ function osc_init()
     if user_opts.showjump then
         local jumpamount = user_opts.jumpamount
         local jumpmode = user_opts.jumpmode
-        local icons = jumpicons.default
+        local tempicons = icons.jumpicons.default
         if user_opts.jumpiconnumber then
-            icons = jumpicons[jumpamount] or jumpicons.default
+            tempicons = icons.jumpicons[jumpamount] or icons.jumpicons.default
         end
 
         --jumpback
         ne = new_element('jumpback', 'button')
 
         ne.softrepeat = true
-        ne.content = icons[1]
+        ne.content = tempicons[1]
         ne.eventresponder['mbtn_left_down'] =
             function () mp.commandv('seek', -jumpamount, jumpmode) end
         ne.eventresponder['mbtn_right_down'] =
@@ -2676,7 +2639,7 @@ function osc_init()
         ne = new_element('jumpfrwd', 'button')
 
         ne.softrepeat = true
-        ne.content = icons[2]
+        ne.content = tempicons[2]
         ne.eventresponder['mbtn_left_down'] =
             function () mp.commandv('seek', jumpamount, jumpmode) end
         ne.eventresponder['mbtn_right_down'] =
@@ -2693,7 +2656,7 @@ function osc_init()
     ne = new_element('skipback', 'button')
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset*10)
     ne.softrepeat = true
-    ne.content = icons.backward
+    ne.content = icons.rewind
     ne.enabled = (have_ch) or compactmode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         function () 
@@ -2802,7 +2765,7 @@ function osc_init()
     ne.enabled = (#tracks_osc.sub > 0)
     ne.off = (get_track('sub') == 0)
     ne.visible = (osc_param.playresx >= 600 - outeroffset)
-    ne.content = icons.sub
+    ne.content = icons.subtitle
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
         local msg = texts.off
@@ -2837,6 +2800,8 @@ function osc_init()
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
     
+    
+
     -- vol_ctrl
     ne = new_element('vol_ctrl', 'button')
     ne.enabled = (get_track('audio')>0)
@@ -2844,12 +2809,14 @@ function osc_init()
     ne.content = function ()
         local volume = mp.get_property_number("volume", 0)
         if state.mute then
-            return icons.volumemute
+            return icons.volume_mute
         else
-            if volume > 85 then
-                return icons.volume
+            if volume >= 75 then
+                return icons.volume_high
+            elseif volume >= 25 then
+                return icons.volume_low
             else
-                return icons.volumelow
+                return icons.volume_quiet
             end
         end
     end
@@ -2870,13 +2837,7 @@ function osc_init()
     
     --tog_fs
     ne = new_element('tog_fs', 'button')
-    ne.content = function ()
-        if (state.fullscreen) then
-            return (icons.minimize)
-        else
-            return (icons.fullscreen)
-        end
-    end
+    ne.content = function () return state.fullscreen and icons.fullscreen_exit or icons.fullscreen end
     ne.visible = (osc_param.playresx >= 250)
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('cycle', 'fullscreen') end
@@ -2885,9 +2846,9 @@ function osc_init()
     ne = new_element('tog_loop', 'button')
     ne.content = function ()
         if (state.looping) then
-            return (icons.loopon)
+            return (icons.loop_on)
         else
-            return (icons.loopoff)
+            return (icons.loop_off)
         end
     end
     ne.visible = (osc_param.playresx >= 600 - outeroffset)
@@ -2992,6 +2953,8 @@ function osc_init()
     ne = new_element('screenshot', 'button')
     ne.content = icons.screenshot
     ne.visible = (osc_param.playresx >= 900 - outeroffset - (user_opts.showloop and 0 or 100) - (user_opts.showontop and 0 or 100) - (user_opts.showinfo and 0 or 100))
+    ne.tooltip_style = osc_styles.Tooltip
+    ne.tooltipF = texts.screenshot
     ne.eventresponder['mbtn_left_up'] =
         function ()
             local tempSubPosition = mp.get_property('sub-pos')
@@ -3004,6 +2967,8 @@ function osc_init()
     ne = new_element('tog_info', 'button')
     ne.content = icons.info
     ne.visible = (osc_param.playresx >= 800 - outeroffset - (user_opts.showloop and 0 or 100) - (user_opts.showontop and 0 or 100))
+    ne.tooltip_style = osc_styles.Tooltip
+    ne.tooltipF = texts.statsinfo
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
 
@@ -3011,9 +2976,9 @@ function osc_init()
     ne = new_element('tog_ontop', 'button')
     ne.content = function ()
         if mp.get_property('ontop') == 'no' then
-            return (icons.ontopon)
+            return (icons.ontop_on)
         else
-            return (icons.ontopoff)
+            return (icons.ontop_off)
         end
     end
     ne.tooltip_style = osc_styles.Tooltip
@@ -3726,31 +3691,6 @@ function process_event(source, what)
     request_tick()
 end
 
-local logo_lines = {
-    -- White border
-    "{\\c&HE5E5E5&\\p6}m 895 10 b 401 10 0 410 0 905 0 1399 401 1800 895 1800 1390 1800 1790 1399 1790 905 1790 410 1390 10 895 10 {\\p0}",
-    -- Purple fill
-    "{\\c&H682167&\\p6}m 925 42 b 463 42 87 418 87 880 87 1343 463 1718 925 1718 1388 1718 1763 1343 1763 880 1763 418 1388 42 925 42{\\p0}",
-    -- Darker fill
-    "{\\c&H430142&\\p6}m 1605 828 b 1605 1175 1324 1456 977 1456 631 1456 349 1175 349 828 349 482 631 200 977 200 1324 200 1605 482 1605 828{\\p0}",
-    -- White fill
-    "{\\c&HDDDBDD&\\p6}m 1296 910 b 1296 1131 1117 1310 897 1310 676 1310 497 1131 497 910 497 689 676 511 897 511 1117 511 1296 689 1296 910{\\p0}",
-    -- Triangle
-    "{\\c&H691F69&\\p6}m 762 1113 l 762 708 b 881 776 1000 843 1119 911 1000 978 881 1046 762 1113{\\p0}",
-}
-
-local santa_hat_lines = {
-    -- Pompoms
-    "{\\c&HC0C0C0&\\p6}m 500 -323 b 491 -322 481 -318 475 -311 465 -312 456 -319 446 -318 434 -314 427 -304 417 -297 410 -290 404 -282 395 -278 390 -274 387 -267 381 -265 377 -261 379 -254 384 -253 397 -244 409 -232 425 -228 437 -228 446 -218 457 -217 462 -216 466 -213 468 -209 471 -205 477 -203 482 -206 491 -211 499 -217 508 -222 532 -235 556 -249 576 -267 584 -272 584 -284 578 -290 569 -305 550 -312 533 -309 523 -310 515 -316 507 -321 505 -323 503 -323 500 -323{\\p0}",
-    "{\\c&HE0E0E0&\\p6}m 315 -260 b 286 -258 259 -240 246 -215 235 -210 222 -215 211 -211 204 -188 177 -176 172 -151 170 -139 163 -128 154 -121 143 -103 141 -81 143 -60 139 -46 125 -34 129 -17 132 -1 134 16 142 30 145 56 161 80 181 96 196 114 210 133 231 144 266 153 303 138 328 115 373 79 401 28 423 -24 446 -73 465 -123 483 -174 487 -199 467 -225 442 -227 421 -232 402 -242 384 -254 364 -259 342 -250 322 -260 320 -260 317 -261 315 -260{\\p0}",
-    -- Main cap
-    "{\\c&H0000F0&\\p6}m 1151 -523 b 1016 -516 891 -458 769 -406 693 -369 624 -319 561 -262 526 -252 465 -235 479 -187 502 -147 551 -135 588 -111 1115 165 1379 232 1909 761 1926 800 1952 834 1987 858 2020 883 2053 912 2065 952 2088 1000 2146 962 2139 919 2162 836 2156 747 2143 662 2131 615 2116 567 2122 517 2120 410 2090 306 2089 199 2092 147 2071 99 2034 64 1987 5 1928 -41 1869 -86 1777 -157 1712 -256 1629 -337 1578 -389 1521 -436 1461 -476 1407 -509 1343 -507 1284 -515 1240 -519 1195 -521 1151 -523{\\p0}",
-    -- Cap shadow
-    "{\\c&H0000AA&\\p6}m 1657 248 b 1658 254 1659 261 1660 267 1669 276 1680 284 1689 293 1695 302 1700 311 1707 320 1716 325 1726 330 1735 335 1744 347 1752 360 1761 371 1753 352 1754 331 1753 311 1751 237 1751 163 1751 90 1752 64 1752 37 1767 14 1778 -3 1785 -24 1786 -45 1786 -60 1786 -77 1774 -87 1760 -96 1750 -78 1751 -65 1748 -37 1750 -8 1750 20 1734 78 1715 134 1699 192 1694 211 1689 231 1676 246 1671 251 1661 255 1657 248 m 1909 541 b 1914 542 1922 549 1917 539 1919 520 1921 502 1919 483 1918 458 1917 433 1915 407 1930 373 1942 338 1947 301 1952 270 1954 238 1951 207 1946 214 1947 229 1945 239 1939 278 1936 318 1924 356 1923 362 1913 382 1912 364 1906 301 1904 237 1891 175 1887 150 1892 126 1892 101 1892 68 1893 35 1888 2 1884 -9 1871 -20 1859 -14 1851 -6 1854 9 1854 20 1855 58 1864 95 1873 132 1883 179 1894 225 1899 273 1908 362 1910 451 1909 541{\\p0}",
-    -- Brim and tip pompom
-    "{\\c&HF8F8F8&\\p6}m 626 -191 b 565 -155 486 -196 428 -151 387 -115 327 -101 304 -47 273 2 267 59 249 113 219 157 217 213 215 265 217 309 260 302 285 283 373 264 465 264 555 257 608 252 655 292 709 287 759 294 816 276 863 298 903 340 972 324 1012 367 1061 394 1125 382 1167 424 1213 462 1268 482 1322 506 1385 546 1427 610 1479 662 1510 690 1534 725 1566 752 1611 796 1664 830 1703 880 1740 918 1747 986 1805 1005 1863 991 1897 932 1916 880 1914 823 1945 777 1961 725 1979 673 1957 622 1938 575 1912 534 1862 515 1836 473 1790 417 1755 351 1697 305 1658 266 1633 216 1593 176 1574 138 1539 116 1497 110 1448 101 1402 77 1371 37 1346 -16 1295 15 1254 6 1211 -27 1170 -62 1121 -86 1072 -104 1027 -128 976 -133 914 -130 851 -137 794 -162 740 -181 679 -168 626 -191 m 2051 917 b 1971 932 1929 1017 1919 1091 1912 1149 1923 1214 1970 1254 2000 1279 2027 1314 2066 1325 2139 1338 2212 1295 2254 1238 2281 1203 2287 1158 2282 1116 2292 1061 2273 1006 2229 970 2206 941 2167 938 2138 918{\\p0}",
-}
-
 -- called by mpv on every frame
 function tick()
     if (not state.enabled) then return end
@@ -3770,6 +3710,7 @@ function tick()
         local line_prefix = ('{\\rDefault\\an7\\1a&H00&\\bord0\\shad0\\pos(%f,%f)}'):format(icon_x, icon_y)
 
         local ass = assdraw.ass_new()
+
         -- mpv logo
         if user_opts.welcomescreen then
             for i, line in ipairs(logo_lines) do
@@ -3790,7 +3731,7 @@ function tick()
             ass:new_event()
             ass:pos(display_w / 2, icon_y + 65)
             ass:an(8)
-            ass:append(texts.welcome)
+            ass:append("{\\fs24\\1c&H0&\\1c&HFFFFFF&}" .. texts.welcome)
         end
         set_osd(display_w, display_h, ass.text)
 
@@ -3851,8 +3792,6 @@ function enable_osc(enable)
         state.showhide_enabled = false
     end
 end
-
-validate_user_opts()
 
 mp.register_event('start-file', newfilereset)
 mp.register_event("file-loaded", startupevents)
@@ -4052,6 +3991,8 @@ mp.register_script_message("thumbfast-info", function(json)
     end
 end)
 
+-- read options from config and command-line
+opt.read_options(user_opts, 'modernx', function(list) update_options(list) end)
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
 mp.set_property("title", "mpv")
