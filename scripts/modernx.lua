@@ -1435,10 +1435,15 @@ function checkcomments()
         capture_stdout = true,
         capture_stderr = true
     }, function() 
-        msg.info("WEB: Downloaded comments")
-
-        local filename = mp.command_native({"expand-path", user_opts.commentsdownloadpath .. '/'}) .. mp.get_property("filename"):gsub("watch%?v=", ""):match("^[^%?&]+") .. ".info.json"
-        print(filename)
+        local filename = ""
+        if (mp.get_property("filename")) then
+            msg.info("WEB: Downloaded comments")
+            filename = mp.command_native({"expand-path", user_opts.commentsdownloadpath .. '/'}) .. mp.get_property("filename"):gsub("watch%?v=", ""):match("^[^%?&]+") .. ".info.json"
+            print(filename)
+        else
+            msg.info("WEB: Comments failed to download...")
+            return
+        end
 
         if file_exists(filename) then
             msg.info("WEB: Reading comments file...")
@@ -2556,7 +2561,11 @@ function osc_init()
             title = string.gsub(title, '\\N', ' ')
             return not (title == "") and title or "error"
         else
-            return string.gsub(state.localDescription, '\\N', ' ')
+            if(state.localDescription == nil) then
+                return ""
+            else
+                return string.gsub(state.localDescription, '\\N', ' ')
+            end
         end
     end
     ne.eventresponder['mbtn_left_up'] =

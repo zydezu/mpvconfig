@@ -80,7 +80,7 @@ local istable
 -- ====================
 
 local opts = {
-	prioritize_proto = true,
+	prioritize_proto = false,
 	prefix_header = "  ", -- a non-breaking space followed by a space
 	prefix_norm = "  ", -- a non-breaking space followed by a space
 	prefix_cursor = "● ",
@@ -639,14 +639,14 @@ function format_sort_fn(a, b)
 		}
 	else
 		params = {
-			"fps",
-			"dynamic_range",
-			"vcodec",
-			"acodec",
 			"tbr",
 			"vbr",
 			"abr",
 			"asr",
+			"fps",
+			"dynamic_range",
+			"vcodec",
+			"acodec",
 			"protocol",
 		}
 	end
