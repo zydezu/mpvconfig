@@ -35,6 +35,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Order formats in `selectformat.lua` by bitrate
 - `modernx.lua` fixes to comment parsing
+- `modernx.lua` new icons
 
 ### 2024-10-21
 
