@@ -31,6 +31,19 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-12-18
+
+- Add various options and features from [https://github.com/Samillion/ModernZ](https://github.com/Samillion/ModernZ)
+
+
+- Reorganised user_opts
+- Changed hover effect on buttons
+- Fix file size displaying a wrong value
+- Downloads and file size estimations now respect `mpv.conf`'s `ytdl-format` option if set
+- Added chapter display next to the time
+- Added more sizing and color options
+
+
 ### 2024-12-14
 
 - Order formats in `selectformat.lua` by bitrate
