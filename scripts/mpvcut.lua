@@ -3,7 +3,7 @@ msg = require "mp.msg"
 
 local o = {
 	-- Save location
-	localsavetofolder = true, -- Save to `savedirectory` instead of the current folder
+	savetodirectory = true, -- Save to `savedirectory` instead of the current folder
 	savedirectory = "~~desktop/mpv/clips", -- Required for web videos
 
 	-- Key config
@@ -134,7 +134,7 @@ ACTIONS = {}
 ACTIONS.COPY = function(d)
 	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
 	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.localsavetofolder) then resultpath = checkPaths(d, fileextrasuffix) end
+	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -199,7 +199,7 @@ ACTIONS.COMPRESS = function(d)
 
 	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
 	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.localsavetofolder) then resultpath = checkPaths(d, fileextrasuffix) end
+	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
 	
 	local videoheight = mp.get_property_number("height")
 	local args = {
@@ -247,7 +247,7 @@ end
 ACTIONS.ENCODE = function(d)
 	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
 	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.localsavetofolder) then resultpath = checkPaths(d, fileextrasuffix) end
+	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
