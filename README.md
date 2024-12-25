@@ -1,6 +1,6 @@
 # mpvconfig
 
-![2024-04-28_07-43-06_557_mpv](https://github.com/zydezu/mpvconfig/assets/50119098/dcf932dc-52d1-4aa1-bd2c-689cd5d8813a)
+![2024-12-25_23-46-32_598_mpv](https://github.com/user-attachments/assets/e3bd21b2-64d7-41d4-a0b5-bcf5364f042a)
 
 My personal [mpv](https://mpv.io/) config.
 
@@ -36,7 +36,13 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Set `mpvcut.lua` default compress size target to 9.00MB (THANKS DISCORD >~<0)
 - Added `AOTFShinGoProMedium.otf` to the fonts folder as it is used in `mpv.conf`
-- Improved descriptions 
+- Improved descriptions
+  
+![58-038 jpeg](https://github.com/user-attachments/assets/12d948aa-c623-4e45-8363-b2d520af4b4c)<br>
+![tartarus](https://github.com/user-attachments/assets/835f5585-63a4-4605-8b6b-e075e3cc7600)<br>
+![azumanga-daioh-christmas](https://github.com/user-attachments/assets/b5a2dfd8-495e-4eb6-bb24-ed4374684154)<br>
+ **MERRY XMAS!!**
+
 
 ### 2024-12-20
 
