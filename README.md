@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Set `mpvcut.lua` default compress size target to 9.00MB (THANKS DISCORD >~<0)
 - Added `AOTFShinGoProMedium.otf` to the fonts folder as it is used in `mpv.conf`
 - Improved descriptions
+- Add fallback for chapters with no names in `modernX.lua` to prevent a crash
   
 ![58-038 jpeg](https://github.com/user-attachments/assets/12d948aa-c623-4e45-8363-b2d520af4b4c)<br>
 ![tartarus](https://github.com/user-attachments/assets/835f5585-63a4-4605-8b6b-e075e3cc7600)<br>
