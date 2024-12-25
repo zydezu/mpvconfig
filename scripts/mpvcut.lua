@@ -15,7 +15,7 @@ local o = {
 	action = "COPY",
 
 	-- File size target (MB)
-	compresssize = 24.00,
+	compresssize = 9.00,
 	resolution = 720, -- Target resolution to compress to
 
 	-- Web videos/cache
