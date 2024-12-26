@@ -47,14 +47,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-12-20
 
-- Change comments in `mpv.conf`
+- Changed code comments in `mpv.conf`
 - Rename 'localsavetofolder' to 'savetodirectory' in `mpvcut.lua` to describe the option better
 
 ### 2024-12-18
 
 - Add various options and features from [https://github.com/Samillion/ModernZ](https://github.com/Samillion/ModernZ)
-
-
 - Reorganised user_opts
 - Changed hover effect on buttons
 - Fix file size displaying a wrong value
