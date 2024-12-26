@@ -1254,7 +1254,6 @@ function startupevents()
     state.new_file_flag = true
     state.videoDescription = "Loading description..."
     state.fileSizeNormalised = "Approximating size..."
-    state.dateexists = false
     checktitle()
     check_path_url()
     if user_opts.automatickeyframemode then
@@ -1351,7 +1350,6 @@ function checktitle()
             end
         end
         if (date ~= nil) then
-            state.dateexists = true
             local datenormal = normaliseDate(date)
             local datetext = "Year"
             if (#datenormal > 4) then datetext = "Date" end
@@ -1730,12 +1728,6 @@ function exec_description(args, result)
         capture_stdout = true,
         capture_stderr = true,
     }, function(res, val, err)
-        if (state.dateexists) then 
-            state.descriptionLoaded = true 
-            msg.info("WEB: Loaded video description early")
-            return 
-        end
-
         state.localDescriptionClick = mp.get_property("media-title", "") .. string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', '\\N')
         if (state.dislikes == "") then
             state.localDescriptionClick = mp.get_property("media-title", "") .. string.gsub(string.gsub(val.stdout, '\r', '\\N'), '\n', '\\N')
@@ -1809,8 +1801,9 @@ function exec_description(args, result)
         
         if afterLastPattern then
             if (select(2, afterLastPattern:gsub("\\N", "")) == 1) then -- get rid of last | if there's only one item
-                print("Erasing last item")
+                -- print("Erasing last item")
                 tempDesc = tempDesc:gsub(" | ", "")
+                state.videoDescription = tempDesc
             end
         end
 
@@ -1818,7 +1811,7 @@ function exec_description(args, result)
         if state.showingDescription then
             show_description(state.localDescriptionClick)
         end
-        msg.info("WEB: Loaded video description")
+        msg.info("Loaded video description")
     end)
 end
 
@@ -2694,7 +2687,7 @@ local function osc_init()
             title = string.gsub(title, '\\N', ' ')
             return not (title == "") and title or "error"
         else
-            if(state.localDescription == nil) then
+            if (state.localDescription == nil) then
                 return ""
             else
                 return string.gsub(state.localDescription, '\\N', ' ')
