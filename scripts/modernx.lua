@@ -3391,11 +3391,17 @@ local function osc_init()
     -- Chapter title (below seekbar)
     local chapter_index = mp.get_property_number("chapter", -1)
     ne = new_element("separator", "button")
-    ne.visible = chapter_index >= 0
-    ne.content = " • "
+    ne.visible = true
+    ne.content = function()
+        if chapter_index >= 0 or state.buffering then
+            return " • "
+        else
+            return ""
+        end
+    end
 
     ne = new_element("chapter_title", "button")
-    ne.visible = chapter_index >= 0
+    ne.visible = true
     ne.content = function()
         if state.buffering then
             return "Buffereing..." .. " " .. mp.get_property("cache-buffering-state") .. "%"
