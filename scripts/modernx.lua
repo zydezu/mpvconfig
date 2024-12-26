@@ -348,6 +348,7 @@ local state = {
     tick_last_time = 0,                     -- when the last tick() was run
     hide_timer = nil,
     cache_state = nil,
+    buffering = false,
     idle = false,
     enabled = true,
     input_enabled = true,
@@ -3396,13 +3397,17 @@ local function osc_init()
     ne = new_element("chapter_title", "button")
     ne.visible = chapter_index >= 0
     ne.content = function()
-        if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then
-            request_init()
-            local chapters = mp.get_property_native("chapter-list", {})
-            local chapter_title = (chapters[chapter_index + 1] and chapters[chapter_index + 1].title ~= "") and chapters[chapter_index + 1].title 
-                or chapter_index + 1 .. "/" .. #chapters
-            chapter_title = mp.command_native({"escape-ass", chapter_title})
-            return string.format(user_opts.chapter_fmt, chapter_title)
+        if state.buffering then
+            return "Buffereing..." .. " " .. mp.get_property("cache-buffering-state") .. "%"
+        else
+            if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then
+                request_init()
+                local chapters = mp.get_property_native("chapter-list", {})
+                local chapter_title = (chapters[chapter_index + 1] and chapters[chapter_index + 1].title ~= "") and chapters[chapter_index + 1].title 
+                    or chapter_index + 1 .. "/" .. #chapters
+                chapter_title = mp.command_native({"escape-ass", chapter_title})
+                return string.format(user_opts.chapter_fmt, chapter_title)
+            end    
         end
         return "" -- fallback
     end
@@ -3816,7 +3821,7 @@ function process_event(source, what)
 end
 
 -- called by mpv on every frame
-function tick()
+function tick()    
     if (not state.enabled) then return end
 
     if (state.idle) then -- this is the screen mpv opens to (not playing a file directly), or if you quit a video (idle=yes in mpv.conf)
@@ -3985,6 +3990,11 @@ mp.observe_property('fullscreen', 'bool',
 mp.observe_property('mute', 'bool',
     function(name, val)
         state.mute = val
+    end
+)
+mp.observe_property('paused-for-cache', 'bool',
+    function(name, val)
+        state.buffering = val
     end
 )
 mp.observe_property('loop-file', 'bool',
