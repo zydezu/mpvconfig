@@ -266,6 +266,20 @@ local function contains(list, item)
     return false
 end
 
+function dumptable(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dumptable(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+end
+ 
+
 local thumbfast = {
     width = 0,
     height = 0,
@@ -1290,6 +1304,8 @@ function checktitle()
 
     state.ytdescription = ""
     state.youtubeuploader = artist
+
+    print(dumptable(mp.get_property_native("metadata")))
     if mp.get_property_native('metadata') then
         state.ytdescription = mp.get_property_native('metadata').ytdl_description or description or ""
         -- print("Metadata: " .. utils.to_string(mp.get_property_native('metadata')))
@@ -1803,10 +1819,12 @@ function exec_description(args, result)
             if (select(2, afterLastPattern:gsub("\\N", "")) == 1) then -- get rid of last | if there's only one item
                 -- print("Erasing last item")
                 tempDesc = tempDesc:gsub(" | ", "")
-                state.videoDescription = tempDesc
+                state.videoDescription = tempDesc .. " | " .. 
+                mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
+                math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) -- can't get a normal description, display something else
             end
         end
-
+        
         state.descriptionLoaded = true
         if state.showingDescription then
             show_description(state.localDescriptionClick)
