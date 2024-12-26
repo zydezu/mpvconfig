@@ -62,7 +62,7 @@ local function get_metadata()
                 title = mp.get_property("media-title")
                 title = title:gsub('%b[]', '') .. " "
             end
-            artist = metadata.artist or metadata.ARTIST or metadata.Artist or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
+            artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
             if options.downloadforall and not artist then
                 artist = " "
             end
@@ -82,6 +82,10 @@ local function get_metadata()
         return false
     end
 
+    print(title)
+    print(artist)
+    print(album)
+    
     return title, artist, album
 end
 
