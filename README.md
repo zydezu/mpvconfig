@@ -32,6 +32,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-12-27
+
+- Adjust default `compresssize` value in `mpvcut.lua` to 9.50MB
+
 ### 2024-12-25
 
 - Set `mpvcut.lua` default compress size target to 9.00MB (THANKS DISCORD >~<0)
