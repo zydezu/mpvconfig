@@ -19,7 +19,6 @@ Please note that many of these scripts have been slightly modified from their in
 
 | Script and description | Keybinds |
 | -------------- | --------------- |
-| [autoload](https://github.com/mpv-player/mpv/blob/master/TOOLS/lua/autoload.lua) loads files in the directory to play through | None |
 | [autoloop](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua) loops files by default that are smaller than a set duration | None |
 | [autolyrics](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) tries to download lyrics and display them for said file | **Alt+m** - Request lyrics from musixmatch then netease if that fails<br>**Alt+n** - Request lyrics only from netease<br>**Alt+o** - Set lyrics start point to the current timestamp (if lyrics need to be synced) |
 | [copypaste](https://github.com/zydezu/mpvconfig/blob/main/scripts/copypaste.lua) Copy and paste file paths, URLs and timestamps | **Ctrl+c** - Copy file path or URL to clipboard<br>**Ctrl+v** - Paste file path or URL and play it<br>**o** - Open file location or URL in browser |
