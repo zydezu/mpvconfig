@@ -2,6 +2,8 @@
     autoloop.lua by zydezu
     (https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua)
 
+    * Based on https://github.com/zc62/mpv-scripts/blob/master/autoloop.lua
+
     Automatically loop files below a certain length
 --]]
 
