@@ -1,83 +1,109 @@
+--[[
+    mpvcut.lua by zydezu
+	(https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua)
+	
+	* Based on https://github.com/familyfriendlymikey/mpv-cut/blob/main/main.lua
+
+    Clip, compress and re-encode selected clips
+--]]
+
 utils = require "mp.utils"
 msg = require "mp.msg"
 
 local o = {
 	-- Save location
-	savetodirectory = true, -- Save to `savedirectory` instead of the current folder
-	savedirectory = "~~desktop/mpv/clips", -- Required for web videos
+	save_to_directory = true, 				-- save to 'save_directory' instead of the current folder
+	save_directory = "~~desktop/mpv/clips", -- required for web videos
 
 	-- Key config
-	keycut = "z",
-	keycancelcut = "Z",
-	keycycleaction = "a",
+	key_cut = "z",
+	key_cancel_cut = "Z",
+	key_cycle_action = "a",
 
 	-- The default action
 	action = "COPY",
 
-	-- File size target (MB)
-	compresssize = 9.50,
-	resolution = 720, -- Target resolution to compress to
+	-- File size targets
+	compress_size = 9.50,					-- target size for the compress action (in MB)
+	resolution = 720, 						-- target resolution to compress to (vertical resolution)
 
 	-- Web videos/cache
-	usecacheforwebvideos = true,
+	use_cache_for_web_videos = true,
 }
-(require 'mp.options').read_options(o)
+(require "mp.options").read_options(o)
 
 local function print(s)
 	mp.msg.info(s)
 	mp.osd_message(s)
 end
 
-local function table_to_str(o)
-	if type(o) == 'table' then
-		local s = ''
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. table_to_str(v) .. '\n'
-		end
-		return s
-	else
-		return tostring(o)
-	end
-end
-
-function is_url(s)
-	return nil ~=
-		string.match(s,
-			"^[%w]-://[-a-zA-Z0-9@:%._\\+~#=]+%." ..
-			"[a-zA-Z0-9()][a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?[a-zA-Z0-9()]?" ..
-			"[-a-zA-Z0-9()@:%_\\+.~#?&/=]*")
+local function is_url(s)
+    local url_pattern = "^[%w]+://[%w%.%-_]+%.[%a]+[-%w%.%-%_/?&=]*"
+    return string.match(s, url_pattern) ~= nil
 end
 
 local result = mp.command_native({ name = "subprocess", args = {"ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })
 if result.status ~= 1 then
-	mp.osd_message("FFmpeg failed to run, please press ` for debug info", 5)
-	mp.msg.error("FFmpeg failed to run:\n" .. table_to_str(result))
-	mp.msg.error("`which ffmpeg` output:\n" .. table_to_str(mp.command_native({ name = "subprocess", args = {"which", "ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })))
+	mp.osd_message("FFmpeg failed to run")
 end
-local fullpath = mp.command_native({"expand-path", o.savedirectory})
-local fullpathsave = ""
-local webext = ".mkv"
 
-function getfullpath()
-	if fullpath then
-		fullpathsave = mp.command_native({"expand-path", o.savedirectory .. "/" .. mp.get_property("media-title")})
-		if (o.usecacheforwebvideos and is_url(mp.get_property("path"))) then
-			local video = mp.get_property("video-format", "none")
-			local audio = mp.get_property("audio-codec-name", "none")
-			local webm={vp8=true,vp9=true,av1=true,opus=true,vorbis=true,none=true}
-			local mp4={h264=true,hevc=true,av1=true,mp3=true,flac=true,aac=true,none=true}
-			if webm[video] and webm[audio] then
-				webext = ".webm"
-			elseif mp4[video] and mp4[audio] then
-				webext = ".mp4"
-			else
-				webext = ".mkv"
-			end	
+local full_path = mp.command_native({"expand-path", o.save_directory})
+local full_path_save = ""
+local web_ext = ".mkv"
+
+local average_bitrate = -1
+local avg_count = 1
+
+local function get_bitrate()
+	local video_bitrate = mp.get_property_number("video-bitrate")
+	if video_bitrate then
+		video_bitrate = video_bitrate / 1000
+		avg_count = avg_count + 1
+		if average_bitrate == -1 then
+			average_bitrate = video_bitrate
+		else
+			average_bitrate = ((avg_count-1) * average_bitrate + video_bitrate) / avg_count
 		end
 	end
 end
-mp.register_event("file-loaded", getfullpath)
+
+local function init()
+	-- Set save directory path
+	if full_path then
+		full_path_save = mp.command_native({"expand-path", o.save_directory .. "/" .. mp.get_property("media-title")})
+		if (o.use_cache_for_web_videos and is_url(mp.get_property("path"))) then
+			local video = mp.get_property("video-format", "none")
+			local audio = mp.get_property("audio-codec-name", "none")
+			local webm = {vp8=true, vp9=true, av1=true, opus=true, vorbis=true, none=true}
+			local mp4 = {h264=true, hevc=true, av1=true, mp3=true, flac=true, aac=true, none=true}
+			if webm[video] and webm[audio] then
+				web_ext = ".webm"
+			elseif mp4[video] and mp4[audio] then
+				web_ext = ".mp4"
+			else
+				web_ext = ".mkv"
+			end
+
+			local youtubeID = ""
+			local _, _, videoID = string.find(mp.get_property("filename"), "([%w_-]+)%?si=")
+			local videoIDMatch = mp.get_property("filename"):match("[?&]v=([^&]+)")
+			if (videoIDMatch) then
+				youtubeID = " [" .. videoIDMatch .. "]"
+			elseif (videoID) then
+				youtubeID = " [" .. videoID .. "]"
+			end
+			full_path_save = mp.command_native({"expand-path", o.save_directory .. "/" .. 
+				(string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtubeID):gsub('[\\/:*?"<>|]', "")})
+		end
+	end
+
+	-- Reset average bitrate
+	average_bitrate = -1
+	avg_count = 1
+end
+
+mp.register_event("file-loaded", init)
+mp.add_periodic_timer(2, get_bitrate)
 
 local function to_hms(seconds)
 	local ms = math.floor((seconds - math.floor(seconds)) * 1000)
@@ -103,38 +129,39 @@ local function next_table_key(t, current)
 	return keys[1]
 end
 
-function is_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
-local isWindows = is_windows()
-local function createDirectory(directoryPath)
-	local args = {'mkdir', directoryPath}
-	if isWindows then args = {'powershell', '-NoProfile', '-Command', 'mkdir', directoryPath} end
+local function is_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
+local is_windows = is_windows()
+
+local function create_directory(directory_path)
+	local args = {"mkdir", directory_path}
+	if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
 	local res = utils.subprocess({ args = args, cancellable = false })
 	if res.status ~= 0 then
-		mp.msg.error("Failed to create directory: " .. directoryPath)
+		mp.msg.error("Failed to create directory: " .. directory_path)
 	else
-		mp.msg.info("Directory created successfully: " .. directoryPath)
+		mp.msg.info("Directory created successfully: " .. directory_path)
 	end
 end
 
-function checkPaths(d, suffix, webpathsave)
-	resultpath = utils.join_path(fullpath .. '/', d.infile_noext .. suffix .. d.ext)
-	if (utils.readdir(fullpath) == nil) then
-		if not isWindows then
-			subfullpath = utils.split_path(fullpath)
-			createDirectory(subfullpath) -- required for linux as it cannot create mpv/clips/
+local function check_paths(d, suffix, web_path_save)
+	result_path = utils.join_path(full_path .. "/", d.infile_noext .. suffix .. d.ext)
+	if (utils.readdir(full_path) == nil) then
+		if not is_windows then
+			sub_full_path = utils.split_path(full_path)
+			create_directory(sub_full_path) -- required for linux as it cannot create mpv/clips/
 		end
-		createDirectory(fullpath)
+		create_directory(full_path)
 	end
-	if webpathsave then return webpathsave .. " " .. suffix .. webext end
-	return resultpath
+	if web_path_save then return web_path_save .. " " .. suffix .. web_ext end
+	return result_path
 end
 
 ACTIONS = {}
 
 ACTIONS.COPY = function(d)
-	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
-	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
+	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	if (o.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -146,7 +173,7 @@ ACTIONS.COPY = function(d)
 		"-map", "0",
 		"-dn",
 		"-avoid_negative_ts", "make_zero",
-		resultpath
+		result_path
 	}
 	print("Saving clip...")
 	mp.command_native_async({
@@ -156,38 +183,15 @@ ACTIONS.COPY = function(d)
 	}, function() print("Saved clip!") end)
 end
 
-averageBitrate = -1
-avgCount = 1
-
-function resetBitrate()
-	averageBitrate = -1
-	avgCount = 1
-end
-
-function getBitrate()
-	local video_bitrate = mp.get_property_number("video-bitrate")
-	if video_bitrate then
-		video_bitrate = video_bitrate / 1000
-		avgCount = avgCount + 1
-		if averageBitrate == -1 then
-			averageBitrate = video_bitrate
-		else
-			averageBitrate = ((avgCount-1) * averageBitrate + video_bitrate) / avgCount
-		end
-	end
-end
-
-mp.register_event("file-loaded", resetBitrate)
-mp.add_periodic_timer(2, getBitrate)
-
 ACTIONS.COMPRESS = function(d)
-	local target_bitrate = ((o.compresssize * 8192) / d.duration * 0.9) -- Video bitrate (kilobytes)
-	msg.info("Initial bitrate: " .. target_bitrate)
+	local target_bitrate = ((o.compress_size * 8192) / d.duration * 0.9) -- Video bitrate (KB)
+	msg.info("Theoretical bitrate: " .. target_bitrate)
+
 	local max_bitrate = target_bitrate
-	local video_bitrate = averageBitrate
+	local video_bitrate = average_bitrate
 	if video_bitrate and video_bitrate ~= -1 then -- the average bitrate system is to stop small cuts from becoming too big
 		max_bitrate = video_bitrate
-		msg.info("Max bitrate: " .. max_bitrate)
+		msg.info("Average bitrate: " .. max_bitrate)
 		if target_bitrate > max_bitrate then
 			target_bitrate = max_bitrate
 		end
@@ -197,11 +201,13 @@ ACTIONS.COMPRESS = function(d)
 	end
 	msg.info("Using bitrate: " .. target_bitrate)
 
-	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
-	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
+	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	if o.save_to_directory then 
+		result_path = check_paths(d, file_extra_suffix) 
+	end
 	
-	local videoheight = mp.get_property_number("height")
+	local video_height = mp.get_property_number("height")
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -213,11 +219,12 @@ ACTIONS.COMPRESS = function(d)
 		"-c:v", "libx264",
 		"-b:v", target_bitrate .. "k",
 		"-c:a", "copy",
-		resultpath
+		result_path
 	}
-	if (videoheight) then
-		if (videoheight > o.resolution) then
-			resline = "scale=trunc(oh*a/2)*2:" .. o.resolution
+
+	if video_height then
+		if video_height > o.resolution then
+			res_line = "scale=trunc(oh*a/2)*2:" .. o.resolution
 			target_bitrate = target_bitrate
 			args = {
 				"ffmpeg",
@@ -226,12 +233,12 @@ ACTIONS.COMPRESS = function(d)
 				"-ss", d.start_time,
 				"-t", d.duration,
 				"-i", d.inpath,
-				"-vf", resline,
+				"-vf", res_line,
 				"-pix_fmt", "yuv420p",
 				"-c:v", "libx264",
 				"-b:v", target_bitrate .. "k",
 				"-c:a", "copy",
-				resultpath
+				result_path
 			}
 		end
 	end
@@ -241,13 +248,15 @@ ACTIONS.COMPRESS = function(d)
 		name = "subprocess",
 		args = args,
 		playback_only = false,
-	}, function() print("Saved clip!") end)
+	}, function() 
+		print("Saved clip!") 
+	end)
 end
 
 ACTIONS.ENCODE = function(d)
-	local fileextrasuffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
-	local resultpath = utils.join_path(d.indir, d.infile_noext .. fileextrasuffix .. d.ext)
-	if (o.savetodirectory) then resultpath = checkPaths(d, fileextrasuffix) end
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
+	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	if (o.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -258,25 +267,27 @@ ACTIONS.ENCODE = function(d)
 		"-pix_fmt", "yuv420p",
 		"-crf", "16",
 		"-preset", "superfast",
-		resultpath
+		result_path
 	}
 	print("Saving clip...")
 	mp.command_native_async({
 		name = "subprocess",
 		args = args,
 		playback_only = false,
-	}, function() print("Saved clip!") end)
+	}, function() 
+		print("Saved clip!") 
+	end)
 end
 
-RUNWEBCACHE = function(d)
+RUN_WEB_CACHE = function(d)
     local command = {
-        filename = checkPaths(d, "(cache)", fullpathsave)
+        filename = check_paths(d, "(cache)", full_path_save)
     }
 	command["name"] = "dump-cache"
 	command["start"] = d.start_time
 	command["end"] = d.end_time
 	mp.command_native_async(command, function() 
-		print("Written!")
+		print("Saved clip!")
 	end)
 end
 
@@ -306,24 +317,24 @@ local function get_times(start_time, end_time)
 	return d
 end
 
-local function text_overlay_on()
-	print(string.format("%s from %s", ACTION, secondstotime(START_TIME)))
-end
-
-function secondstotime(seconds)
+local function seconds_to_hms(seconds)
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
     local secs = math.floor(seconds % 60)
     local ms = math.floor((seconds - math.floor(seconds)) * 1000)
 
-    local timestring = ""
+    local time_string = ""
     if hours > 0 then
-        timestring = string.format("%02d:%02d:%02d.%03d", hours, minutes, secs, ms)
+        time_string = string.format("%02d:%02d:%02d.%03d", hours, minutes, secs, ms)
     else
-        timestring = string.format("%02d:%02d.%03d", minutes, secs, ms)
+        time_string = string.format("%02d:%02d.%03d", minutes, secs, ms)
     end
 
-    return timestring
+    return time_string
+end
+
+local function text_overlay_on()
+	print(string.format("%s from %s", ACTION, seconds_to_hms(START_TIME)))
 end
 
 local function print_or_update_text_overlay(content)
@@ -340,15 +351,13 @@ local function cut(start_time, end_time)
 	local t = get_times(start_time, end_time)
 	for k, v in pairs(t) do d[k] = v end
 	if is_url(d.inpath) then
-		if o.usecacheforwebvideos then
-			mp.msg.info("WEBCACHE")
-			RUNWEBCACHE(d)
+		if o.use_cache_for_web_videos then
+			mp.msg.info("Using web cache")
+			RUN_WEB_CACHE(d)
 		else
-			mp.msg.error("Can't cut on a web video (usecacheforwebvideos is disabled)")
+			mp.msg.error("Can't cut on a web video (use_cache_for_web_videos is set to false)")
 		end
 	else
-		-- mp.msg.info(ACTION)
-		-- mp.msg.info(table_to_str(d))
 		ACTIONS[ACTION](d)
 	end
 end
@@ -361,7 +370,7 @@ local function put_time()
 		return
 	end
 	if time > START_TIME then
-		print(string.format("%s to %s", ACTION, secondstotime(time)))
+		print(string.format("%s to %s", ACTION, seconds_to_hms(time)))
 		cut(START_TIME, time)
 		START_TIME = nil
 	else
@@ -375,6 +384,6 @@ local function cancel_cut()
 	print("Cleared selection")
 end
 
-mp.add_key_binding(o.keycut, "cut", put_time)
-mp.add_key_binding(o.keycancelcut, "cancel_cut", cancel_cut)
-mp.add_key_binding(o.keycycleaction, "cycle_action", cycle_action)
+mp.add_key_binding(o.key_cut, "cut", put_time)
+mp.add_key_binding(o.key_cancel_cut, "cancel_cut", cancel_cut)
+mp.add_key_binding(o.key_cycle_action, "cycle_action", cycle_action)

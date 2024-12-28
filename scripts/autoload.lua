@@ -1,12 +1,18 @@
--- To configure this script use file autoload.conf in directory script-opts (the "script-opts"
--- directory must be in the mpv configuration directory, typically ~/.config/mpv/).
--- Example configuration would be:
+--[[
+    autoload.lua (modified by zydezu to add the 'ownfiletype' option)
+    (https://github.com/zydezu/mpvconfig/blob/main/scripts/autoload.lua)
 
--- disabled=no
--- images=no
--- videos=yes
--- audio=yes
--- ignore_hidden=yes
+    To configure this script use file autoload.conf in directory script-opts (the "script-opts"
+    directory must be in the mpv configuration directory, typically ~/.config/mpv/).
+    Example configuration would be:
+
+    disabled=no
+    images=no
+    videos=yes
+    audio=yes
+    ignore_hidden=yes
+--]]
+
 
 MAXENTRIES = 5000
 local msg = require 'mp.msg'

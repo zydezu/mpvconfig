@@ -32,6 +32,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-12-28
+
+- Improve code in all scripts
+- Seperate parts of `autoloop.lua` into `copypaste.lua`
+- Fix making web cache clips (clipping web videos) in `mpvcut.lua`
+
 ### 2024-12-27
 
 - Adjust default `compresssize` value in `mpvcut.lua` to 9.50MB

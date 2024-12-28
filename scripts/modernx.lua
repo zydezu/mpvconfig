@@ -1,14 +1,15 @@
--- ModernX (https://github.com/zydezu/ModernZ)
---
--- This script is a result of the original mpv-osc-modern by maoiscat 
--- and it's subsequent forks:
---   * cyl0/ModernX
---   * dexeonify/ModernX
---   * Samillion/ModernZ
---
--- It is based on the official osc.lua from mpv, licensed under the 
--- GNU Lesser General Public License v2.1 (LGPLv2.1). 
--- Full license: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+--[[
+    ModernX by zydezu
+    (https://github.com/zydezu/ModernX)
+
+    This script is a result of the original mpv-osc-modern by maoiscat 
+    and it's subsequent forks:
+    * cyl0/ModernX
+    * dexeonify/ModernX
+    * Samillion/ModernZ
+
+    Based on the osc.lua from mpv
+--]]
 
 local assdraw = require "mp.assdraw"
 local msg = require "mp.msg"
