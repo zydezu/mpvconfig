@@ -243,6 +243,10 @@ local language = {
         loopdisable = 'Disable loop',
         screenshot = "Screenshot",
         statsinfo = "Information",
+        download = "Download",
+        download_in_progress = "Download in progress",
+        downloading = "Downloading",
+        downloaded = "Already downloaded",
     }
 }
 
@@ -369,11 +373,10 @@ local state = {
     playingWhilstSeekingWaitingForEnd = false,
     persistentprogresstoggle = user_opts.persistentprogress,
 
-    downloadedOnce = false,
+    downloaded_once = false,
     downloading = false,
-    downloadFileName = "",
-    fileSizeBytes = 0,
-    fileSizeNormalised = "Approximating size...",
+    file_size_bytes = 0,
+    file_size_normalized = "Approximating size...",
     is_URL = false,
     URL_path = "",                          -- used for yt-dlp downloading
     videoCantBeDownloaded = false, -- TODO: needs to be removed
@@ -1255,9 +1258,9 @@ end
 
 function newfilereset()
     request_init()
-    state.downloadedOnce = false
+    state.downloaded_once = false
     state.videoDescription = "Loading description..."
-    state.fileSizeNormalised = "Approximating size..."
+    state.file_size_normalized = "Approximating size..."
     state.localDescription = "Loading..."
     state.localDescriptionIsClickable = false
     state.localDescriptionClick = "Loading..."
@@ -1269,7 +1272,7 @@ end
 function startupevents()
     state.new_file_flag = true
     state.videoDescription = "Loading description..."
-    state.fileSizeNormalised = "Approximating size..."
+    state.file_size_normalized = "Approximating size..."
     checktitle()
     check_path_url()
     if user_opts.automatickeyframemode then
@@ -1656,14 +1659,20 @@ function exec_filesize(args)
         capture_stderr = true
     }, function(res, val)
         local fileSizeString = val.stdout
-        state.fileSizeBytes = tonumber(fileSizeString)
+        state.file_size_bytes = tonumber(fileSizeString)
 
-        if state.fileSizeBytes then
-            state.fileSizeNormalised = "Download size: " .. format_file_size(state.fileSizeBytes)
-            msg.info("File size: " .. state.fileSizeBytes .. " B (" .. state.fileSizeNormalised .. ")")
+        if state.file_size_bytes then
+            state.file_size_normalized = format_file_size(state.file_size_bytes)
+            msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
         else
-            state.fileSizeNormalised = "Unknown"
-            msg.info("Unable to retrieve file size.")
+            local fs_prop = mp.get_property_osd("file-size")
+            if fs_prop and fs_prop ~= "" then
+                state.file_size_normalized = fs_prop
+                msg.info(fs_prop)
+            else
+                state.file_size_normalized = "Unknown"
+                msg.info("Unable to retrieve file size.")
+            end        
         end
 
         request_tick()
@@ -1674,7 +1683,7 @@ local function download_done(success, result, error)
     if success then
         local download_path = mp.command_native({"expand-path", user_opts.download_path})
         show_message("\\N{\\an9}Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
-        state.downloadedOnce = true
+        state.downloaded_once = true
         msg.info("Download completed")
     else
         show_message("\\N{\\an9}WEB: Download failed - " .. (error or "Unknown error"))
@@ -3046,17 +3055,17 @@ local function osc_init()
     ne.content = function () return state.downloading and icons.downloading or icons.download end
     ne.visible = (osc_param.playresx >= 1100 - outeroffset - (user_opts.loop_button and 0 or 100) - (user_opts.ontop_button and 0 or 100) - (user_opts.info_button and 0 or 100) - (user_opts.screenshot_button and 0 or 100)) and state.is_URL
     ne.tooltip_style = osc_styles.tooltip
-    ne.tooltipF = function () return state.downloading and "Downloading..." or state.fileSizeNormalised end
+    ne.tooltipF = function () return state.downloading and (texts.downloading .. "...") or (texts.download .. " (" .. state.file_size_normalized .. ")") end
     ne.eventresponder["mbtn_left_up"] = function ()
         if not state.videoCantBeDownloaded then
             local localpath = mp.command_native({"expand-path", user_opts.download_path})
 
-            if state.downloadedOnce then
-                show_message("\\N{\\an9}Already downloaded")
+            if state.downloaded_once then
+                show_message("\\N{\\an9}" .. texts.downloaded .. "...")
             elseif state.downloading then
-                show_message("\\N{\\an9}Already downloading...")
+                show_message("\\N{\\an9}" .. texts.download_in_progress .. "...")
             else
-                show_message("\\N{\\an9}Downloading...")
+                show_message("\\N{\\an9}" .. texts.downloading .. "...")
                 state.downloading = true
 
                 -- use current or default ytdl-format
