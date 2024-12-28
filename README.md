@@ -38,6 +38,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Improve code in all scripts
 - Seperate parts of `autoloop.lua` into `copypaste.lua`
 - Fix making web cache clips (clipping web videos) in `mpvcut.lua`
+- Remove `autoload.lua` as `autocreate-playlist` in `mpv.conf` replicates it's functionality
 
 ### 2024-12-27
 
