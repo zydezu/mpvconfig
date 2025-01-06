@@ -32,6 +32,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2024-01-06
+
+- Fix lyric formatting
+
 ### 2024-12-28
 
 - Improve code in all scripts

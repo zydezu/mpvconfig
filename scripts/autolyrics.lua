@@ -119,7 +119,7 @@ local function save_lyrics(lyrics)
 
     -- NetEase's LRCs can have 3-digit milliseconds, which messes up the sub's timings in mpv.
     lyrics = lyrics:gsub("(%.%d%d)%d]", "%1]")
-    lyrics = lyrics:gsub("’", "'"):gsub("' ", "") -- remove strange characters
+    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'") -- remove strange characters
 
     local success_message = "Lyrics downloaded"
     if options.downloadforall then
