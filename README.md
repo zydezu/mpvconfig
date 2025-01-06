@@ -35,6 +35,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-01-06
 
 - Fix lyric formatting
+- Add `strip_artists` and `chinese_to_kanji_path` options to `autolyrics.lua`
 
 ### 2024-12-28
 

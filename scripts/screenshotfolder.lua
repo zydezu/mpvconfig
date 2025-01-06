@@ -43,17 +43,17 @@ local function init()
     local path = mp.get_property("path")
 
     if is_url(path) and path or nil then
-        local youtubeID = ""
+        local youtube_ID = ""
         local _, _, videoID = string.find(mp.get_property("filename"), "([%w_-]+)%?si=")
         local videoIDMatch = mp.get_property("filename"):match("[?&]v=([^&]+)")
         if options.include_YouTube_ID then
             if (videoIDMatch) then
-                youtubeID = " [" .. videoIDMatch .. "]"
+                youtube_ID = " [" .. videoIDMatch .. "]"
             elseif (videoID) then
-                youtubeID = " [" .. videoID .. "]"
+                youtube_ID = " [" .. videoID .. "]"
             end
         end
-        filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtubeID
+        filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtube_ID
     end
     title = filename:gsub('[\\/:*?"<>|]', "")
 

@@ -84,16 +84,16 @@ local function init()
 				web_ext = ".mkv"
 			end
 
-			local youtubeID = ""
+			local youtube_ID = ""
 			local _, _, videoID = string.find(mp.get_property("filename"), "([%w_-]+)%?si=")
 			local videoIDMatch = mp.get_property("filename"):match("[?&]v=([^&]+)")
 			if (videoIDMatch) then
-				youtubeID = " [" .. videoIDMatch .. "]"
+				youtube_ID = " [" .. videoIDMatch .. "]"
 			elseif (videoID) then
-				youtubeID = " [" .. videoID .. "]"
+				youtube_ID = " [" .. videoID .. "]"
 			end
 			full_path_save = mp.command_native({"expand-path", o.save_directory .. "/" .. 
-				(string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtubeID):gsub('[\\/:*?"<>|]', "")})
+				(string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtube_ID):gsub('[\\/:*?"<>|]', "")})
 		end
 	end
 

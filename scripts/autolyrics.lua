@@ -17,7 +17,8 @@ local options = {
     lyrics_store = "~~desktop/mpv/lrcdownloads/",                   -- where to store downloaded lyric files if store_lyrics_seperate is true
     cache_loading = true,                                           -- try to load lyrics that were already downloaded
     strip_artists = true,                                           -- remove lines with the names of the artists from NetEase lyrics
-    chinese_to_kanji_path = "~~home/scripts/chinese-to-kanji.txt",  -- set to path of file
+    chinese_to_kanji_path = "~~home/chinese-to-kanji.txt",          -- set to path of file
+    mark_as_ja = false,                                             -- add .ja.lrc extensions to lyrics with Japanese characters
     run_automatically = false                                       -- run this script without pressing Alt+m
 }
 (require "mp.options").read_options(options)
@@ -134,8 +135,8 @@ local function chinese_to_kanji(lyrics)
         return lyrics
     end
 
-    -- -- Save the original lyrics to compare them.
-    -- local original = io.open(mp.command_native({'expand-path', '~~desktop/mpv/temp/original.lrc'}), 'w')
+    -- -- Save the original lyrics to compare them for testing.
+    -- local original = io.open(mp.command_native({'expand-path', '~~desktop/mpv/lrcdownloads/TESTCOMPARE.lrc'}), 'w')
     -- if original then
     --     original:write(lyrics)
     --     original:close()
@@ -192,11 +193,12 @@ local function save_lyrics(lyrics)
 
     -- NetEase's LRCs can have 3-digit milliseconds, which messes up the sub's timings in mpv.
     lyrics = lyrics:gsub("(%.%d%d)%d]", "%1]")
-    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters
+    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters    
 
+    local add_ja = false    
     if is_japanese(lyrics) then
         if options.mark_as_ja then
-            lrc_path = lrc_path .. '.ja'
+            add_ja = true
         end
         if options.chinese_to_kanji_path ~= "" then
             lyrics = chinese_to_kanji(lyrics)
@@ -204,27 +206,6 @@ local function save_lyrics(lyrics)
     end
     if options.strip_artists then
         lyrics = strip_artists(lyrics)
-    end
-
-    local success_message = "Lyrics downloaded"
-    if options.download_for_all then
-        success_message = "Found and applied lyrics"
-    end
-    if current_sub_path then
-        -- os.rename only works across the same filesystem
-        local _, current_sub_filename = utils.split_path(current_sub_path)
-        local current_sub = io.open(current_sub_path)
-        local backup = io.open("/tmp/" .. current_sub_filename, "w")
-        if current_sub and backup then
-            backup:write(current_sub:read("*a"))
-            success_message = success_message .. ". The old one has been backed up to /tmp."
-        end
-        if current_sub then
-            current_sub:close()
-        end
-        if backup then
-            backup:close()
-        end
     end
 
     local function is_url(s)
@@ -236,11 +217,11 @@ local function save_lyrics(lyrics)
         local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
-    local isWindows = is_windows()
+    local is_windows = is_windows()
 
     local function create_directory(directory_path)
         local args = {"mkdir", directory_path}
-        if isWindows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
+        if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
         local res = utils.subprocess({ args = args, cancellable = false })
         if res.status ~= 0 then
             mp.msg.error("Failed to create directory: " .. directory_path)
@@ -256,11 +237,11 @@ local function save_lyrics(lyrics)
     local pattern = '[\\/:*?"<>|]'
 
     if (is_url(path) and path or nil) and options.load_for_youtube then
-        local youtubeID = ""
+        local youtube_ID = ""
         if not downloading_name then 
-            youtubeID = " [" .. mp.get_property("filename"):match("[?&]v=([^&]+)") .. "]" 
+            youtube_ID = " [" .. mp.get_property("filename"):match("[?&]v=([^&]+)") .. "]" 
         end
-        local filename = string.gsub(media:sub(1, 100):gsub(pattern, ""), "^%s*(.-)%s*$", "%1") .. youtubeID
+        local filename = string.gsub(media:sub(1, 100):gsub(pattern, ""), "^%s*(.-)%s*$", "%1") .. youtube_ID
         path =  mp.command_native({"expand-path", options.lyrics_store .. filename})
     else
         if options.store_lyrics_seperate then
@@ -268,21 +249,20 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = (path:gsub("?", "") .. ".lrc")
+    local lrc_path = (path:gsub("?", "") .. (add_ja and ".ja" or "") .. ".lrc")
     local dir_path = lrc_path:match("(.+[\\/])")
-    if isWindows then
+    if is_windows then
         lrc_path = lrc_path:gsub("/", "\\")
         dir_path = dir_path:gsub("/", "\\")
     end
     
     if (utils.readdir(dir_path) == nil and options.store_lyrics_seperate) then
-        if not isWindows then
+        if not is_windows then
             subdir_path = utils.split_path(dir_path)
             create_directory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
         create_directory(dir_path)
     end
-
 
     local lrc = io.open(lrc_path, "w")
     if lrc == nil then
@@ -295,7 +275,7 @@ local function save_lyrics(lyrics)
     if lyrics:find("^%[") then
         mp.command(current_sub_path and "sub-reload" or "rescan-external-files") 
         if manual_run then
-            mp.osd_message(success_message)
+            mp.osd_message("Lyrics downloaded")
         end
         got_lyrics = true
         without_timestamps = false
@@ -309,10 +289,10 @@ end
 
 mp.add_key_binding("Alt+m", "musixmatch-download", function() 
     manual_run = true
-    autodownload()
+    auto_download()
 end)
 
-function musixmatchdownload()
+function musixmatch_download()
     local title, artist = get_metadata()
 
     if not title then
@@ -374,10 +354,10 @@ end
 
 mp.add_key_binding("Alt+n", "netease-download", function() 
     manual_run = true
-    neteasedownload() 
+    netease_download() 
 end)
 
-function neteasedownload()
+function netease_download()
     local title, artist, album = get_metadata()
 
     if not title then
@@ -478,14 +458,14 @@ function get_subtitle_count()
     return subtitle_count
 end
 
-function autodownload()
+function auto_download()
     if (old_subtitle_count ~= subtitle_count) and options.cache_loading then
         print("Subs previously downloaded - not downloading again")
     else
         got_lyrics = false
-        musixmatchdownload()
+        musixmatch_download()
         if not got_lyrics then
-            neteasedownload()
+            netease_download()
         end
         if without_timestamps then
             mp.osd_message("Lyrics without timestamps downloaded automatically")
@@ -493,11 +473,11 @@ function autodownload()
     end
 end
 
-function checkdownloadedsubs()
+function check_downloaded_subs()
     local old_subtitle_count, subtitle_count = get_subtitle_count(), nil
 
     if old_subtitle_count > 0 then
-        print("Subtitles detected - aborting download process")
+        print("Subtitles detected - aborting autolyrics.lua")
         return
     end
     
@@ -510,8 +490,8 @@ function checkdownloadedsubs()
     end
 
     if options.run_automatically then
-        autodownload()
+        auto_download()
     end
 end
 
-checkdownloadedsubs()
+check_downloaded_subs()
