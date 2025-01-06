@@ -24,29 +24,29 @@ local user_opts = {
     language = "en",                        -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",               -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
 
-    idlescreen = true,                      -- show mpv logo when idle
+    idle_screen = true,                     -- show mpv logo when idle
     window_top_bar = "auto",                -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
-    showwindowed = true,                    -- show OSC when windowed
-    showfullscreen = true,                  -- show OSC when fullscreen
-    showonpause = true,                     -- show OSC when paused
-    keeponpause = false,                    -- disable OSC hide timeout when paused
-    greenandgrumpy = false,                 -- disable Santa hat in December
+    show_windowed = true,                   -- show OSC when windowed
+    show_fullscreen = true,                 -- show OSC when fullscreen
+    show_on_pause = true,                   -- show OSC when paused
+    keep_on_pause = false,                  -- disable OSC hide timeout when paused
+    green_and_grumpy = false,               -- disable Santa hat in December
     visibility = "auto",                    -- only used at init to set visibility_mode(...)
 
     -- OSC behaviour and scaling
-    hidetimeout = 1500,                     -- time (in ms) before OSC hides if no mouse movement
-    seek_resets_hidetimeout = true,         -- if seeking should reset the hidetimeout
-    fadeduration = 150,                     -- fade-out duration (in ms), set to 0 for no fade
-    minmousemove = 0,                       -- minimum mouse movement (in pixels) required to show OSC
-    bottomhover = true,                     -- show OSC only when hovering at the bottom
-    bottomhover_zone = 200,                 -- height of hover zone for bottomhover (in pixels)
+    hide_timeout = 1500,                    -- time (in ms) before OSC hides if no mouse movement
+    seek_resets_hide_timeout = true,        -- if seeking should reset the hide_timeout
+    fade_duration = 150,                    -- fade-out duration (in ms), set to 0 for no fade
+    min_mouse_move = 0,                     -- minimum mouse movement (in pixels) required to show OSC
+    bottom_hover = true,                    -- show OSC only when hovering at the bottom
+    bottom_hover_zone = 200,                -- height of hover zone for bottom_hover (in pixels)
     osc_on_seek = false,                    -- show OSC when seeking
     mouse_seek_pause = true,                -- pause video while seeking with mouse move (on button hold)
 
-    vidscale = false,                       -- scale osc with the video
-    scalewindowed = 1.0,                    -- osc scale factor when windowed
-    scalefullscreen = 1.0,                  -- osc scale factor when fullscreen
-    scaleforcedwindow = 1.0,                -- osc scale factor when forced (no video, like music files)
+    vid_scale = false,                      -- scale osc with the video
+    scale_windowed = 1.0,                   -- osc scale factor when windowed
+    scale_fullscreen = 1.0,                 -- osc scale factor when fullscreen
+    scale_forced_window = 1.0,              -- osc scale factor when forced (no video, like music files)
 
     -- Time, title and description display
     show_title = true,                      -- show title in the OSC (above seekbar)
@@ -57,9 +57,9 @@ local user_opts = {
     show_chapter_title = true,              -- show chapter title alongside timestamp (below seekbar)
     chapter_fmt = "%s",                     -- format for chapter display on seekbar hover (set to "no" to disable)
 
-    timetotal = true,                       -- show total time instead of remaining time
-    timems = false,                         -- show timecodes with milliseconds
-    unicodeminus = false,                   -- use the Unicode minus sign in remaining time
+    time_total = true,                      -- show total time instead of remaining time
+    time_ms = false,                        -- show timecodes with milliseconds
+    unicode_minus = false,                  -- use the Unicode minus sign in remaining time
     time_format = "dynamic",                -- "dynamic" or "fixed" - dynamic shows MM:SS when possible, fixed always shows HH:MM:SS
     time_font_size = 18,                    -- font size of the time display
 
@@ -74,14 +74,14 @@ local user_opts = {
     window_title = true,                    -- show window title in borderless/fullscreen mode
     window_controls = true,                 -- show window controls (close, minimize, maximize) in borderless/fullscreen
     title_bar_box = false,                  -- show title bar as a box instead of a black fade
-    windowcontrols_title = "${media-title}",-- same as title but for window_controls
+    window_controls_title = "${media-title}",-- same as title but for window_controls
 
     -- Subtitle display settings
     raise_subtitles = true,                 -- whether to raise subtitles above the osc when it's shown
     raise_subtitle_amount = 175,            -- how much subtitles rise when the osc is shown
 
     -- Buttons display and functionality
-    compactmode = true,                     -- replace the jump buttons with the seek/chapter buttons
+    compact_mode = true,                    -- replace the jump buttons with the seek/chapter buttons
     
     jump_buttons = true,                    -- show the jump backward and forward buttons
     jump_amount = 10,                       -- change the jump amount in seconds
@@ -105,7 +105,7 @@ local user_opts = {
     download_button = true,                 -- show download button on web videos (requires yt-dlp and ffmpeg)
     download_path = "~~desktop/mpv/downloads", -- default download directory for videos (https://mpv.io/manual/master/#paths)
 
-    loop_button = false,                     -- show loop button
+    loop_button = false,                    -- show loop button
 
     loop_in_pause = true,                   -- enable looping by right-clicking pause
 
@@ -117,8 +117,8 @@ local user_opts = {
     osc_color = "#000000",                  -- accent color of the OSC and title bar
     window_title_color = "#FFFFFF",         -- color of the title in borderless/fullscreen mode
     window_controls_color = "#FFFFFF",      -- color of the window controls (close, minimize, maximize) in borderless/fullscreen mode
-    windowcontrols_close_hover = "#E81123", -- color of close window control on hover
-    windowcontrols_minmax_hover = "#53A4FC",-- color of min/max window controls on hover
+    window_controls_close_hover = "#E81123", -- color of close window control on hover
+    window_controls_minmax_hover = "#53A4FC",-- color of min/max window controls on hover
     title_color = "#FFFFFF",                -- color of the title (above seekbar)
     seekbarfg_color = "#1D96F5",            -- color of the seekbar progress and handle, in Hex color format
     seekbarbg_color = "#FFFFFF",            -- color of the remaining seekbar, in Hex color format
@@ -145,18 +145,18 @@ local user_opts = {
     hover_effect_for_sliders = false,       -- apply hover effects to slider handles
 
     -- Progress bar settings
-    seekbarhandlesize = 0.8,                -- size ratio of the seekbar handle (range: 0 ~ 1)
-    seekrange = true,                       -- show seek range overlay
-    seekrangealpha = 175,                   -- transparency of the seek range
-    seekbarkeyframes = false,               -- use keyframes when dragging the seekbar
+    seekbar_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
+    seek_range = true,                      -- show seek range overlay
+    seek_rangealpha = 175,                  -- transparency of the seek range
+    seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
     
-    automatickeyframemode = true,           -- automatically set keyframes for the seekbar based on video length
-    automatickeyframelimit = 600,           -- videos longer than this (in seconds) will have keyframes on the seekbar
+    automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
+    automatic_keyframe_limit = 600,         -- videos longer than this (in seconds) will have keyframes on the seekbar
 
-    persistentprogress = false,             -- always show a small progress line at the bottom of the screen
-    persistentprogressheight = 17,          -- the height of the persistentprogress bar
-    persistentbuffer = false,               -- on web videos, show the buffer on the persistent progress line
-    persistentprogresstoggle = true,        -- enable toggling the persistentprogress bar
+    persistent_progress = false,            -- always show a small progress line at the bottom of the screen
+    persistent_progressheight = 17,         -- the height of the persistent_progress bar
+    persistent_buffer = false,              -- on web videos, show the buffer on the persistent progress line
+    persistent_progresstoggle = true,       -- enable toggling the persistent_progress bar
 
     -- Experimental
     title_youtube_stats = true,             -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
@@ -342,8 +342,8 @@ local state = {
     mouse_down_counter = 0,                 -- used for softrepeat
     active_element = nil,                   -- nil = none, 0 = background, 1+ = see elements[]
     active_event_source = nil,              -- the "button" that issued the current event
-    tc_right_rem = not user_opts.timetotal, -- if the right timecode should display total or remaining time
-    fulltime = user_opts.timems,
+    tc_right_rem = not user_opts.time_total, -- if the right timecode should display total or remaining time
+    fulltime = user_opts.time_ms,
     mp_screen_sizeX = nil, mp_screen_sizeY = nil, -- last screen-resolution, to detect resolution changes to issue reINITs
     initREQ = false,                        -- is a re-init request pending?
     last_mouseX = nil, last_mouseY = nil,   -- last mouse position, to detect significant mouse movement
@@ -371,7 +371,7 @@ local state = {
     initialborder = mp.get_property('border'),
     playingWhilstSeeking = false,
     playingWhilstSeekingWaitingForEnd = false,
-    persistentprogresstoggle = user_opts.persistentprogress,
+    persistent_progresstoggle = user_opts.persistent_progress,
 
     downloaded_once = false,
     downloading = false,
@@ -604,11 +604,11 @@ local function ass_draw_rr_h_cw(ass, x0, y0, x1, y1, r1, hexagon, r2)
     end
 end
 
-local function get_hidetimeout()
+local function get_hide_timeout()
     if user_opts.visibility == "always" then
         return -1 -- disable autohide
     end
-    return user_opts.hidetimeout
+    return user_opts.hide_timeout
 end
 
 local tick
@@ -814,7 +814,7 @@ local function prepare_elements()
             --draw static slider parts
             local slider_lo = element.layout.slider
             -- calculate positions of min and max points
-            element.slider.min.ele_pos = user_opts.seekbarhandlesize * elem_geo.h / 2
+            element.slider.min.ele_pos = user_opts.seekbar_handle_size * elem_geo.h / 2
             element.slider.max.ele_pos = elem_geo.w - element.slider.min.ele_pos
             element.slider.min.glob_pos = element.hitbox.x1 + element.slider.min.ele_pos
             element.slider.max.glob_pos = element.hitbox.x1 + element.slider.max.ele_pos
@@ -954,8 +954,8 @@ function render_elements(master_ass)
 
                 -- draw pos marker
                 local pos = element.slider.posF()
-                local seekRanges = element.slider.seekRangesF()
-                local rh = user_opts.seekbarhandlesize * elem_geo.h / 2 -- Handle radius
+                local seek_ranges = element.slider.seek_rangesF()
+                local rh = user_opts.seekbar_handle_size * elem_geo.h / 2 -- Handle radius
                 local xp
                 
                 if pos then
@@ -964,13 +964,13 @@ function render_elements(master_ass)
                     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
                 end
 
-                if seekRanges then
+                if seek_ranges then
                     elem_ass:draw_stop()
                     elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seekrangealpha)
+                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)
                     elem_ass:merge(element.static_ass)
 
-                    for _,range in pairs(seekRanges) do
+                    for _,range in pairs(seek_ranges) do
                         local pstart = get_slider_ele_pos_for(element, range['start'])
                         local pend = get_slider_ele_pos_for(element, range['end'])
                         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
@@ -1171,7 +1171,7 @@ function render_elements(master_ass)
     end
 end
 
-function render_persistentprogressbar(master_ass)
+function render_persistent_progressbar(master_ass)
     for n=1, #elements do
         local element = elements[n]
         if (element.name == "persistentseekbar") then
@@ -1196,7 +1196,7 @@ function render_persistentprogressbar(master_ass)
 
             -- draw pos marker
             local pos = element.slider.posF()
-            local seekRanges = element.slider.seekRangesF()
+            local seek_ranges = element.slider.seek_rangesF()
             local rh = 0 -- Handle radius
             local xp
                 
@@ -1206,12 +1206,12 @@ function render_persistentprogressbar(master_ass)
                 elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
             end
 
-            if user_opts.persistentbuffer and seekRanges then
+            if user_opts.persistent_buffer and seek_ranges then
                 elem_ass:draw_stop()
                 elem_ass:merge(element.style_ass)
-                ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seekrangealpha, true)
+                ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha, true)
                 elem_ass:merge(element.static_ass)
-                for _,range in pairs(seekRanges) do
+                for _,range in pairs(seek_ranges) do
                     local pstart = get_slider_ele_pos_for(element, range["start"])
                     local pend = get_slider_ele_pos_for(element, range["end"])
                     elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
@@ -1275,11 +1275,11 @@ function startupevents()
     state.file_size_normalized = "Approximating size..."
     checktitle()
     check_path_url()
-    if user_opts.automatickeyframemode then
-        if mp.get_property_number("duration", 0) > user_opts.automatickeyframelimit then
-             user_opts.seekbarkeyframes = true
+    if user_opts.automatic_keyframe_mode then
+        if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
+             user_opts.seekbar_keyframes = true
         else
-             user_opts.seekbarkeyframes = false
+             user_opts.seekbar_keyframes = false
         end
      end
     destroyscrollingkeys() -- close description
@@ -2304,7 +2304,7 @@ function window_controls()
         lo = add_layout('close')
         lo.geometry = third_geo
         lo.style = osc_styles.window_control
-        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.windowcontrols_close_hover) .. "&}"
+        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_close_hover) .. "&}"
 
         -- Minimize: 🗕
         ne = new_element('minimize', 'button')
@@ -2314,7 +2314,7 @@ function window_controls()
         lo = add_layout('minimize')
         lo.geometry = first_geo
         lo.style = osc_styles.window_control
-        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.windowcontrols_minmax_hover) .. "&}"
+        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_minmax_hover) .. "&}"
         
         -- Maximize: 🗖/🗗
         ne = new_element('maximize', 'button')
@@ -2334,14 +2334,14 @@ function window_controls()
         lo = add_layout('maximize')
         lo.geometry = second_geo
         lo.style = osc_styles.window_control
-        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.windowcontrols_minmax_hover) .. "&}"
+        lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_minmax_hover) .. "&}"
     end
 
     -- Window Title
     if user_opts.window_title then
         ne = new_element("window_title", "button")
         ne.content = function ()
-            local title = mp.command_native({"expand-text", user_opts.windowcontrols_title})
+            local title = mp.command_native({"expand-text", user_opts.window_controls_title})
             -- escape ASS, and strip newlines and trailing slashes
             title = title:gsub("\\n", " "):gsub("\\$", ""):gsub("{","\\{")
             local titleval = not (title == "") and title or "mpv video"
@@ -2425,9 +2425,9 @@ layouts = function ()
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
     
-    if (user_opts.persistentprogress or user_opts.persistentprogresstoggle) then
+    if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
         lo = add_layout('persistentseekbar')
-        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistentprogressheight}
+        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progressheight}
         lo.style = osc_styles.seekbar_fg
         lo.slider.gap = 7
         lo.slider.tooltip_an = 0   
@@ -2442,7 +2442,7 @@ layouts = function ()
     local ontop_button = user_opts.ontop_button
     local screenshot_button = user_opts.screenshot_button
 
-    if user_opts.compactmode then
+    if user_opts.compact_mode then
         user_opts.jump_buttons = false
         jump_buttons = false
     end
@@ -2646,14 +2646,14 @@ local function osc_init()
     local scale
 
     if (mp.get_property("video") == "no") then -- dummy/forced window
-        scale = user_opts.scaleforcedwindow
+        scale = user_opts.scale_forced_window
     elseif state.fullscreen then
-        scale = user_opts.scalefullscreen
+        scale = user_opts.scale_fullscreen
     else
-        scale = user_opts.scalewindowed
+        scale = user_opts.scale_windowed
     end
 
-    if user_opts.vidscale then
+    if user_opts.vid_scale then
         osc_param.unscaled_y = baseResY
     else
         osc_param.unscaled_y = display_h
@@ -2679,10 +2679,10 @@ local function osc_init()
     local nojumpoffset = user_opts.jump_buttons and 0 or 100
     local noskipoffset = user_opts.chapter_skip_buttons and 0 or 100
 
-    local compactmode = user_opts.compactmode
-    if compactmode then nojumpoffset = 100 end
+    local compact_mode = user_opts.compact_mode
+    if compact_mode then nojumpoffset = 100 end
     local outeroffset = (user_opts.chapter_skip_buttons and 0 or 140) + (user_opts.jump_buttons and 0 or 140)
-    if compactmode then outeroffset = 140 end
+    if compact_mode then outeroffset = 140 end
 
     local ne
 
@@ -2809,10 +2809,10 @@ local function osc_init()
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset*10)
     ne.softrepeat = user_opts.chapter_softrepeat == true
     ne.content = icons.rewind
-    ne.enabled = (have_ch) or compactmode -- disables button when no chapters available.
+    ne.enabled = (have_ch) or compact_mode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         function () 
-            if compactmode then
+            if compact_mode then
                 mp.commandv('seek', -jump_amount, jump_mode)
             else
                 mp.commandv("add", "chapter", -1)
@@ -2820,7 +2820,7 @@ local function osc_init()
         end
     ne.eventresponder['mbtn_right_down'] =
         function () 
-            if compactmode then     
+            if compact_mode then     
                 mp.commandv("add", "chapter", -1)
                 show_message(get_chapterlist())
                 show_message(get_chapterlist()) -- run twice as it might show the wrong chapter without another function
@@ -2841,10 +2841,10 @@ local function osc_init()
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset*10)
     ne.softrepeat = user_opts.chapter_softrepeat == true
     ne.content = icons.forward
-    ne.enabled = (have_ch) or compactmode -- disables button when no chapters available.
+    ne.enabled = (have_ch) or compact_mode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         function ()
-            if compactmode then
+            if compact_mode then
                 mp.commandv('seek', jump_amount, jump_mode)
             else
                 mp.commandv("add", "chapter", 1)
@@ -2852,7 +2852,7 @@ local function osc_init()
         end
     ne.eventresponder['mbtn_right_down'] =
         function ()
-            if compactmode then
+            if compact_mode then
                 mp.commandv("add", "chapter", 1)
                 show_message(get_chapterlist())
                 show_message(get_chapterlist()) -- run twice as it might show the wrong chapter without another function    
@@ -3188,8 +3188,8 @@ local function osc_init()
         end
 
     end
-    ne.slider.seekRangesF = function()
-        if not user_opts.seekrange then
+    ne.slider.seek_rangesF = function()
+        if not user_opts.seek_range then
             return nil
         end
         local cache_state = state.cache_state
@@ -3226,7 +3226,7 @@ local function osc_init()
             local seekto = get_slider_value(element)
             if element.state.lastseek == nil or element.state.lastseek ~= seekto then
                 local flags = "absolute-percent"
-                if not user_opts.seekbarkeyframes then
+                if not user_opts.seekbar_keyframes then
                     flags = flags .. "+exact"
                 end
                 mp.commandv("seek", seekto, flags)
@@ -3285,7 +3285,7 @@ local function osc_init()
         ne.enabled = get_track('audio') > 0
         ne.slider = {min = {value = 0}, max = {value = volume_max}}
         ne.slider.markerF = function () return {} end
-        ne.slider.seekRangesF = function() return nil end
+        ne.slider.seek_rangesF = function() return nil end
         ne.slider.posF = function ()
             local volume = mp.get_property_number("volume")
             if user_opts.volume_control_type == "logarithmic" then
@@ -3313,7 +3313,7 @@ local function osc_init()
     end
 
     --persistent seekbar
-    if (user_opts.persistentprogress or user_opts.persistentprogresstoggle) then
+    if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
         ne = new_element('persistentseekbar', 'slider')
         ne.enabled = not (mp.get_property('percent-pos') == nil)
         state.slider_element = ne.enabled and ne or nil  -- used for forced_title
@@ -3327,9 +3327,9 @@ local function osc_init()
         ne.slider.tooltipF = function()
             return ""
         end
-        ne.slider.seekRangesF = function()
-            if user_opts.persistentbuffer then
-                if not user_opts.seekrange then
+        ne.slider.seek_rangesF = function()
+            if user_opts.persistent_buffer then
+                if not user_opts.seek_range then
                     return nil
                 end
                 local cache_state = state.cache_state
@@ -3441,7 +3441,7 @@ local function osc_init()
             mp.get_property_number("playtime-remaining", 0) or duration
             
         local prefix = state.tc_right_rem and 
-            (user_opts.unicodeminus and UNICODE_MINUS or "-") or ""
+            (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
             
         return prefix .. format_time(time_to_display, false)
     end
@@ -3474,7 +3474,7 @@ function show_osc()
 
     osc_visible(true)
 
-    if (user_opts.fadeduration > 0) then
+    if (user_opts.fade_duration > 0) then
         state.anitype = nil
     end
 end
@@ -3487,7 +3487,7 @@ function hide_osc()
         state.osc_visible = false
         adjustSubtitles(false)
         render_wipe()
-    elseif (user_opts.fadeduration > 0) then
+    elseif (user_opts.fade_duration > 0) then
         if not(state.osc_visible == false) then
             state.anitype = 'out'
             request_tick()
@@ -3509,7 +3509,7 @@ function osc_visible(visible)
 end
 
 function adjustSubtitles(visible)
-    if visible and user_opts.raise_subtitles and state.osc_visible == true and (state.fullscreen == false or user_opts.showfullscreen) then
+    if visible and user_opts.raise_subtitles and state.osc_visible == true and (state.fullscreen == false or user_opts.show_fullscreen) then
         local w, h = mp.get_osd_size()
         if h > 0 then
             local subpos = math.floor((osc_param.playresy - user_opts.raise_subtitle_amount)/osc_param.playresy*100)
@@ -3528,7 +3528,7 @@ function pause_state(name, enabled)
     if (state.playingWhilstSeeking) then state.playingWhilstSeekingWaitingForEnd = true return end
     if (state.playingWhilstSeekingWaitingForEnd) then state.playingWhilstSeekingWaitingForEnd = false return end
     state.paused = enabled
-    if user_opts.showonpause then
+    if user_opts.show_on_pause then
         if enabled then
             visibility_mode("auto")
             show_osc()
@@ -3546,7 +3546,7 @@ end
 
 
 local function mouse_leave()
-    if get_hidetimeout() >= 0 then
+    if get_hide_timeout() >= 0 then
         hide_osc()
     end
     -- reset mouse position
@@ -3622,16 +3622,16 @@ local function render()
             state.anistart = now
         end
 
-        if (now < state.anistart + (user_opts.fadeduration/1000)) then
+        if (now < state.anistart + (user_opts.fade_duration/1000)) then
 
             if (state.anitype == 'in') then --fade in
                 osc_visible(true)
                 state.animation = scale_value(state.anistart,
-                    (state.anistart + (user_opts.fadeduration/1000)),
+                    (state.anistart + (user_opts.fade_duration/1000)),
                     255, 0, now)
             elseif (state.anitype == 'out') then --fade out
                 state.animation = scale_value(state.anistart,
-                    (state.anistart + (user_opts.fadeduration/1000)),
+                    (state.anistart + (user_opts.fade_duration/1000)),
                     0, 255, now)
             end
 
@@ -3703,11 +3703,11 @@ local function render()
     end
 
     -- autohide
-    if not (state.showtime == nil) and (get_hidetimeout() >= 0) then
-        local timeout = state.showtime + (get_hidetimeout()/1000) - now
+    if not (state.showtime == nil) and (get_hide_timeout() >= 0) then
+        local timeout = state.showtime + (get_hide_timeout()/1000) - now
         if timeout <= 0 then
-            if (state.active_element == nil) and (user_opts.bottomhover or not (mouse_over_osc)) then
-                if (not (state.paused and user_opts.keeponpause)) then
+            if (state.active_element == nil) and (user_opts.bottom_hover or not (mouse_over_osc)) then
+                if (not (state.paused and user_opts.keep_on_pause)) then
                     hide_osc()
                 end
             end
@@ -3735,8 +3735,8 @@ local function render()
     if state.osc_visible then
         render_elements(ass)
     end
-    if user_opts.persistentprogress or state.persistentprogresstoggle then
-        render_persistentprogressbar(ass)
+    if user_opts.persistent_progress or state.persistent_progresstoggle then
+        render_persistent_progressbar(ass)
     end
 
     -- submit
@@ -3806,15 +3806,15 @@ function process_event(source, what)
         state.mouse_in_window = true
 
         local mouseX, mouseY = get_virt_mouse_pos()
-        if (user_opts.minmousemove == 0) or 
+        if (user_opts.min_mouse_move == 0) or 
             (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and 
-                ((math.abs(mouseX - state.last_mouseX) >= user_opts.minmousemove) 
-                    or (math.abs(mouseY - state.last_mouseY) >= user_opts.minmousemove)
+                ((math.abs(mouseX - state.last_mouseX) >= user_opts.min_mouse_move) 
+                    or (math.abs(mouseY - state.last_mouseY) >= user_opts.min_mouse_move)
                 )
             ) then
-                if user_opts.bottomhover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
+                if user_opts.bottom_hover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
                     local top_hover = window_controls_enabled() and (user_opts.window_title or user_opts.window_top_bar)
-                    if mouseY > osc_param.playresy - (user_opts.bottomhover_zone or 200) or 
+                    if mouseY > osc_param.playresy - (user_opts.bottom_hover_zone or 200) or 
                         ((user_opts.window_top_bar == "yes" or not (state.border and state.title_bar)) or state.fullscreen) and (mouseY < 40 and top_hover) then
                         show_osc()
                     else
@@ -3857,7 +3857,7 @@ function tick()
         local ass = assdraw.ass_new()
 
         -- mpv logo
-        if user_opts.idlescreen then
+        if user_opts.idle_screen then
             for i, line in ipairs(logo_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
@@ -3865,14 +3865,14 @@ function tick()
         end
 
         -- Santa hat
-        if is_december and user_opts.idlescreen and not user_opts.greenandgrumpy then
+        if is_december and user_opts.idle_screen and not user_opts.green_and_grumpy then
             for i, line in ipairs(santa_hat_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
             end
         end
    
-        if user_opts.idlescreen then
+        if user_opts.idle_screen then
             ass:new_event()
             ass:pos(display_w / 2, icon_y + 65)
             ass:an(8)
@@ -3887,8 +3887,8 @@ function tick()
         end
 
 
-    elseif (state.fullscreen and user_opts.showfullscreen)
-        or (not state.fullscreen and user_opts.showwindowed) then
+    elseif (state.fullscreen and user_opts.show_fullscreen)
+        or (not state.fullscreen and user_opts.show_windowed) then
 
         -- render the OSC
         render()
@@ -3904,7 +3904,7 @@ function tick()
         -- be a timestamp when it started. state.idle has no animation.
         if not state.idle and
            (not state.anistart or
-            mp.get_time() < 1 + state.anistart + user_opts.fadeduration/1000)
+            mp.get_time() < 1 + state.anistart + user_opts.fade_duration/1000)
         then
             -- animating or starting, or still within 1s past the deadline
             request_tick()
@@ -3925,7 +3925,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
-    if user_opts.seek_resets_hidetimeout then
+    if user_opts.seek_resets_hide_timeout then
         reset_timeout()
     end
     if seeking and user_opts.osc_on_seek and not state.new_file_flag then
@@ -3967,9 +3967,9 @@ if true then
         set_track('sub', 1) show_message(get_tracklist('sub'))
     end);
 
-    if (user_opts.persistentprogresstoggle) then
+    if (user_opts.persistent_progresstoggle) then
         mp.add_key_binding("b", "persistenttoggle", function()
-            state.persistentprogresstoggle = not state.persistentprogresstoggle
+            state.persistent_progresstoggle = not state.persistent_progresstoggle
             tick()
             print("Persistent progress bar toggled")
         end);
