@@ -11,23 +11,25 @@ local utils = require "mp.utils"
 
 local options = {
     musixmatch_token = "220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea",
-    downloadforall = false,         -- experimental, try to get subtitles for all videos
-    loadforyoutube = true,          -- try to load lyrics on youtube videos
-    lyricsstore = "~~desktop/mpv/lrcdownloads/",
-    storelyricsseperate = true,     -- store lyrics in ~~desktop/mpv/lrcdownloads/
-    cacheloading = true,            -- try to load lyrics that were already downloaded
-    runautomatically = false        -- run this script without pressing Alt+m
+    download_for_all = false,                                       -- try to get subtitles for music without metadata
+    load_for_youtube = true,                                        -- try to load lyrics on youtube videos
+    store_lyrics_seperate = true,                                   -- store lyrics in ~~desktop/mpv/lrcdownloads/
+    lyrics_store = "~~desktop/mpv/lrcdownloads/",                   -- where to store downloaded lyric files if store_lyrics_seperate is true
+    cache_loading = true,                                           -- try to load lyrics that were already downloaded
+    strip_artists = true,                                           -- remove lines with the names of the artists from NetEase lyrics
+    chinese_to_kanji_path = "~~home/scripts/chinese-to-kanji.txt",  -- set to path of file
+    run_automatically = false                                       -- run this script without pressing Alt+m
 }
 (require "mp.options").read_options(options)
 
-local manualrun = false
-local gotlyrics = false
-local withoutTimestamps = false
-local downloadingName = ""
+local manual_run = false
+local got_lyrics = false
+local without_timestamps = false
+local downloading_name = ""
 
 local function show_error(message)
     mp.msg.error(message)
-    if mp.get_property_native("vo-configured") and manualrun then
+    if mp.get_property_native("vo-configured") and manual_run then
         mp.osd_message(message, 5)
     end
 end
@@ -65,21 +67,21 @@ local function get_metadata()
     local title, artist, album
     if metadata then
         if next(metadata) == nil then
-            mp.msg.info("couldn't load metadata!")
+            mp.msg.info("Couldn't load metadata!")
         else
             title = metadata.title or metadata.TITLE or metadata.Title
-            if options.downloadforall then
+            if options.download_for_all then
                 title = mp.get_property("media-title")
                 title = title:gsub("%b[]", "") .. " "
             end
             artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
-            if options.downloadforall and not artist then
+            if options.download_for_all and not artist then
                 artist = " "
             end
             album = metadata.album or metadata.ALBUM or metadata.Album
         end
     else
-        mp.msg.info("couldn't load metadata!")
+        mp.msg.info("Couldn't load metadata!")
     end
 
     if not title then
@@ -99,14 +101,85 @@ local function get_metadata()
     return title, artist, album
 end
 
-local function save_lyrics(lyrics)
-    if lyrics == "" then
-        show_error("Lyrics not found")
-        return
+local function is_japanese(lyrics)
+    -- http://lua-users.org/wiki/LuaUnicode Lua patterns don't support Unicode
+    -- ranges, and you can't even iterate over \u{XXX} sequences in Lua 5.1 and
+    -- 5.2, so just search for some Hiragana characters.
+
+    for _, kana in pairs({
+        'あ', 'い', 'う', 'え', 'お',
+        'か', 'き', 'く', 'け', 'こ',
+        'さ', 'し', 'す', 'せ', 'そ',
+        'た', 'ち', 'つ', 'て', 'と',
+        'な', 'に', 'ぬ', 'ね', 'の',
+        'は', 'ひ', 'ふ', 'へ', 'ほ',
+        'ま', 'み', 'む', 'め', 'も',
+        'や',       'ゆ',       'よ',
+        'ら', 'り', 'る', 'れ', 'ろ',
+        'わ',                   'を',
+    }) do
+        if lyrics:find(kana) then
+            return true
+        end
+    end
+end
+
+local function chinese_to_kanji(lyrics)
+    local mappings, error = io.open(
+        mp.command_native({'expand-path', options.chinese_to_kanji_path})
+    )
+
+    if mappings == nil then
+        show_error(error)
+        return lyrics
     end
 
-    if #lyrics < 250 then
-        show_error("File likely not lyrics")
+    -- -- Save the original lyrics to compare them.
+    -- local original = io.open(mp.command_native({'expand-path', '~~desktop/mpv/temp/original.lrc'}), 'w')
+    -- if original then
+    --     original:write(lyrics)
+    --     original:close()
+    -- end
+
+    for mapping in mappings:lines() do
+        local num_matches
+
+        -- gsub on Unicode lyrics seems to stop at the first match. I have
+        -- no idea why this works.
+        repeat
+            lyrics, num_matches = lyrics:gsub(
+                mapping:gsub(' .*', ''),
+                mapping:gsub('.* ', '')
+            )
+        until num_matches == 0
+    end
+
+    mappings:close()
+
+    -- Also remove the pointless owari line when present.
+    for _, pattern in pairs({
+        'おわり',
+        '【 おわり 】',
+        ' ?終わり',
+        '終わる',
+        'END',
+    }) do
+        lyrics = lyrics:gsub(']' .. pattern .. '\n', ']\n')
+    end
+
+    return lyrics
+end
+
+local function strip_artists(lyrics)
+    for _, pattern in pairs({'作词', '作詞', '作曲', '制作人', '编曲', '編曲', '詞', '曲'}) do
+        lyrics = lyrics:gsub('%[[%d:%.]*] ?' .. pattern .. ' ?[:：] ?.-\n', '')
+    end
+    return lyrics
+end
+
+local function save_lyrics(lyrics)
+    if lyrics == "" or select(2, lyrics:gsub("\n", "")) == 2 then
+        show_error("Lyrics not found")
         return
     end
 
@@ -119,10 +192,22 @@ local function save_lyrics(lyrics)
 
     -- NetEase's LRCs can have 3-digit milliseconds, which messes up the sub's timings in mpv.
     lyrics = lyrics:gsub("(%.%d%d)%d]", "%1]")
-    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'") -- remove strange characters
+    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters
+
+    if is_japanese(lyrics) then
+        if options.mark_as_ja then
+            lrc_path = lrc_path .. '.ja'
+        end
+        if options.chinese_to_kanji_path ~= "" then
+            lyrics = chinese_to_kanji(lyrics)
+        end
+    end
+    if options.strip_artists then
+        lyrics = strip_artists(lyrics)
+    end
 
     local success_message = "Lyrics downloaded"
-    if options.downloadforall then
+    if options.download_for_all then
         success_message = "Found and applied lyrics"
     end
     if current_sub_path then
@@ -153,37 +238,35 @@ local function save_lyrics(lyrics)
 
     local isWindows = is_windows()
 
-    local function createDirectory(directoryPath)
-        local args = {"mkdir", directoryPath}
-        if isWindows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directoryPath} end
+    local function create_directory(directory_path)
+        local args = {"mkdir", directory_path}
+        if isWindows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
         local res = utils.subprocess({ args = args, cancellable = false })
         if res.status ~= 0 then
-            mp.msg.error("Failed to create directory: " .. directoryPath)
+            mp.msg.error("Failed to create directory: " .. directory_path)
         else
-            mp.msg.info("Directory created successfully: " .. directoryPath)
+            mp.msg.info("Directory created successfully: " .. directory_path)
         end
     end    
 
-    downloadingName = downloadingName:gsub("\\", " "):gsub("/", " ")
+    downloading_name = downloading_name:gsub("\\", " "):gsub("/", " ")
 
     local path = mp.get_property("path")
-    local media = downloadingName .. " [" .. mp.get_property("filename/no-ext") .. "]"
+    local media = downloading_name .. " [" .. mp.get_property("filename/no-ext") .. "]"
     local pattern = '[\\/:*?"<>|]'
 
-    if (is_url(path) and path or nil) and options.loadforyoutube then
+    if (is_url(path) and path or nil) and options.load_for_youtube then
         local youtubeID = ""
-        if not downloadingName then 
+        if not downloading_name then 
             youtubeID = " [" .. mp.get_property("filename"):match("[?&]v=([^&]+)") .. "]" 
         end
         local filename = string.gsub(media:sub(1, 100):gsub(pattern, ""), "^%s*(.-)%s*$", "%1") .. youtubeID
-        path =  mp.command_native({"expand-path", options.lyricsstore .. filename})
+        path =  mp.command_native({"expand-path", options.lyrics_store .. filename})
     else
-        if options.storelyricsseperate then
-            path = mp.command_native({"expand-path", options.lyricsstore .. media})
+        if options.store_lyrics_seperate then
+            path = mp.command_native({"expand-path", options.lyrics_store .. media})
         end
     end
-
-    print(downloadingName)
 
     local lrc_path = (path:gsub("?", "") .. ".lrc")
     local dir_path = lrc_path:match("(.+[\\/])")
@@ -191,15 +274,13 @@ local function save_lyrics(lyrics)
         lrc_path = lrc_path:gsub("/", "\\")
         dir_path = dir_path:gsub("/", "\\")
     end
-    -- print(lrc_path)
-    -- print(dir_path)
     
-    if (utils.readdir(dir_path) == nil and options.storelyricsseperate) then
+    if (utils.readdir(dir_path) == nil and options.store_lyrics_seperate) then
         if not isWindows then
             subdir_path = utils.split_path(dir_path)
-            createDirectory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
+            create_directory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
-        createDirectory(dir_path)
+        create_directory(dir_path)
     end
 
 
@@ -213,21 +294,21 @@ local function save_lyrics(lyrics)
 
     if lyrics:find("^%[") then
         mp.command(current_sub_path and "sub-reload" or "rescan-external-files") 
-        if manualrun then
+        if manual_run then
             mp.osd_message(success_message)
         end
-        gotlyrics = true
-        withoutTimestamps = false
+        got_lyrics = true
+        without_timestamps = false
     else
-        if manualrun then
+        if manual_run then
             mp.osd_message("Lyrics without timestamps downloaded")
         end
-        withoutTimestamps = true
+        without_timestamps = true
     end
 end
 
 mp.add_key_binding("Alt+m", "musixmatch-download", function() 
-    manualrun = true
+    manual_run = true
     autodownload()
 end)
 
@@ -239,7 +320,7 @@ function musixmatchdownload()
     end
 
     mp.msg.info("Fetching lyrics (musixmatch)")
-    if manualrun then
+    if manual_run then
         mp.osd_message("Fetching lyrics (musixmatch)")
     end
 
@@ -277,7 +358,7 @@ function musixmatchdownload()
     local body = response.message.body.macro_calls
     local lyrics = ""
     if body["matcher.track.get"].message.header.status_code == 200 then
-        downloadingName = body["matcher.track.get"].message.body.track.track_name
+        downloading_name = body["matcher.track.get"].message.body.track.track_name
         if body["matcher.track.get"].message.body.track.has_subtitles == 1 then
             lyrics = body["track.subtitles.get"].message.body.subtitle_list[1].subtitle.subtitle_body
         elseif body["matcher.track.get"].message.body.track.has_lyrics == 1 then -- lyrics without timestamps
@@ -292,8 +373,7 @@ function musixmatchdownload()
 end
 
 mp.add_key_binding("Alt+n", "netease-download", function() 
-    manualrun = true
-    options.downloadforall = true
+    manual_run = true
     neteasedownload() 
 end)
 
@@ -305,7 +385,7 @@ function neteasedownload()
     end
 
     mp.msg.info("Fetching lyrics (netease)")
-    if manualrun then
+    if manual_run then
         mp.osd_message("Fetching lyrics (netease)")
     end
 
@@ -361,7 +441,7 @@ function neteasedownload()
         ", artist " .. song.artists[1].name ..
         ", album " .. song.album.name
     )
-    downloadingName = song.name .. " - " .. song.artists[1].name
+    downloading_name = song.name .. " - " .. song.artists[1].name
 
     response = curl({
         "curl",
@@ -399,15 +479,15 @@ function get_subtitle_count()
 end
 
 function autodownload()
-    if (old_subtitle_count ~= subtitle_count) and options.cacheloading then
+    if (old_subtitle_count ~= subtitle_count) and options.cache_loading then
         print("Subs previously downloaded - not downloading again")
     else
-        gotlyrics = false
+        got_lyrics = false
         musixmatchdownload()
-        if not gotlyrics then
+        if not got_lyrics then
             neteasedownload()
         end
-        if withoutTimestamps then
+        if without_timestamps then
             mp.osd_message("Lyrics without timestamps downloaded automatically")
         end
     end
@@ -421,15 +501,15 @@ function checkdownloadedsubs()
         return
     end
     
-    if options.cacheloading then
+    if options.cache_loading then
         -- check if already downloaded lyrics exist and were loaded
         local current_sub_path = mp.get_property("current-tracks/sub/external-filename")
-        mp.set_property("sub-file-paths", mp.command_native({"expand-path", options.lyricsstore}))
+        mp.set_property("sub-file-paths", mp.command_native({"expand-path", options.lyrics_store}))
         mp.command(current_sub_path and "sub-reload" or "rescan-external-files")
         subtitle_count = get_subtitle_count()
     end
 
-    if options.runautomatically then
+    if options.run_automatically then
         autodownload()
     end
 end
