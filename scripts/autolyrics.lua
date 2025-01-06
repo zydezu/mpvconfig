@@ -179,7 +179,7 @@ local function strip_artists(lyrics)
 end
 
 local function save_lyrics(lyrics)
-    if lyrics == "" or select(2, lyrics:gsub("\n", "")) == 2 then
+    if lyrics == "" or select(4, lyrics:gsub("\n", "")) == 2 then
         show_error("Lyrics not found")
         return
     end
