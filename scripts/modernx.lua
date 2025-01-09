@@ -25,6 +25,7 @@ local user_opts = {
     font = "mpv-osd-symbols",               -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
 
     idle_screen = true,                     -- show mpv logo when idle
+    key_bindings = true,                   -- register additional key bindings, such as chapter scrubbing, pinning the window
     window_top_bar = "auto",                -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
     show_windowed = true,                   -- show OSC when windowed
     show_fullscreen = true,                 -- show OSC when fullscreen
@@ -3554,7 +3555,7 @@ local function mouse_leave()
     state.mouse_in_window = false
 end
 
-local function do_enable_keybindings()
+local function do_enable_key_bindings()
     if state.enabled then
         if not state.showhide_enabled then
             mp.enable_key_bindings('showhide', 'allow-vo-dragging+allow-hide-cursor')
@@ -3567,7 +3568,7 @@ end
 local function enable_osc(enable)
     state.enabled = enable
     if enable then
-        do_enable_keybindings()
+        do_enable_key_bindings()
     else
         hide_osc() -- acts immediately when state.enabled == false
         if state.showhide_enabled then
@@ -3656,7 +3657,7 @@ local function render()
     else
         set_virt_mouse_area(0, 0, 0, 0, 'showhide_wc')
     end
-    do_enable_keybindings()
+    do_enable_key_bindings()
 
     -- mouse input area
     local mouse_over_osc = false
@@ -3935,7 +3936,7 @@ mp.observe_property('seeking', nil, function()
     end
 end)
 
-if true then
+if user_opts.key_bindings then
     -- chapter scrubbing
     mp.add_key_binding("CTRL+LEFT", "prevfile", function()
         mp.commandv('playlist-prev', 'weak')
@@ -4062,7 +4063,7 @@ mp.set_key_bindings({
     {'mouse_move',              function(e) process_event('mouse_move', nil) end},
     {'mouse_leave',             mouse_leave},
 }, 'showhide_wc', 'force')
-do_enable_keybindings()
+do_enable_key_bindings()
 
 --mouse input bindings
 mp.set_key_bindings({

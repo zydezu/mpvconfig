@@ -32,7 +32,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
-### 2024-01-06
+### 2025-01-09
+
+- Re-add `key_bindings` in `modernx.lua`
+
+### 2025-01-06
 
 - Fix lyric formatting
 - Add `strip_artists` and `chinese_to_kanji_path` options to `autolyrics.lua`
