@@ -166,8 +166,11 @@ local user_opts = {
     scrolling_speed = 40,                   -- the speed of scrolling text in menus
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 }
+-- read options from config and command-line
+opt.read_options(user_opts, 'modernx', function(list) update_options(list) end)
 
 mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
+
 
 local osc_param = {                         -- calculated by osc_init()
     playresy = 0,                           -- canvas size Y
@@ -4122,8 +4125,6 @@ mp.register_script_message("thumbfast-info", function(json)
     end
 end)
 
--- read options from config and command-line
-opt.read_options(user_opts, 'modernx', function(list) update_options(list) end)
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
 mp.set_property("title", "mpv")

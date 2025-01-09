@@ -35,6 +35,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-01-09
 
 - Re-add `key_bindings` in `modernx.lua`
+- Fixed some options not being read correctly in modernx.conf files
 
 ### 2025-01-06
 
