@@ -3415,7 +3415,7 @@ local function osc_init()
     ne.visible = true
     ne.content = function()
         if state.buffering then
-            return "Buffereing..." .. " " .. mp.get_property("cache-buffering-state") .. "%"
+            return "Buffering..." .. " " .. mp.get_property("cache-buffering-state") .. "%"
         else
             if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then
                 request_init()
