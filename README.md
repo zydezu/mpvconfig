@@ -32,6 +32,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-01-10
+
+- FIX: fix modernx.lua crashing if playing a live radio (m3u8 file)
+
 ### 2025-01-09
 
 - Re-add `key_bindings` in `modernx.lua`

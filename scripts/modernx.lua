@@ -1833,10 +1833,14 @@ function exec_description(args, result)
         if afterLastPattern then
             if (select(2, afterLastPattern:gsub("\\N", "")) == 1) then -- get rid of last | if there's only one item
                 -- print("Erasing last item")
-                tempDesc = tempDesc:gsub(" | ", "")
-                state.videoDescription = tempDesc .. " | " .. 
-                mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
-                math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) -- can't get a normal description, display something else
+                if mp.get_property_number("estimated-vf-fps") then
+                    tempDesc = tempDesc:gsub(" | ", "")
+                    state.videoDescription = tempDesc .. " | " .. 
+                    mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
+                    math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "" -- can't get a normal description, display something else    
+                else
+                    state.videoDescription = "No description"
+                end
             end
         end
         
