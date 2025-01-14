@@ -5,6 +5,18 @@
     Detects if there are two existing subtitles, one being an original 
     script and the other being a translation 
     (eg: English and Japanese subtitles) and displays them both on screen
+
+    Add secondary-sub-pos to mpv.conf to set the screen position -
+    https://mpv.io/manual/master/#options-secondary-sub-pos
+
+    Add the language tags for original subs you want a translated sub 
+    to show up for in options.original_sub, and add possible translated 
+    subs to options.translated_sub
+
+    Here "[ja]" and "[en]" represents files such as: 
+    "01. Beautiful World [ja].lrc" and "01. Beautiful World [en].lrc"
+    the script detects if a sub has "[ja]" or "[en]" in it's filename to
+    determine whether to show them bot has primary and secondary subtitles
 --]]
 
 local utils = require "mp.utils"
@@ -97,7 +109,7 @@ local function check_for_dual_subs()
                 print("Found two subtitles - showing dual subtitles")
 
                 mp.set_property_number("sid", primary_track_id)
-                mp.set_property_number("secondary-sid", secondary_track_id)
+                mp.set_property_number("secondary-sid", secondary_track_id)                
             else
                 -- no dual subtitles detected
             end
