@@ -7,7 +7,7 @@
 
 local utils = require "mp.utils"
 
-local o = {
+local options = {
     copy_keybind = [[
 	["ctrl+c", "ctrl+C", "meta+c", "meta+C"]
 	]],
@@ -16,12 +16,12 @@ local o = {
     ]],
     open_keybind = "o"
 }
-(require "mp.options").read_options(o)
+(require "mp.options").read_options(options)
 
 -- File/URL pasting
 
-o.copy_keybind = utils.parse_json(o.copy_keybind)
-o.paste_keybind = utils.parse_json(o.paste_keybind)
+options.copy_keybind = utils.parse_json(options.copy_keybind)
+options.paste_keybind = utils.parse_json(options.paste_keybind)
 
 local device = "linux"
 if os.getenv("windir") ~= nil then
@@ -228,6 +228,6 @@ function open()
     end
 end
 
-bind_keys(o.copy_keybind, "copy", copy)
-bind_keys(o.paste_keybind, "paste", paste)
-mp.add_forced_key_binding(o.open_keybind, "open", open)
+bind_keys(options.copy_keybind, "copy", copy)
+bind_keys(options.paste_keybind, "paste", paste)
+mp.add_forced_key_binding(options.open_keybind, "open", open)

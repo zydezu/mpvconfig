@@ -9,12 +9,12 @@
 
 local utils = require "mp.utils"
 
-local o = {
+local options = {
     autoloop_threshold = 10,    -- automatically set the loop files below this length
     savepos_threshold = 60,     -- save the position on videos above this length 
     play_from_start = true,     -- play autlooping videos from the start
 }
-(require "mp.options").read_options(o)
+(require "mp.options").read_options(options)
 
 loop_overridden = false
 
@@ -33,21 +33,21 @@ function set_loop()
 
         -- Loops file if was_loop is false, and file meets requirements
         if not was_loop then
-            if duration <= o.autoloop_threshold then
+            if duration <= options.autoloop_threshold then
                 print("Autolooped file")
                 mp.set_property_native("loop-file", true)
             end
-            if duration <= o.autoloop_threshold or duration <= o.savepos_threshold or 
+            if duration <= options.autoloop_threshold or duration <= options.savepos_threshold or 
             (mp.get_property_native("current-tracks/video") == nil) or (mp.get_property_native("current-tracks/video")["albumart"] == true) then
                 print("Not saving video position")
                 mp.set_property_bool("file-local-options/save-position-on-quit", false)
                 mp.set_property("file-local-options/watch-later-options", "start") -- so videos don't load paused
-                if o.play_from_start and mp.get_property_number("playback-time") > 0 then -- always play video from the start
+                if options.play_from_start and mp.get_property_number("playback-time") > 0 then -- always play video from the start
                     mp.commandv("seek", 0, "absolute-percent", "exact")
                 end
             end
         -- Unloops file if was_loop is true, and file does not meet requirements
-        elseif was_loop and duration > o.autoloop_threshold then
+        elseif was_loop and duration > options.autoloop_threshold then
             mp.set_property_native("loop-file", false)
         end
     end

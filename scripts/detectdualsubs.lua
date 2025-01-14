@@ -1,3 +1,12 @@
+--[[
+    detectdualsubs.lua by zydezu
+	(https://github.com/zydezu/mpvconfig/blob/main/scripts/detectdualsubs.lua)
+	
+    Detects if there are two existing subtitles, one being an original 
+    script and the other being a translation 
+    (eg: English and Japanese subtitles) and displays them both on screen
+--]]
+
 local utils = require "mp.utils"
 
 local options = {

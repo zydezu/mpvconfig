@@ -10,7 +10,7 @@
 utils = require "mp.utils"
 msg = require "mp.msg"
 
-local o = {
+local options = {
 	-- Save location
 	save_to_directory = true, 				-- save to 'save_directory' instead of the current folder
 	save_directory = "~~desktop/mpv/clips", -- required for web videos
@@ -30,7 +30,7 @@ local o = {
 	-- Web videos/cache
 	use_cache_for_web_videos = true,
 }
-(require "mp.options").read_options(o)
+(require "mp.options").read_options(options)
 
 local function print(s)
 	mp.msg.info(s)
@@ -47,7 +47,7 @@ if result.status ~= 1 then
 	mp.osd_message("FFmpeg failed to run")
 end
 
-local full_path = mp.command_native({"expand-path", o.save_directory})
+local full_path = mp.command_native({"expand-path", options.save_directory})
 local full_path_save = ""
 local web_ext = ".mkv"
 
@@ -70,8 +70,8 @@ end
 local function init()
 	-- Set save directory path
 	if full_path then
-		full_path_save = mp.command_native({"expand-path", o.save_directory .. "/" .. mp.get_property("media-title")})
-		if (o.use_cache_for_web_videos and is_url(mp.get_property("path"))) then
+		full_path_save = mp.command_native({"expand-path", options.save_directory .. "/" .. mp.get_property("media-title")})
+		if (options.use_cache_for_web_videos and is_url(mp.get_property("path"))) then
 			local video = mp.get_property("video-format", "none")
 			local audio = mp.get_property("audio-codec-name", "none")
 			local webm = {vp8=true, vp9=true, av1=true, opus=true, vorbis=true, none=true}
@@ -92,7 +92,7 @@ local function init()
 			elseif (videoID) then
 				youtube_ID = " [" .. videoID .. "]"
 			end
-			full_path_save = mp.command_native({"expand-path", o.save_directory .. "/" .. 
+			full_path_save = mp.command_native({"expand-path", options.save_directory .. "/" .. 
 				(string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtube_ID):gsub('[\\/:*?"<>|]', "")})
 		end
 	end
@@ -161,7 +161,7 @@ ACTIONS = {}
 ACTIONS.COPY = function(d)
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
 	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
-	if (o.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -184,7 +184,7 @@ ACTIONS.COPY = function(d)
 end
 
 ACTIONS.COMPRESS = function(d)
-	local target_bitrate = ((o.compress_size * 8192) / d.duration * 0.9) -- Video bitrate (KB)
+	local target_bitrate = ((options.compress_size * 8192) / d.duration * 0.9) -- Video bitrate (KB)
 	msg.info("Theoretical bitrate: " .. target_bitrate)
 
 	local max_bitrate = target_bitrate
@@ -203,7 +203,7 @@ ACTIONS.COMPRESS = function(d)
 
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
 	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
-	if o.save_to_directory then 
+	if options.save_to_directory then 
 		result_path = check_paths(d, file_extra_suffix) 
 	end
 	
@@ -223,8 +223,8 @@ ACTIONS.COMPRESS = function(d)
 	}
 
 	if video_height then
-		if video_height > o.resolution then
-			res_line = "scale=trunc(oh*a/2)*2:" .. o.resolution
+		if video_height > options.resolution then
+			res_line = "scale=trunc(oh*a/2)*2:" .. options.resolution
 			target_bitrate = target_bitrate
 			args = {
 				"ffmpeg",
@@ -256,7 +256,7 @@ end
 ACTIONS.ENCODE = function(d)
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
 	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
-	if (o.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
 		"-nostdin", "-y",
@@ -291,7 +291,7 @@ RUN_WEB_CACHE = function(d)
 	end)
 end
 
-ACTION = o.action
+ACTION = options.action
 if not ACTIONS[ACTION] then ACTION = next_table_key(ACTIONS, nil) end
 
 START_TIME = nil
@@ -351,7 +351,7 @@ local function cut(start_time, end_time)
 	local t = get_times(start_time, end_time)
 	for k, v in pairs(t) do d[k] = v end
 	if is_url(d.inpath) then
-		if o.use_cache_for_web_videos then
+		if options.use_cache_for_web_videos then
 			mp.msg.info("Using web cache")
 			RUN_WEB_CACHE(d)
 		else
@@ -384,6 +384,6 @@ local function cancel_cut()
 	print("Cleared selection")
 end
 
-mp.add_key_binding(o.key_cut, "cut", put_time)
-mp.add_key_binding(o.key_cancel_cut, "cancel_cut", cancel_cut)
-mp.add_key_binding(o.key_cycle_action, "cycle_action", cycle_action)
+mp.add_key_binding(options.key_cut, "cut", put_time)
+mp.add_key_binding(options.key_cancel_cut, "cancel_cut", cancel_cut)
+mp.add_key_binding(options.key_cycle_action, "cycle_action", cycle_action)
