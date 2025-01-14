@@ -26,8 +26,6 @@ local function get_subtitle_count()
             subtitle_count = subtitle_count + 1
             table.insert(subtitle_filenames, track["external-filename"])
             table.insert(subtitle_ids, track["id"])
-
-            print(track["external-filename"] .. " | " .. track["id"])
         end
     end
     return subtitle_count
@@ -91,17 +89,17 @@ local function check_for_dual_subs()
                         end
                     end
                 else
-                    -- Not same file ext so skip file
+                    -- not same file ext so skip file
                 end
             end
 
             if primary_track_id and secondary_track_id then
-                print("Found two matching subtitles - showing both")
+                print("Found two subtitles - showing dual subtitles")
 
                 mp.set_property_number("sid", primary_track_id)
                 mp.set_property_number("secondary-sid", secondary_track_id)
             else
-                print("No other subtitle detected")
+                -- no dual subtitles detected
             end
 
         else
