@@ -13,7 +13,6 @@
 
 local assdraw = require "mp.assdraw"
 local msg = require "mp.msg"
-local opt = require "mp.options"
 local utils = require "mp.utils"
 
 -- Parameters
@@ -167,7 +166,7 @@ local user_opts = {
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 }
 -- read options from config and command-line
-opt.read_options(user_opts, 'modernx', function(list) update_options(list) end)
+(require "mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
 
 mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
 
@@ -2978,16 +2977,29 @@ local function osc_init()
     end
     ne.nothingavailable = texts.nosub
     ne.eventresponder['mbtn_left_up'] = 
-        function () set_track('sub', 1) show_message(get_tracklist('sub')) end
+        function () 
+            mp.set_property_number("secondary-sid", 0)
+            set_track('sub', 1) 
+            show_message(get_tracklist('sub')) 
+        end
     ne.eventresponder['enter'] = 
         function ()
+            mp.set_property_number("secondary-sid", 0)
             set_track('sub', 1)
             show_message(get_tracklist('sub'))
         end
     ne.eventresponder['mbtn_right_up'] =
-        function () set_track('sub', -1) show_message(get_tracklist('sub')) end
+        function () 
+            mp.set_property_number("secondary-sid", 0)
+            set_track('sub', -1) 
+            show_message(get_tracklist('sub')) 
+        end
     ne.eventresponder['shift+mbtn_left_down'] =
-    function () set_track('sub', 1) show_message(get_tracklist('sub')) end
+    function () 
+        mp.set_property_number("secondary-sid", 0)
+        set_track('sub', 1) 
+        show_message(get_tracklist('sub')) 
+    end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
     
