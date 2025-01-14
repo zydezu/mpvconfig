@@ -36,6 +36,8 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-01-14
 
 - FEAT: create `detectdualsubs.lua` that detects if there are two existing subtitles, one being an original script and the other being a translation (eg: English and Japanese subtitles) and displays them both on screen
+![2025-01-14_07-15-37_199_mpv](https://github.com/user-attachments/assets/84ed7a83-dc65-4afb-8d2b-17499ff050b5)
+
 
 ### 2025-01-10
 
