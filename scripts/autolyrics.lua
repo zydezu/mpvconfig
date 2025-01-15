@@ -7,7 +7,7 @@
     Tries to download lyrics and display them for said file
 --]]
 
-local utils = require "mp.utils"
+mp.utils = require("mp.utils")
 
 local options = {
     musixmatch_token = "220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea",
@@ -21,7 +21,7 @@ local options = {
     mark_as_ja = false,                                             -- add .ja.lrc extensions to lyrics with Japanese characters
     run_automatically = false                                       -- run this script without pressing Alt+m
 }
-(require "mp.options").read_options(options)
+require("mp.options").read_options(options)
 
 local manual_run = false
 local got_lyrics = false
@@ -54,7 +54,7 @@ local function curl(args)
         return false
     end
 
-    local response, error = utils.parse_json(r.stdout)
+    local response, error = mp.utils.parse_json(r.stdout)
 
     if error then
         show_error("Unable to parse the JSON response")
@@ -223,7 +223,7 @@ local function save_lyrics(lyrics)
     local function create_directory(directory_path)
         local args = {"mkdir", directory_path}
         if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
-        local res = utils.subprocess({ args = args, cancellable = false })
+        local res = mp.utils.subprocess({ args = args, cancellable = false })
         if res.status ~= 0 then
             mp.msg.error("Failed to create directory: " .. directory_path)
         else
@@ -257,9 +257,9 @@ local function save_lyrics(lyrics)
         dir_path = dir_path:gsub("/", "\\")
     end
 
-    if (utils.readdir(dir_path) == nil and options.store_lyrics_seperate) then
+    if mp.utils.readdir(dir_path) == nil and options.store_lyrics_seperate then
         if not is_windows then
-            local subdir_path = utils.split_path(dir_path)
+            local subdir_path = mp.utils.split_path(dir_path)
             create_directory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
         create_directory(dir_path)

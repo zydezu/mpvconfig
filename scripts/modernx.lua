@@ -166,7 +166,7 @@ local user_opts = {
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 }
 -- read options from config and command-line
-(require "mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
+require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
 
 mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
 
