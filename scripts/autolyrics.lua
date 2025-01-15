@@ -27,6 +27,7 @@ local manual_run = false
 local got_lyrics = false
 local without_timestamps = false
 local downloading_name = ""
+local old_subtitle_count, subtitle_count
 
 local function show_error(message)
     mp.msg.error(message)
@@ -195,7 +196,7 @@ local function save_lyrics(lyrics)
     lyrics = lyrics:gsub("(%.%d%d)%d]", "%1]")
     lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters    
 
-    local add_ja = false    
+    local add_ja = false
     if is_japanese(lyrics) then
         if options.mark_as_ja then
             add_ja = true
@@ -213,11 +214,11 @@ local function save_lyrics(lyrics)
         return string.match(s, url_pattern) ~= nil
     end
 
-    function is_windows()
+    local function check_if_windows()
         local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
-    local is_windows = is_windows()
+    local is_windows = check_if_windows()
 
     local function create_directory(directory_path)
         local args = {"mkdir", directory_path}
@@ -228,7 +229,7 @@ local function save_lyrics(lyrics)
         else
             mp.msg.info("Directory created successfully: " .. directory_path)
         end
-    end    
+    end
 
     downloading_name = downloading_name:gsub("\\", " "):gsub("/", " ")
 
@@ -255,10 +256,10 @@ local function save_lyrics(lyrics)
         lrc_path = lrc_path:gsub("/", "\\")
         dir_path = dir_path:gsub("/", "\\")
     end
-    
+
     if (utils.readdir(dir_path) == nil and options.store_lyrics_seperate) then
         if not is_windows then
-            subdir_path = utils.split_path(dir_path)
+            local subdir_path = utils.split_path(dir_path)
             create_directory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
         end
         create_directory(dir_path)
@@ -287,12 +288,7 @@ local function save_lyrics(lyrics)
     end
 end
 
-mp.add_key_binding("Alt+m", "musixmatch-download", function() 
-    manual_run = true
-    auto_download()
-end)
-
-function musixmatch_download()
+local function musixmatch_download()
     local title, artist = get_metadata()
 
     if not title then
@@ -306,7 +302,7 @@ function musixmatch_download()
 
     if artist then
         mp.msg.info("Requesting: " .. title .. " - " .. artist)
-    else 
+    else
         mp.msg.info("Requesting: " .. title)
     end
     local response = curl({
@@ -352,12 +348,7 @@ function musixmatch_download()
     save_lyrics(lyrics)
 end
 
-mp.add_key_binding("Alt+n", "netease-download", function() 
-    manual_run = true
-    netease_download() 
-end)
-
-function netease_download()
+local function netease_download()
     local title, artist, album = get_metadata()
 
     if not title then
@@ -434,32 +425,8 @@ function netease_download()
     end
 end
 
-mp.add_key_binding("Alt+o", "offset-sub", function()
-    local sub_path = mp.get_property("current-tracks/sub/external-filename")
-
-    if not sub_path then
-        show_error("No external subtitle is loaded")
-        return
-    end
-
-    mp.set_property("sub-delay", mp.get_property_number("playback-time"))
-    mp.command("sub-reload")
-    mp.osd_message("Subtitles updated")
-end)
-
-function get_subtitle_count()
-    local track_list = mp.get_property_native("track-list", {})
-    local subtitle_count = 0
-    for _, track in ipairs(track_list) do
-        if track["type"] == "sub" then
-            subtitle_count = subtitle_count + 1
-        end
-    end
-    return subtitle_count
-end
-
-function auto_download()
-    if (old_subtitle_count ~= subtitle_count) and options.cache_loading then
+local function auto_download()
+    if old_subtitle_count ~= subtitle_count and options.cache_loading then
         print("Subs previously downloaded - not downloading again")
     else
         got_lyrics = false
@@ -473,14 +440,25 @@ function auto_download()
     end
 end
 
-function check_downloaded_subs()
-    local old_subtitle_count, subtitle_count = get_subtitle_count(), nil
+local function get_subtitle_count()
+    local track_list = mp.get_property_native("track-list", {})
+    local subtitle_count = 0
+    for _, track in ipairs(track_list) do
+        if track["type"] == "sub" then
+            subtitle_count = subtitle_count + 1
+        end
+    end
+    return subtitle_count
+end
+
+local function check_downloaded_subs()
+    old_subtitle_count, subtitle_count = get_subtitle_count(), nil
 
     if old_subtitle_count > 0 then
         print("Subtitles detected - aborting autolyrics.lua")
         return
     end
-    
+
     if options.cache_loading then
         -- check if already downloaded lyrics exist and were loaded
         local current_sub_path = mp.get_property("current-tracks/sub/external-filename")
@@ -493,5 +471,28 @@ function check_downloaded_subs()
         auto_download()
     end
 end
+
+mp.add_key_binding("Alt+n", "netease-download", function() 
+    manual_run = true
+    netease_download()
+end)
+
+mp.add_key_binding("Alt+m", "musixmatch-download", function() 
+    manual_run = true
+    auto_download()
+end)
+
+mp.add_key_binding("Alt+o", "offset-sub", function()
+    local sub_path = mp.get_property("current-tracks/sub/external-filename")
+
+    if not sub_path then
+        show_error("No external subtitle is loaded")
+        return
+    end
+
+    mp.set_property("sub-delay", mp.get_property_number("playback-time"))
+    mp.command("sub-reload")
+    mp.osd_message("Subtitles updated")
+end)
 
 check_downloaded_subs()
