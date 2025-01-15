@@ -7,8 +7,8 @@
     Clip, compress and re-encode selected clips
 --]]
 
-utils = require "mp.utils"
-msg = require "mp.msg"
+mp.msg = require("mp.msg")
+mp.utils = require("mp.utils")
 
 local options = {
 	-- Save location
@@ -30,7 +30,7 @@ local options = {
 	-- Web videos/cache
 	use_cache_for_web_videos = true,
 }
-(require "mp.options").read_options(options)
+require("mp.options").read_options(options)
 
 local function print(s)
 	mp.msg.info(s)
@@ -135,7 +135,7 @@ local is_windows = is_windows()
 local function create_directory(directory_path)
 	local args = {"mkdir", directory_path}
 	if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
-	local res = utils.subprocess({ args = args, cancellable = false })
+	local res = mp.utils.subprocess({ args = args, cancellable = false })
 	if res.status ~= 0 then
 		mp.msg.error("Failed to create directory: " .. directory_path)
 	else
@@ -144,10 +144,10 @@ local function create_directory(directory_path)
 end
 
 local function check_paths(d, suffix, web_path_save)
-	result_path = utils.join_path(full_path .. "/", d.infile_noext .. suffix .. d.ext)
-	if (utils.readdir(full_path) == nil) then
+	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. d.ext)
+	if (mp.utils.readdir(full_path) == nil) then
 		if not is_windows then
-			sub_full_path = utils.split_path(full_path)
+			local sub_full_path = mp.utils.split_path(full_path)
 			create_directory(sub_full_path) -- required for linux as it cannot create mpv/clips/
 		end
 		create_directory(full_path)
@@ -160,7 +160,7 @@ ACTIONS = {}
 
 ACTIONS.COPY = function(d)
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
-	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
 	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
@@ -185,13 +185,13 @@ end
 
 ACTIONS.COMPRESS = function(d)
 	local target_bitrate = ((options.compress_size * 8192) / d.duration * 0.9) -- Video bitrate (KB)
-	msg.info("Theoretical bitrate: " .. target_bitrate)
+	mp.msg.info("Theoretical bitrate: " .. target_bitrate)
 
 	local max_bitrate = target_bitrate
 	local video_bitrate = average_bitrate
 	if video_bitrate and video_bitrate ~= -1 then -- the average bitrate system is to stop small cuts from becoming too big
 		max_bitrate = video_bitrate
-		msg.info("Average bitrate: " .. max_bitrate)
+		mp.msg.info("Average bitrate: " .. max_bitrate)
 		if target_bitrate > max_bitrate then
 			target_bitrate = max_bitrate
 		end
@@ -199,10 +199,10 @@ ACTIONS.COMPRESS = function(d)
 	if target_bitrate > 128 then
 		target_bitrate = target_bitrate - 128 -- minus audio bitrate
 	end
-	msg.info("Using bitrate: " .. target_bitrate)
+	mp.msg.info("Using bitrate: " .. target_bitrate)
 
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
-	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
 	if options.save_to_directory then 
 		result_path = check_paths(d, file_extra_suffix) 
 	end
@@ -224,7 +224,7 @@ ACTIONS.COMPRESS = function(d)
 
 	if video_height then
 		if video_height > options.resolution then
-			res_line = "scale=trunc(oh*a/2)*2:" .. options.resolution
+			local res_line = "scale=trunc(oh*a/2)*2:" .. options.resolution
 			target_bitrate = target_bitrate
 			args = {
 				"ffmpeg",
@@ -255,7 +255,7 @@ end
 
 ACTIONS.ENCODE = function(d)
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
-	local result_path = utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
 	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 	local args = {
 		"ffmpeg",
@@ -299,7 +299,7 @@ START_TIME = nil
 local function get_data()
 	local d = {}
 	d.inpath = mp.get_property("path")
-	d.indir = utils.split_path(d.inpath)
+	d.indir = mp.utils.split_path(d.inpath)
 	d.infile = mp.get_property("filename")
 	d.infile_noext = mp.get_property("filename/no-ext")
 	d.ext = mp.get_property("filename"):match("^.+(%..+)$") or ".mp4"
