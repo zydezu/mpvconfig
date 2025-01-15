@@ -11,13 +11,68 @@
     Based on the osc.lua from mpv
 --]]
 
-local assdraw = require "mp.assdraw"
-local msg = require "mp.msg"
-local utils = require "mp.utils"
+local assdraw = require("mp.assdraw")
+local msg = require("mp.msg")
+local utils = require("mp.utils")
 
+-- ====================
+-- declarations
+-- ====================
+
+local function update_tracklist() end
+local function get_tracklist() end
+local function set_track() end
+local function get_track() end
+local function window_controls_enabled() end
+local function get_chapter() end
+local function render_elements() end
+local function render_persistent_progressbar() end
+local function limited_list() end
+local function checktitle() end
+local function normaliseDate(date) end
+local function exec_async() end
+local function is_url() end
+local function check_path_url() end
+local function check_comments() end
+local function loadSetOfComments() end
+local function process_filesize() end
+local function splitUTF8(str, maxLength) end
+local function process_vid_stats() end
+local function process_dislikes() end
+local function add_commas_to_number() end
+local function addLikeCountToTitle() end
+local function format_file_size(file_size) end
+local function get_playlist() end
+local function get_chapterlist() end
+local function show_message(text, duration) end
+local function bind_keys() end
+local function unbind_keys() end
+local function destroyscrollingkeys() end
+local function checkDesc() end
+local function show_description(text) end
+local function resetDescTimer() end
+local function render_message() end
+local function window_controls() end
+local function validate_user_opts() end
+local function update_options(list) end
+local function show_osc() end
+local function hide_osc() end
+local function osc_visible(visible) end
+local function adjustSubtitles(visible) end
+local function pause_state() end
+local function cache_state() end
+local function process_event() end
+local function tick() end
+local function reset_timeout() end
+local function visibility_mode(mode) end
+local duration
+
+-- ====================
 -- Parameters
 -- default user option values
 -- change them using modernx.conf
+-- ====================
+
 local user_opts = {
     -- Language and display --
     language = "en",                        -- en:English - .json translations need implementing
@@ -73,7 +128,7 @@ local user_opts = {
     -- Title bar settings
     window_title = true,                    -- show window title in borderless/fullscreen mode
     window_controls = true,                 -- show window controls (close, minimize, maximize) in borderless/fullscreen
-    title_bar_box = false,                  -- show title bar as a box instead of a black fade
+    title_bar_box = true,                  -- show title bar as a box instead of a black fade
     window_controls_title = "${media-title}",-- same as title but for window_controls
 
     -- Subtitle display settings
@@ -169,7 +224,6 @@ local user_opts = {
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
 
 mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
-
 
 local osc_param = {                         -- calculated by osc_init()
     playresy = 0,                           -- canvas size Y
@@ -274,7 +328,7 @@ local function contains(list, item)
     return false
 end
 
-function dumptable(o)
+local function dumptable(o)
     if type(o) == 'table' then
        local s = '{ '
        for k,v in pairs(o) do
@@ -312,7 +366,7 @@ end
 local playpause_size = user_opts.playpause_size or 30
 local midbuttons_size = user_opts.midbuttons_size or 24
 local sidebuttons_size = user_opts.sidebuttons_size or 24
-osc_styles = {
+local osc_styles = {
     background_bar = "{\\1c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     box_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     chapter_title = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.chapter_title_color) .. "&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
@@ -614,7 +668,6 @@ local function get_hide_timeout()
     return user_opts.hide_timeout
 end
 
-local tick
 -- Request that tick() is called (which typically re-renders the OSC).
 -- The tick is then either executed immediately, or rate-limited if it was
 -- called a small time ago.
@@ -659,6 +712,7 @@ end
 --
 
 local nicetypes = {video = texts.video, audio = texts.audio, sub = texts.subtitle}
+local tracks_osc, tracks_mpv
 
 -- updates the OSC internal playlists, should be run each time the track-layout changes
 function update_tracklist()
@@ -687,9 +741,9 @@ end
 
 -- return a nice list of tracks of the given type (video, audio, sub)
 function get_tracklist(type)
-    local msg =  nicetypes[type] .. texts.track
+    local message = nicetypes[type] .. texts.track
     if not tracks_osc or #tracks_osc[type] == 0 then
-        msg = texts.none
+        message = texts.none
     else
         for n = 1, #tracks_osc[type] do
             local track = tracks_osc[type][n]
@@ -699,10 +753,10 @@ function get_tracklist(type)
             if (track.id == tonumber(mp.get_property(type))) then
                 selected = '●'
             end
-            msg = msg..'\n'..selected..' '..n..': ['..lang..'] '..title
+            message = message..'\n'..selected..' '..n..': ['..lang..'] '..title
         end
     end
-    return msg
+    return message
 end
 
 -- relatively change the track of given <type> by <next> tracks
@@ -758,10 +812,6 @@ function window_controls_enabled()
     else
         return val ~= 'no'
     end
-end
-
-function window_controls_alignment()
-    return user_opts.window_top_bar_alignment
 end
 
 --
@@ -1259,7 +1309,7 @@ end
 
 -- downloading --
 
-function newfilereset()
+local function newfilereset()
     request_init()
     state.downloaded_once = false
     state.videoDescription = "Loading description..."
@@ -1272,7 +1322,7 @@ function newfilereset()
     end
 end
 
-function startupevents()
+local function startupevents()
     state.new_file_flag = true
     state.videoDescription = "Loading description..."
     state.file_size_normalized = "Approximating size..."
@@ -1329,8 +1379,7 @@ function checktitle()
                 local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize)
 
                 if #utf8split ~= #state.ytdescription then
-                    tmp = utf8split:match("^%s*(.-)%s*$")
-                    tmp = utf8split:gsub("[,%.%s]+$", "")
+                    local tmp = utf8split:gsub("[,%.%s]+$", "")
 
                     utf8split = tmp .. "..."
                 end
@@ -1402,7 +1451,7 @@ function checktitle()
         end
 
         if (user_opts.show_file_size) then
-            file_size = mp.get_property_native("file-size")
+            local file_size = mp.get_property_native("file-size")
             if (file_size ~= nil) then
                 file_size = format_file_size_2dp(file_size)
                 if (state.localDescription == nil) then -- only metadata
@@ -1530,13 +1579,13 @@ function check_path_url()
 end
 
 function check_comments()
-    function file_exists(file)
+    local function file_exists(file)
         local f = io.open(file, "rb")
         if f then f:close() end
         return f ~= nil
     end
 
-    function lines_from(file)
+    local function lines_from(file)
         if not file_exists(file) then return {} end
         local lines = {}
         for line in io.lines(file) do
@@ -1779,7 +1828,7 @@ function process_vid_stats(success, result, error)
     if not state.ytdescription then
         if mp.get_property_number("estimated-vf-fps") then
             state.videoDescription = mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
-            math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "" -- can't get a normal description, display something else    
+            (math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "") -- can't get a normal description, display something else    
         end
     end
 
@@ -2212,7 +2261,7 @@ function window_controls()
              get_hitbox_coords(controlbox_left, wc_geo.y, wc_geo.an,
                                controlbox_w, wc_geo.h))
 
-    local lo
+    local lo, ne
 
     -- Background Bar
     if user_opts.title_bar_box then
@@ -2292,7 +2341,12 @@ function window_controls()
             return titleval
         end
         lo = add_layout('window_title')
+
         local geo = {x = 20, y = button_y + 14, an = 1, w = osc_param.playresx - 50, h = wc_geo.h}
+        if user_opts.title_bar_box then
+            geo = {x = 10, y = button_y + 10, an = 1, w = osc_param.playresx - 50, h = wc_geo.h}
+        end
+
         lo.geometry = geo
         lo.style = osc_styles.window_title
         lo.button.maxchars = geo.w / 10
@@ -2303,10 +2357,8 @@ end
 -- ModernX Layout
 --
 
-local layouts = {}
-
 -- Default layout
-layouts = function ()
+local function layouts()
     local osc_geo = {
         w = osc_param.playresx,
         h = 180
@@ -2572,7 +2624,7 @@ function validate_user_opts()
     end
 end
 
-local function update_options(list)
+function update_options(list)
     validate_user_opts()
     request_tick()
     visibility_mode("auto")
@@ -3347,7 +3399,7 @@ local function osc_init()
     ne = new_element("tc_left", "button")
     ne.content = function()
         local playback_time = mp.get_property_number("playback-time", 0)
-        return format_time(playback_time, false)
+        return format_time(playback_time)
     end
     ne.eventresponder["mbtn_left_up"] = function()
         state.tc_ms = not state.tc_ms
@@ -3399,7 +3451,7 @@ local function osc_init()
         local prefix = state.tc_right_rem and
             (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
 
-        return prefix .. format_time(time_to_display, false)
+        return prefix .. format_time(time_to_display)
     end
     ne.eventresponder["mbtn_left_up"] = function()
         state.tc_right_rem = not state.tc_right_rem
@@ -3884,7 +3936,7 @@ mp.observe_property('seeking', nil, function()
     if user_opts.seek_resets_hide_timeout then
         reset_timeout()
     end
-    if seeking and user_opts.osc_on_seek and not state.new_file_flag then
+    if user_opts.osc_on_seek and not state.new_file_flag then
         show_osc()
     elseif state.new_file_flag then
         state.new_file_flag = false
@@ -3892,6 +3944,12 @@ mp.observe_property('seeking', nil, function()
 end)
 
 if user_opts.key_bindings then
+    local function changeChapter(number)
+        mp.commandv("add", "chapter", number)
+        reset_timeout()
+        show_message(get_chapterlist())
+    end
+
     -- chapter scrubbing
     mp.add_key_binding("CTRL+LEFT", "prevfile", function()
         mp.commandv('playlist-prev', 'weak')
@@ -3907,12 +3965,6 @@ if user_opts.key_bindings then
     mp.add_key_binding("SHIFT+RIGHT", "nextchapter", function()
         changeChapter(1)
     end);
-
-    function changeChapter(number)
-        mp.commandv("add", "chapter", number)
-        reset_timeout()
-        show_message(get_chapterlist())
-    end
 
     -- extra key bindings
     mp.add_key_binding("x", "cycleaudiotracks", function()
@@ -4046,7 +4098,6 @@ mp.set_key_bindings({
                             function(e) process_event('mbtn_left', 'down')  end},
 }, 'window-controls', 'force')
 mp.enable_key_bindings('window-controls')
-
 
 function reset_timeout()
     state.showtime = mp.get_time()
