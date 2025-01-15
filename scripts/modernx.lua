@@ -127,7 +127,7 @@ local user_opts = {
     -- Title bar settings
     window_title = true,                    -- show window title in borderless/fullscreen mode
     window_controls = true,                 -- show window controls (close, minimize, maximize) in borderless/fullscreen
-    title_bar_box = true,                  -- show title bar as a box instead of a black fade
+    title_bar_box = false,                  -- show title bar as a box instead of a black fade
     window_controls_title = "${media-title}",-- same as title but for window_controls
 
     -- Subtitle display settings
@@ -187,8 +187,10 @@ local user_opts = {
     hover_effect_color = "#FFFFFF",         -- color of a hovered button when hover_effect includes "color"
     thumbnail_border_color = "#FFFFFF",     -- color of the border for thumbnails (with thumbfast)
 
-    fade_alpha = 150,                       -- alpha of the OSC background box
-    fade_blur_strength = 100,               -- blur strength for the OSC alpha fade. caution: high values can take a lot of CPU time to render
+    fade_alpha = 100,                       -- alpha of the title bar background box
+    fade_blur_strength = 75,                -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
+    title_bar_fade_alpha = 150,             -- alpha of the OSC background box
+    title_bar_fade_blur_strength = 100,      -- blur strength for the title bar alpha fade
     window_fade_alpha = 75,                 -- alpha of the window title bar
     thumbnail_border = 1,                   -- the width of the thumbnail border
 
@@ -367,6 +369,7 @@ local sidebuttons_size = user_opts.sidebuttons_size or 24
 local osc_styles = {
     background_bar = "{\\1c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     box_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
+    title_bar_box_bg = "{\\blur" .. user_opts.title_bar_fade_blur_strength .. "\\bord" .. user_opts.title_bar_fade_alpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     chapter_title = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.chapter_title_color) .. "&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     control_1 = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.playpause_color) .. "&\\3c&HFFFFFF&\\fs" .. playpause_size .. "\\fn" .. iconfont .. "}",
     control_2 = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.middle_buttons_color) .. "&\\3c&HFFFFFF&\\fs" .. midbuttons_size .. "\\fn" .. iconfont .. "}",
@@ -2247,12 +2250,9 @@ function window_controls()
     }
 
     local controlbox_w = window_control_box_width
-    local titlebox_w = wc_geo.w - controlbox_w
 
     -- Default alignment is 'right'
     local controlbox_left = wc_geo.w - controlbox_w
-    local titlebox_left = wc_geo.x
-    local titlebox_right = wc_geo.w - controlbox_w
 
     add_area('window-controls',
              get_hitbox_coords(controlbox_left, wc_geo.y, wc_geo.an,
@@ -2392,7 +2392,7 @@ local function layouts()
         new_element("title_alpha_bg", "box")
         lo = add_layout("title_alpha_bg")
         lo.geometry = {x = posX, y = -100, an = 7, w = osc_w, h = -1}
-        lo.style = osc_styles.box_bg
+        lo.style = osc_styles.title_bar_box_bg
         lo.layer = 10
         lo.alpha[3] = 0
     end
@@ -2457,7 +2457,7 @@ local function layouts()
         lo.geometry = geo
         lo.style = osc_styles.description
         lo.alpha[3] = 0
-        lo.button.maxchars = geo.w / 7
+        -- lo.button.maxchars = geo.w / 7
     end
 
     -- Volumebar
