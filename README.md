@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-01-15
+
+- FIX: change some mpv.conf settings
+
 ### 2025-01-14
 
 - FEAT: create `detectdualsubs.lua` that detects if there are two existing subtitles, one being an original script and the other being a translation (eg: English and Japanese subtitles) and displays them both on screen
