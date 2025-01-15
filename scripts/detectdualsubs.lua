@@ -47,16 +47,12 @@ local function check_for_dual_subs()
     local subtitle_count = get_subtitle_count()
 
     if subtitle_count > 0 then
-        local sub_path = mp.get_property("current-tracks/sub/external-filename")
-        local _, filename = utils.split_path(sub_path)
+        local _, filename = utils.split_path(mp.get_property("current-tracks/sub/external-filename"))
         local ext = filename:match("^.+(%..+)$")
         local filename_noext = filename:gsub(ext, "")
 
-        local tag_to_use
         local original = true
-
-        local primary_track_id
-        local secondary_track_id
+        local tag_to_use, primary_track_id, secondary_track_id
 
         -- check if sub is original
         for i, lang in ipairs(options.original_sub) do
