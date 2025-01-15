@@ -48,7 +48,7 @@ local function check_for_dual_subs()
 
     if subtitle_count > 0 then
         local sub_path = mp.get_property("current-tracks/sub/external-filename")
-        local subtitles_path, filename = utils.split_path(sub_path)
+        local _, filename = utils.split_path(sub_path)
         local ext = filename:match("^.+(%..+)$")
         local filename_noext = filename:gsub(ext, "")
 
@@ -82,7 +82,7 @@ local function check_for_dual_subs()
 
         if tag_to_use then
             for i, sub_filename in ipairs(subtitle_filenames) do
-                local _, sub_filename = utils.split_path(sub_filename)
+                _, sub_filename = utils.split_path(sub_filename)
                 local sub_ext = sub_filename:match("^.+(%..+)$")
                 local sub_filename_noext = sub_filename:gsub(sub_ext, "")
 
