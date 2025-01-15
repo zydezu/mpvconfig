@@ -92,7 +92,7 @@ local function init()
 			elseif (videoID) then
 				youtube_ID = " [" .. videoID .. "]"
 			end
-			full_path_save = mp.command_native({"expand-path", options.save_directory .. "/" .. 
+			full_path_save = mp.command_native({"expand-path", options.save_directory .. "/" ..
 				(string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtube_ID):gsub('[\\/:*?"<>|]', "")})
 		end
 	end
@@ -129,8 +129,8 @@ local function next_table_key(t, current)
 	return keys[1]
 end
 
-local function is_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
-local is_windows = is_windows()
+local function check_if_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
+local is_windows = check_if_windows()
 
 local function create_directory(directory_path)
 	local args = {"mkdir", directory_path}
@@ -203,10 +203,10 @@ ACTIONS.COMPRESS = function(d)
 
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
 	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
-	if options.save_to_directory then 
-		result_path = check_paths(d, file_extra_suffix) 
+	if options.save_to_directory then
+		result_path = check_paths(d, file_extra_suffix)
 	end
-	
+
 	local video_height = mp.get_property_number("height")
 	local args = {
 		"ffmpeg",
@@ -248,8 +248,8 @@ ACTIONS.COMPRESS = function(d)
 		name = "subprocess",
 		args = args,
 		playback_only = false,
-	}, function() 
-		print("Saved clip!") 
+	}, function()
+		print("Saved clip!")
 	end)
 end
 
@@ -274,8 +274,8 @@ ACTIONS.ENCODE = function(d)
 		name = "subprocess",
 		args = args,
 		playback_only = false,
-	}, function() 
-		print("Saved clip!") 
+	}, function()
+		print("Saved clip!")
 	end)
 end
 
@@ -286,7 +286,7 @@ RUN_WEB_CACHE = function(d)
 	command["name"] = "dump-cache"
 	command["start"] = d.start_time
 	command["end"] = d.end_time
-	mp.command_native_async(command, function() 
+	mp.command_native_async(command, function()
 		print("Saved clip!")
 	end)
 end
