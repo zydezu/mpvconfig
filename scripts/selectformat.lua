@@ -1,79 +1,77 @@
 -- Name: mpv-selectformat
 -- Author: koonix <me@koonix.org>
 -- Upstream: https://github.com/koonix/mpv-selectformat
--- Version: 1.0.2
+-- Version: 1.0.3
 -- License: MIT
-
-local script_name = "selectformat"
 
 -- ====================
 -- = requires
 -- ====================
 
-local msg = require("mp.msg")
-local utils = require("mp.utils")
-local options = require("mp.options")
-local assdraw = require("mp.assdraw")
+mp.msg = require("mp.msg")
+mp.utils = require("mp.utils")
+mp.options = require("mp.options")
+mp.assdraw = require("mp.assdraw")
 
 -- ====================
 -- = declarations
 -- ====================
 
-local main
-local formats_fetch
-local formats_save
-local formats_fold
-local menu_toggle
-local menu_show
-local menu_init_vars
-local menu_init_sel_pos
-local menu_hide
-local menu_draw
-local menu_get_prefix
-local menu_get_indent_marker
-local menu_keys_bind
-local menu_keys_unbind
-local menu_cursor_move
-local menu_unfold
-local menu_fold
-local get_unfolded_cursor_fmt_id
-local get_cursor_pos
-local get_selected_pos
-local get_parent_of_selected_pos
-local get_format_id_pos
-local menu_select
-local is_fetch_in_progress
-local no_formats_available
-local build_ytdl_format_str
-local build_format_label
-local get_menu_header
-local strfmt_label
-local format_sort_fn
-local get_param_precedence
-local is_format_useful
-local sanitize_format
-local get_ytdl_cmdline
-local get_ytdl_format_args
-local is_format_audioonly
-local is_loaded_file_audioonly
-local is_param_valid
-local is_param_empty
-local update_url
-local numshorten
-local sigcmp
-local is_network_stream
-local reload_resume
-local reload
-local update_ytdl_path
-local find_executable_path
-local get_ytdl_hook_opt_paths
-local execasync
-local exec
-local is_os_windows
-local isempty
-local isnum
-local isstr
-local istable
+local function main() end
+local function formats_fetch() end
+local function formats_save(url, success, result, error) end
+local function formats_fold(width, height, audio_only) end
+local function menu_toggle() end
+local function menu_show() end
+local function menu_init_vars() end
+local function menu_init_sel_pos() end
+local function menu_hide() end
+local function menu_draw() end
+local function menu_get_prefix(pos) end
+local function menu_get_indent_marker(pos) end
+local function menu_keys_bind() end
+local function menu_keys_unbind() end
+local function menu_cursor_move(i) end
+local function menu_unfold() end
+local function menu_fold() end
+local function get_unfolded_cursor_fmt_id() end
+local function get_cursor_pos() end
+local function get_selected_pos() end
+local function get_parent_of_selected_pos() end
+local function get_format_id_pos(id) end
+local function menu_select() end
+local function is_fetch_in_progress() end
+local function no_formats_available() end
+local function build_ytdl_format_str(fmt) end
+local function build_format_label(fmt) end
+local function get_menu_header() end
+local function strfmt_label(...) end
+local function format_sort_fn(a, b) end
+local function get_param_precedence(param, value) end
+local function is_format_useful(fmt) end
+local function sanitize_format(fmt) end
+local function get_ytdl_cmdline() end
+local function get_ytdl_mpvconf_args() end
+local function is_format_audio_only(fmt) end
+local function is_loaded_file_audio_only() end
+local function is_param_valid(p) end
+local function is_param_empty(p) end
+local function update_url() end
+local function numshorten(n) end
+local function sigcmp(a, operator, b) end
+local function is_network_stream(path) end
+local function reload_resume() end
+local function reload(path, timepos) end
+local function update_ytdl_path() end
+local function find_executable_path(name) end
+local function get_ytdl_hook_opt_paths() end
+local function exec_async(args, fn) end
+local function exec(args) end
+local function is_os_windows() end
+local function isempty(v) end
+local function isnum(v) end
+local function isstr(v) end
+local function istable(v) end
 
 -- ====================
 -- = options
@@ -89,9 +87,9 @@ local opts = {
 	header_separator = "─",
 	menu_pos_x = 7,
 	menu_pos_y = 7,
-	ass_style = "{\\fnmonospace\\fs7}",
+	ass_style = "{\\fnmonospace\\fs8}",
 }
-options.read_options(opts, script_name)
+mp.options.read_options(opts)
 
 -- ====================
 -- = keys
@@ -209,7 +207,7 @@ function formats_fetch()
 	end
 
 	data[url] = "fetching"
-	execasync(get_ytdl_cmdline(), function(a, b, c)
+	exec_async(get_ytdl_cmdline(), function(a, b, c)
 		formats_save(url, a, b, c)
 	end)
 end
@@ -222,7 +220,7 @@ function formats_save(url, success, result, error)
 		return
 	end
 
-	local json = utils.parse_json(result.stdout)
+	local json = mp.utils.parse_json(result.stdout)
 
 	if (not istable(json)) or (not istable(json.formats)) then
 		return
@@ -234,8 +232,10 @@ function formats_save(url, success, result, error)
 	for _, fmt in ipairs(json.formats) do
 		if is_format_useful(fmt) then
 			fmt = sanitize_format(fmt)
+			---@diagnostic disable: inject-field
 			fmt.label = build_format_label(fmt)
 			fmt.ytdl_format = build_ytdl_format_str(fmt)
+			---@diagnostic enable: inject-field
 			table.insert(data[url].formats, fmt)
 		end
 	end
@@ -249,7 +249,7 @@ function formats_save(url, success, result, error)
 	formats_fold()
 end
 
-function formats_fold(width, height, audioonly)
+function formats_fold(width, height, audio_only)
 	data[url].formats = {}
 	local inserted_res = {}
 	local unfold_res = (width or "null") .. "x" .. (height or "null")
@@ -257,20 +257,20 @@ function formats_fold(width, height, audioonly)
 		local res = (fmt.width or "") .. "x" .. (fmt.height or "")
 
 		if res == "x" then
-			res = is_format_audioonly(fmt) and "audio-only" or fmt.format_id
+			res = is_format_audio_only(fmt) and "audio-only" or fmt.format_id
 		end
 
 		fmt.is_unfolded = false
 
-		local fmt_audioonly = is_format_audioonly(fmt)
+		local fmt_audio_only = is_format_audio_only(fmt)
 		if
 			not inserted_res[res]
 			or res == unfold_res
-			or (audioonly and res == "audio-only")
+			or (audio_only and res == "audio-only")
 		then
 			inserted_res[res] = true
 
-			if res == unfold_res or (audioonly and res == "audio-only") then
+			if res == unfold_res or (audio_only and res == "audio-only") then
 				fmt.is_unfolded = true
 			end
 
@@ -319,7 +319,7 @@ function menu_init_vars()
 end
 
 -- put the cursor on the initially loaded format.
--- see the comments of the get_ytdl_format_args() function for more info.
+-- see the comments of the get_ytdl_mpvconf_args() function for more info.
 function menu_init_sel_pos()
 	local id = data[url].initial_format_id
 
@@ -345,12 +345,13 @@ function menu_hide()
 end
 
 function menu_draw()
-	local ass = assdraw.ass_new()
+	local ass = mp.assdraw.ass_new()
 	local header = get_menu_header()
 	local header_separator = (opts.prefix_header .. header):gsub(
 		".",
 		opts.header_separator
 	)
+	
 
 	ass:pos(opts.menu_pos_x, opts.menu_pos_y)
 	ass:append(opts.ass_style)
@@ -434,7 +435,7 @@ function menu_unfold()
 	formats_fold(
 		cursor_fmt.width,
 		cursor_fmt.height,
-		is_format_audioonly(cursor_fmt)
+		is_format_audio_only(cursor_fmt)
 	)
 	menu_draw()
 end
@@ -447,7 +448,7 @@ end
 
 function get_unfolded_cursor_fmt_id()
 	local function getres(fmt)
-		if is_format_audioonly(fmt) then
+		if is_format_audio_only(fmt) then
 			return "audio-only"
 		else
 			return (fmt.width or "null") .. "x" .. (fmt.height or "null")
@@ -501,7 +502,7 @@ end
 
 function get_parent_of_selected_pos()
 	local function getres(fmt)
-		if is_format_audioonly(fmt) then
+		if is_format_audio_only(fmt) then
 			return "audio-only"
 		else
 			return (fmt.width or "null") .. "x" .. (fmt.height or "null")
@@ -562,7 +563,7 @@ end
 
 -- build the youtube-dl format option for the given format
 function build_ytdl_format_str(fmt)
-	if is_format_audioonly(fmt) then
+	if is_format_audio_only(fmt) then
 		return string.format("%s/bestaudio", fmt.format_id)
 	else
 		local audiofmt = "bestaudio"
@@ -588,7 +589,7 @@ end
 function build_format_label(fmt)
 	local res, codec, br, formatstr
 
-	if is_format_audioonly(fmt) then
+	if is_format_audio_only(fmt) then
 		res = "audio-only"
 		codec = fmt.acodec
 		br = fmt.abr or fmt.tbr
@@ -764,7 +765,7 @@ function get_param_precedence(param, value)
 	return 0
 end
 
--- test wether the given format contains the bare minimum of information
+-- test whether the given format contains the bare minimum of information
 function is_format_useful(fmt)
 	if (not istable(fmt)) or fmt.ext == "mhtml" or fmt.protocol == "mhtml" then
 		return false
@@ -840,9 +841,11 @@ end
 function get_ytdl_cmdline()
 	local args = { ytdl_path, "--no-playlist", "-j" }
 
-	for _, format_arg in ipairs(get_ytdl_format_args()) do
+	---@diagnostic disable: param-type-mismatch
+	for _, format_arg in ipairs(get_ytdl_mpvconf_args()) do
 		table.insert(args, format_arg)
 	end
+	---@diagnostic enable: param-type-mismatch
 
 	table.insert(args, "--")
 	table.insert(args, (url:gsub("^ytdl://", "")))
@@ -850,17 +853,17 @@ function get_ytdl_cmdline()
 	return args
 end
 
--- get youtube-dl's format related options that are specified in mpv's
+-- get youtube-dl's options that are specified in mpv's
 -- command line options or config file. if we call the youtube-dl command
 -- with these options included, the initially loaded format will be apparent
 -- in the "format_id" parameter of the infojson.
-function get_ytdl_format_args()
+function get_ytdl_mpvconf_args()
 	local args = {}
 	local fmtopt = mp.get_property("ytdl-format")
 	local rawopts = mp.get_property_native("ytdl-raw-options")
 
 	if isempty(fmtopt) then
-		fmtopt = is_loaded_file_audioonly() and "bestaudio/best"
+		fmtopt = is_loaded_file_audio_only() and "bestaudio/best"
 			or "bestvideo+bestaudio/best"
 	end
 
@@ -869,16 +872,20 @@ function get_ytdl_format_args()
 		table.insert(args, fmtopt)
 	end
 
-	if istable(rawopts) and isstr(rawopts["format-sort"]) then
-		table.insert(args, "--format-sort")
-		table.insert(args, rawopts["format-sort"])
+	if istable(rawopts) then
+		for k, v in pairs(rawopts) do
+			table.insert(args, "--" .. k)
+			if not isempty(v) then
+				table.insert(args, v)
+			end
+		end
 	end
 
 	return args
 end
 
--- test wether the given format only contains an audio stream
-function is_format_audioonly(fmt)
+-- test whether the given format contains only an audio stream
+function is_format_audio_only(fmt)
 	return (is_param_valid(fmt.acodec) and (not is_param_valid(fmt.vcodec)))
 		or (
 			is_param_valid(fmt.audio_ext)
@@ -886,7 +893,7 @@ function is_format_audioonly(fmt)
 		)
 end
 
-function is_loaded_file_audioonly()
+function is_loaded_file_audio_only()
 	return mp.get_property("video") == "no"
 end
 
@@ -894,7 +901,7 @@ function is_param_valid(p)
 	return isnum(p) or (isstr(p) and (not is_param_empty(p)))
 end
 
--- test wether the given format parameter is empty
+-- test whether the given format parameter is empty
 function is_param_empty(p)
 	return isempty(p) or p == "none" or p == "null"
 end
@@ -937,7 +944,7 @@ function sigcmp(a, operator, b)
 	end
 end
 
--- test wether the given path or URL is a network stream.
+-- test whether the given path or URL is a network stream.
 -- works by checking the given URL's protocol.
 function is_network_stream(path)
 	local proto = path:match("^(%a+)://")
@@ -1043,7 +1050,9 @@ function update_ytdl_path()
 		or { "yt-dlp", "yt-dlp_x86", "youtube-dl" }
 
 	for _, p in pairs(paths) do
+		---@diagnostic disable: cast-local-type
 		p = find_executable_path(p)
+		---@diagnostic enable: cast-local-type
 		if p then
 			ytdl_path = p
 			return true
@@ -1051,7 +1060,7 @@ function update_ytdl_path()
 	end
 
 	ytdl_not_found = true
-	msg.warn("couldn't find yt-dlp or youtube-dl")
+	mp.msg.warn("couldn't find yt-dlp or youtube-dl")
 
 	return false
 end
@@ -1077,7 +1086,7 @@ function get_ytdl_hook_opt_paths()
 	local sep = is_os_windows() and ";" or ":"
 	local hook_opts = { ytdl_path = "" }
 
-	options.read_options(hook_opts, "ytdl_hook")
+	mp.options.read_options(hook_opts, "ytdl_hook")
 
 	for p in hook_opts.ytdl_path:gmatch("[^" .. sep .. "]+") do
 		table.insert(paths, p)
@@ -1087,7 +1096,7 @@ function get_ytdl_hook_opt_paths()
 end
 
 -- asynchronously execute shell commands using mpv's subprocess command
-function execasync(args, fn)
+function exec_async(args, fn)
 	mp.command_native_async({
 		name = "subprocess",
 		args = args,
@@ -1110,25 +1119,20 @@ function is_os_windows()
 	return package.config:sub(1, 1) == "\\"
 end
 
-function isempty(var)
-	return var == nil or var == ""
+function isempty(v)
+	return v == nil or v == ""
 end
 
-function isnum(var)
-	return type(var) == "number"
+function isnum(v)
+	return type(v) == "number"
 end
 
-function isstr(var)
-	return type(var) == "string"
+function isstr(v)
+	return type(v) == "string"
 end
 
-function istable(var)
-	return type(var) == "table"
-end
-
--- if table.unpack() isn't available, use unpack() instead
-if not table.unpack then
-	table.unpack = unpack
+function istable(v)
+	return type(v) == "table"
 end
 
 main()

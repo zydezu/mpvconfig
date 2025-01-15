@@ -12,18 +12,10 @@ local options = {
 }
 (require "mp.options").read_options(options)
 
-local currentTime = "0000"
-local filename = "default"
 local title = "default"
 local count = 0
 
-local function update_time()
-    currentTime = os.date("%Y-%m-%d_%H-%M-%S")
-end
-
 local function set_file_dir()
-    update_time()
-
     count = 0
     mp.set_property("screenshot-directory", "~~desktop/mpv/screenshots/" .. title .. "/")
     if options.save_as_time_stamp then
@@ -35,7 +27,7 @@ end
 local function init()
     local function is_url(s)
         local url_pattern = "^[%w]+://[%w%.%-_]+%.[%a]+[-%w%.%-%_/?&=]*"
-        return string.match(s, url_pattern) ~= nil    
+        return string.match(s, url_pattern) ~= nil
     end
 
     local filename = mp.get_property("filename/no-ext")
@@ -65,8 +57,8 @@ local function screenshot_done()
     mp.commandv("set", "sub-pos", 100)
     mp.commandv("screenshot");
     mp.commandv("set", "sub-pos", temp_sub_pos)
-    mp.osd_message("Screenshot taken: " .. mp.command_native({"expand-path", 
-                    mp.get_property("screenshot-directory")}) .. mp.get_property("screenshot-template"))
+    mp.osd_message("Screenshot saved to: " ..
+        mp.command_native({"expand-path", mp.get_property("screenshot-directory")}))
     count = count + 1
     if options.save_as_time_stamp then
         mp.set_property("screenshot-template", "%tY-%tm-%td_%tH-%tM-%tS" .. "(" .. count .. ")")
