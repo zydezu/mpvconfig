@@ -82,7 +82,7 @@ local user_opts = {
 
     -- Buttons display and functionality
     compact_mode = true,                    -- replace the jump buttons with the seek/chapter buttons
-    
+
     jump_buttons = true,                    -- show the jump backward and forward buttons
     jump_amount = 10,                       -- change the jump amount in seconds
     jump_more_amount = 60,                  -- change the jump amount in seconds when right-clicking jump buttons and shift-clicking chapter skip buttons
@@ -95,7 +95,7 @@ local user_opts = {
 
     volume_control = true,                  -- show mute button and volume slider
     volume_control_type = "linear",         -- volume scale type: "linear" or "logarithmic"
-    
+
     info_button = false,                    -- show info button
     ontop_button = true,                    -- show window on top button
     screenshot_button = false,              -- show screenshot button
@@ -149,7 +149,7 @@ local user_opts = {
     seek_range = true,                      -- show seek range overlay
     seek_rangealpha = 175,                  -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
-    
+
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
     automatic_keyframe_limit = 600,         -- videos longer than this (in seconds) will have keyframes on the seekbar
 
@@ -206,10 +206,10 @@ local icons = {
     fullscreen = "\239\133\160",
     fullscreen_exit = "\239\133\166",
 
-    jumpicons = { 
-        [5] = {"\238\171\186", "\238\171\187"}, 
-        [10] = {"\238\171\188", "\238\172\129"}, 
-        [30] = {"\238\172\133", "\238\172\134"}, 
+    jumpicons = {
+        [5] = {"\238\171\186", "\238\171\187"},
+        [10] = {"\238\171\188", "\238\172\129"},
+        [30] = {"\238\172\133", "\238\172\134"},
         default = {"\238\172\138", "\238\172\138"}, -- second icon is mirrored in layout() 
     },
 
@@ -286,7 +286,7 @@ function dumptable(o)
        return tostring(o)
     end
 end
- 
+
 
 local thumbfast = {
     width = 0,
@@ -368,7 +368,7 @@ local state = {
     new_file_flag = false,                  -- flag to detect new file starts
     chapter_list = {},                      -- sorted by time
     mute = false,
-    looping = false,    
+    looping = false,
     sliderpos = 0,
     touchingprogressbar = false,            -- if the mouse is touching the progress bar
     initialborder = mp.get_property('border'),
@@ -830,7 +830,7 @@ local function prepare_elements()
             if element.slider.markerF ~= nil and slider_lo.gap > 0 then
                 local markers = element.slider.markerF()
                 for _,marker in pairs(markers) do
-                    if marker >= element.slider.min.value and 
+                    if marker >= element.slider.min.value and
                     marker <= element.slider.max.value then
                         local s = get_slider_ele_pos_for(element, marker)
                         if slider_lo.gap > 5 then -- draw triangles
@@ -899,7 +899,7 @@ function render_elements(master_ass)
     -- then we use it instead of the normal title. we calculate it before the
     -- render iterations because the title may be rendered before the slider.
     state.forced_title = nil
-    
+
     -- disable displaying chapter name in title when thumbfast is available
     -- because thumbfast will render it above the thumbnail instead
     if thumbfast.disabled then
@@ -940,10 +940,10 @@ function render_elements(master_ass)
                 state.mouse_down_counter = state.mouse_down_counter + 1
             end
         end
-        
+
         local elem_ass = assdraw.ass_new()
         elem_ass:merge(style_ass)
-        
+
         if not (element.type == 'button') then
             elem_ass:merge(element.static_ass)
         end
@@ -960,7 +960,7 @@ function render_elements(master_ass)
                 local seek_ranges = element.slider.seek_rangesF()
                 local rh = user_opts.seekbar_handle_size * elem_geo.h / 2 -- Handle radius
                 local xp
-                
+
                 if pos then
                     xp = get_slider_ele_pos_for(element, pos)
                     ass_draw_cir_cw(elem_ass, xp, elem_geo.h/2, rh)
@@ -1014,8 +1014,8 @@ function render_elements(master_ass)
 
                         if (element.name == "seekbar") then
                             state.sliderpos = sliderpos
-                        end    
-                        
+                        end
+
                         -- thumbfast
                         if element.thumbnailable and not thumbfast.disabled then
                             local osd_w = mp.get_property_number("osd-width")
@@ -1049,7 +1049,7 @@ function render_elements(master_ass)
                                     mp.commandv("script-message-to", "thumbfast", "thumb", hover_sec, thumbX, thumbY)
                                 end
 
-                                
+
                                 -- chapter title
                                 local se, ae = state.slider_element, elements[state.active_element]
                                 if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
@@ -1090,7 +1090,7 @@ function render_elements(master_ass)
                 buttontext = element.content -- text objects
             end
             buttontext = buttontext:gsub(":%((.?.?.?)%) unknown ", ":%(%1%)")  --gsub('%) unknown %(\'', '')
-            
+
             local maxchars = element.layout.button.maxchars
             if not (maxchars == nil) and (#buttontext > maxchars) then
                 local max_ratio = 1.25  -- up to 25% more chars while shrinking
@@ -1132,7 +1132,7 @@ function render_elements(master_ass)
                 shadow_ass:append("{\\blur" .. user_opts.button_glow_amount .. "}" .. hoverstyle .. buttontext)
                 elem_ass:merge(shadow_ass)
             end
-            
+
             -- add tooltip for audio and subtitle tracks
             if not (element.tooltipF == nil) then
                 if mouse_hit(element) then
@@ -1181,11 +1181,11 @@ function render_persistent_progressbar(master_ass)
             local style_ass = assdraw.ass_new()
             style_ass:merge(element.style_ass)
             ass_append_alpha(style_ass, element.layout.alpha, 0, true)
-            
+
             if not state.animation and state.osc_visible then
                 ass_append_alpha(style_ass, element.layout.alpha, 255)
             end
-            
+
             local elem_ass = assdraw.ass_new()
             elem_ass:merge(style_ass)
             if not (element.type == "button") then
@@ -1202,7 +1202,7 @@ function render_persistent_progressbar(master_ass)
             local seek_ranges = element.slider.seek_rangesF()
             local rh = 0 -- Handle radius
             local xp
-                
+
             if pos then
                 xp = get_slider_ele_pos_for(element, pos)
                 ass_draw_cir_cw(elem_ass, xp, elem_geo.h/2, rh)
@@ -1276,8 +1276,8 @@ function startupevents()
     state.new_file_flag = true
     state.videoDescription = "Loading description..."
     state.file_size_normalized = "Approximating size..."
-    checktitle()
     check_path_url()
+    checktitle()
     if user_opts.automatic_keyframe_mode then
         if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
              user_opts.seekbar_keyframes = true
@@ -1316,31 +1316,27 @@ function checktitle()
     print(dumptable(mp.get_property_native("metadata")))
     if mp.get_property_native('metadata') then
         state.ytdescription = mp.get_property_native('metadata').ytdl_description or description or ""
-        -- print("Metadata: " .. utils.to_string(mp.get_property_native('metadata')))
+        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%%%")
     else
-        -- print("Failed to load metadata")
+        print("Failed to load metadata")
     end
 
     if user_opts.show_description then
         if (title) then
             if (#state.ytdescription > 1) then
-                state.localDescriptionClick = title .. "\\N----------\\N" .. state.ytdescription .. "\\N----------\\N"
+                state.localDescriptionClick = title .. "\\N────────────────────\\N" .. state.ytdescription .. "\\N────────────────────\\N"
 
                 local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize)
-                -- print("SPLIT:"..#utf8split.."/"..#state.ytdescription)
 
                 if #utf8split ~= #state.ytdescription then
                     tmp = utf8split:match("^%s*(.-)%s*$")
                     tmp = utf8split:gsub("[,%.%s]+$", "")
-                
+
                     utf8split = tmp .. "..."
                 end
                 utf8split = utf8split:match("^(.-)%s*$")
-                local artisttext = "By: "
-                if (is_url(mp.get_property("path"))) then
-                    artisttext = "Uploader: "
-                end
-                if (artist) then
+                local artisttext = state.is_URL and "By: " or "Uploader: "
+                if artist then
                     utf8split = utf8split .. " | " .. artisttext .. artist
                     state.localDescriptionClick = state.localDescriptionClick ..  artisttext .. artist
                 end
@@ -1348,7 +1344,7 @@ function checktitle()
                 state.videoDescription = utf8split:gsub("\r", ""):gsub("\n", " ")
                 state.localDescription = state.videoDescription
             else
-                state.localDescriptionClick = title .. "\\N----------\\N"
+                state.localDescriptionClick = title .. "\\N────────────────────\\N"
             end
         end
         if (artist ~= nil) then
@@ -1364,7 +1360,7 @@ function checktitle()
                 state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
                 state.localDescriptionIsClickable = true
             else -- append to other metadata
-                if (state.localDescriptionClick ~= nil) then 
+                if (state.localDescriptionClick ~= nil) then
                     state.localDescriptionClick = state.localDescriptionClick .. " | " .. album
                 else
                     state.localDescriptionClick = album
@@ -1434,6 +1430,17 @@ function normaliseDate(date)
     end
 end
 
+function exec_async(args, callback)
+    local ret = mp.command_native_async({
+        name = "subprocess",
+        args = args,
+        capture_stdout = true,
+        capture_stderr = true
+    }, callback)
+
+    return ret and ret.status or nil
+end
+
 function is_url(s)
     if not s then
         user_opts.download_button = false
@@ -1474,7 +1481,7 @@ function check_path_url()
 
         if user_opts.download_button then
             msg.info("Fetching file size...")
-            local command = { 
+            local command = {
                 "yt-dlp",
                 ytdl_format,
                 "--no-download",
@@ -1482,93 +1489,95 @@ function check_path_url()
                 "%(filesize,filesize_approx)s", -- Fetch file size or approximate size
                 path
             }
-            exec_filesize(command)
+            exec_async(command, process_filesize)
         end
 
         -- Youtube Return Dislike API
         state.dislikes = ""
         if path:find('youtu%.?be') and (user_opts.show_description or user_opts.title_youtube_stats) then
-            msg.info("WEB: Loading dislike count...")
+            msg.info("[WEB] Loading dislike count...")
             local filename = mp.get_property_osd("filename")
             local pattern = "v=([^&]+)"
             local match = string.match(filename, pattern)
             if match then
-                exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. match})
+                exec_async({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. match}, process_dislikes)
             else
                 local _, _, videoID = string.find(filename, "([%w_-]+)%?si=")
                 if videoID then
-                    exec_dislikes({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. videoID})
+                    exec_async({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. videoID}, process_dislikes)
                 else
-                    msg.info("WEB: Failed to fetch dislikes")
+                    msg.info("[WEB] Failed to fetch dislikes")
                 end
             end
         end
 
         if user_opts.show_description then
-            msg.info("WEB: Loading video description...")
-            local uploader = (state.youtubeuploader and '<$\\N!uploader!\\N$>') or "%(uploader)s"
-            local description = (state.ytdescription and '<$\\N!desc!\\N$>') or "%(description)s"
-            local command = { 
+            msg.info("[WEB] Loading video description...")
+            local command = {
                 "yt-dlp",
-                "--no-download", 
-                "-O \\N----------\\N" .. description .. "\\N----------\\NUploader: " .. uploader .. "\nUploaded: %(upload_date>".. user_opts.date_format ..")s\nViews: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s", 
+                "--no-download",
+                "-O Views: %(view_count)s\nComments: %(comment_count)s\nLikes: %(like_count)s",
                 state.url_path
             }
-            exec_description(command)
+            exec_async(command, process_vid_stats)
         end
 
         if user_opts.show_youtube_comments then
-            msg.info("WEB: Downloading comments...")
-            checkcomments()
+            msg.info("[WEB] Downloading comments...")
+            check_comments()
         end
     end
 end
 
-function checkcomments()
+function check_comments()
     function file_exists(file)
         local f = io.open(file, "rb")
         if f then f:close() end
         return f ~= nil
-    end              
+    end
 
     function lines_from(file)
         if not file_exists(file) then return {} end
         local lines = {}
-        for line in io.lines(file) do 
+        for line in io.lines(file) do
             lines[#lines + 1] = line
         end
         return lines
-    end         
+    end
 
-    local ret = mp.command_native_async({
+    mp.command_native_async({
         name = "subprocess",
-        args = { 
+        args = {
             "yt-dlp",
             "--skip-download",
             "--write-comments",
             "-o%(id)s",
             "-P " .. mp.command_native({"expand-path", user_opts.comments_download_path}),
-            state.url_path 
+            state.url_path
         },
         capture_stdout = true,
         capture_stderr = true
-    }, function() 
+    }, function(success, result, error)
+        if not success then
+            print("[WEB] Couldn't write youtube comments: " .. error)
+            return
+        end
+
         local filename = ""
         if (mp.get_property("filename")) then
-            msg.info("WEB: Downloaded comments")
+            msg.info("[WEB] Downloaded comments")
             filename = mp.command_native({"expand-path", user_opts.comments_download_path .. '/'}) .. mp.get_property("filename"):gsub("watch%?v=", ""):match("^[^%?&]+") .. ".info.json"
-            print(filename)
         else
-            msg.info("WEB: Comments failed to download...")
+            msg.info("[WEB] Comments failed to download...")
             return
         end
 
         if file_exists(filename) then
-            msg.info("WEB: Reading comments file...")
+            msg.info("[WEB] Reading comments file...")
             local lines = lines_from(filename)
             state.jsoncomments = utils.parse_json(lines[1]).comments
         else
-            msg.info("WEB: Error opening comments file")
+            msg.info("[WEB] Error opening comments file")
             return
         end
         state.maxCommentPages = math.ceil(#state.jsoncomments / comments_per_page)
@@ -1580,11 +1589,11 @@ function checkcomments()
         if state.showingDescription then
             show_description(state.localDescriptionClick)
         end
-        msg.info("WEB: Read and parsed comments")
+        msg.info("[WEB] Read and parsed comments")
     end )
 end
 
-function loadSetOfComments(startIndex) 
+function loadSetOfComments(startIndex)
     if (#state.jsoncomments < 1) then
         return
     end
@@ -1648,70 +1657,42 @@ function loadSetOfComments(startIndex)
     end
 end
 
-function exec_filesize(args)
-    for i = #args, 1, -1 do
-        if args[i] == nil or args[i] == "" then
-            table.remove(args, i)
+function process_filesize(success, result, error)
+    if not success then
+        print("[WEB] Couldn't fetch video filesize: " .. error)
+        return
+    end
+
+    local fileSizeString = result.stdout
+    state.file_size_bytes = tonumber(fileSizeString)
+
+    if state.file_size_bytes then
+        state.file_size_normalized = format_file_size(state.file_size_bytes)
+        msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
+    else
+        local fs_prop = mp.get_property_osd("file-size")
+        if fs_prop and fs_prop ~= "" then
+            state.file_size_normalized = fs_prop
+            msg.info(fs_prop)
+        else
+            state.file_size_normalized = "Unknown"
+            msg.info("Unable to retrieve file size.")
         end
     end
 
-    mp.command_native_async({
-        name = "subprocess",
-        args = args,
-        capture_stdout = true,
-        capture_stderr = true
-    }, function(res, val)
-        local fileSizeString = val.stdout
-        state.file_size_bytes = tonumber(fileSizeString)
-
-        if state.file_size_bytes then
-            state.file_size_normalized = format_file_size(state.file_size_bytes)
-            msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
-        else
-            local fs_prop = mp.get_property_osd("file-size")
-            if fs_prop and fs_prop ~= "" then
-                state.file_size_normalized = fs_prop
-                msg.info(fs_prop)
-            else
-                state.file_size_normalized = "Unknown"
-                msg.info("Unable to retrieve file size.")
-            end        
-        end
-
-        request_tick()
-    end)
+    request_tick()
 end
 
 local function download_done(success, result, error)
     if success then
-        local download_path = mp.command_native({"expand-path", user_opts.download_path})
-        show_message("\\N{\\an9}Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
+        show_message("\\N{\\an9}[WEB] Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
         state.downloaded_once = true
-        msg.info("Download completed")
+        msg.info("[WEB] Download completed")
     else
-        show_message("\\N{\\an9}WEB: Download failed - " .. (error or "Unknown error"))
-        msg.info("Download failed")
+        show_message("\\N{\\an9}[WEB] Download failed - " .. (error or "Unknown error"))
+        msg.info("[WEB] Download failed")
     end
     state.downloading = false
-end
-
-local function exec(args, callback)
-    for i = #args, 1, -1 do
-        if args[i] == nil or args[i] == "" then
-            table.remove(args, i)
-        end
-    end
-
-    msg.info("Executing command: " .. table.concat(args, " "))
-
-    local ret = mp.command_native_async({
-        name = "subprocess",
-        args = args,
-        capture_stdout = true,
-        capture_stderr = true
-    }, callback)
-
-    return ret and ret.status or nil
 end
 
 function splitUTF8(str, maxLength)
@@ -1728,7 +1709,7 @@ function splitUTF8(str, maxLength)
         elseif byte >= 192 and byte <= 223 then
             charLength = 2
         elseif byte >= 224 and byte <= 239 then
-            charLength = 3 
+            charLength = 3
             -- CJK
         elseif byte >= 240 and byte <= 247 then
             charLength = 4
@@ -1751,138 +1732,93 @@ function splitUTF8(str, maxLength)
     return result[1], lastchar
 end
 
-function exec_description(args, result)
-    local ret = mp.command_native_async({
-        name = "subprocess",
-        args = args,
-        capture_stdout = true,
-        capture_stderr = true,
-    }, function(res, val, err)
-        state.localDescriptionClick = mp.get_property("media-title", "") .. string.gsub(string.gsub(val.stdout, '\r', '\\N') .. state.dislikes, '\n', '\\N')
-        if (state.dislikes == "") then
-            state.localDescriptionClick = mp.get_property("media-title", "") .. string.gsub(string.gsub(val.stdout, '\r', '\\N'), '\n', '\\N')
-            state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
+function process_vid_stats(success, result, error)
+    if not success then
+        print("[WEB] Couldn't fetch video stats: " .. error)
+        return
+    end
+
+    state.localDescriptionClick =
+        mp.get_property("media-title", "") ..
+        "\\N────────────────────\\N" ..
+        string.gsub(
+            string.gsub(result.stdout, '\r', '\\N') ..
+            state.dislikes, '\n', '\\N'
+        ) ..
+        "\\N────────────────────\\N" ..
+        state.ytdescription
+
+    if (state.dislikes == "") then
+        state.localDescriptionClick = state.localDescriptionClick .. string.gsub(string.gsub(result.stdout, '\r', '\\N'), '\n', '\\N')
+        state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
+    end
+    addLikeCountToTitle()
+
+    if (state.localDescriptionClick:match('Views: (%d+)')) then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Views: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)')))
+    end
+    if (state.localDescriptionClick:match('Likes: (%d+)')) then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Likes: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)')))
+    end
+    if (state.localDescriptionClick:match('Comments: (%d+)')) then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Comments: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Comments: (%d+)')))
+    end
+
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Uploader: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Dislikes: NA\\N", "")
+
+    if false then
+        state.localDescriptionClick = state.localDescriptionClick:gsub("Views:", icons.emoticon.view):gsub("Comments:", icons.emoticon.comment):gsub("Likes:", icons.emoticon.like):gsub("Dislikes:", icons.emoticon.dislike)  -- replace with icons
+    end
+
+    if not state.ytdescription then
+        if mp.get_property_number("estimated-vf-fps") then
+            state.videoDescription = mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
+            math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "" -- can't get a normal description, display something else    
         end
+    end
+
+    state.descriptionLoaded = true
+    if state.showingDescription then
+        show_description(state.localDescriptionClick)
+    end
+    msg.info("[WEB] Loaded video description")
+end
+
+function process_dislikes(success, result, error)
+    if not success then
+        print("[WEB] Couldn't fetch video dislikes: " .. error)
+        return
+    end
+
+    local dislikes = result.stdout
+    dislikes = add_commas_to_number(dislikes:match('"dislikes":(%d+)'))
+    state.dislikecount = dislikes
+
+    if dislikes then
+        state.dislikes = "Dislikes: " .. dislikes
+        msg.info("[WEB] Fetched dislike count")
+    else
+        state.dislikes = ""
+    end
+
+    if (not state.descriptionLoaded) then
+        if state.localDescriptionClick then
+            state.localDescriptionClick = state.localDescriptionClick .. '\\N' .. state.dislikes
+        else
+            state.localDescriptionClick = state.dislikes
+        end
+    else
         addLikeCountToTitle()
-
-        -- check if description exists, if it doesn't get rid of the extra "----------"
-        local descriptionText = state.localDescriptionClick:match("\\N----------\\N(.-)\\N----------\\N")
-        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%%%")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("<$\\N!desc!\\N$>", state.ytdescription)
-        if (state.ytdescription == '' or state.ytdescription == '\\N' or state.ytdescription == 'NA' or #state.ytdescription < 4) then
-            state.localDescriptionClick = state.localDescriptionClick:gsub("(.*)\\N----------\\N", "%1")
-        end
-        if state.youtubeuploader then
-            state.localDescriptionClick = state.localDescriptionClick:gsub("Uploader: <$\\N!uploader!\\N$>", "Uploader: " .. state.youtubeuploader)
-        else
-            state.localDescriptionClick = state.localDescriptionClick:gsub("Uploader: <$\\N!uploader!\\N$>", "Uploader: ")
-        end
-
-        if (state.localDescriptionClick:match('Views: (%d+)')) then
-            state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Views: (%d+)'), commas(state.localDescriptionClick:match('Views: (%d+)')))
-        end
-        if (state.localDescriptionClick:match('Likes: (%d+)')) then
-            state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Likes: (%d+)'), commas(state.localDescriptionClick:match('Likes: (%d+)')))
-        end
-        if (state.localDescriptionClick:match('Comments: (%d+)')) then
-            state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Comments: (%d+)'), commas(state.localDescriptionClick:match('Comments: (%d+)')))
-        end
-
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploader: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA\\N", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Likes: NA", "")
-        state.localDescriptionClick = state.localDescriptionClick:gsub("Dislikes: NA\\N", "")
-        -- state.localDescriptionClick = state.localDescriptionClick:gsub("NA", "")
-
-        local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize) -- account for CJK
-        
-        -- segment localDescriptionClick parts with " | "
-        local tempDesc
-
-        local beforeLastPattern, afterLastPattern = state.localDescriptionClick:match("(.*)\\N----------\\N(.*)")
-        if beforeLastPattern then
-            local desc = string.match(beforeLastPattern, "\\N----------\\N(.*)")
-
-            if desc then
-                if utf8split then
-                    if #utf8split == #desc then
-                        desc = utf8split
-                    else
-                        desc = utf8split .. '...'
-                    end
-                else
-                    if #desc > max_descsize then
-                        desc = desc:sub(1, max_descsize) .. '...'
-                    else
-                        desc = desc:sub(1, max_descsize)
-                    end
-                end
-
-                afterLastPattern = afterLastPattern:gsub("Views:", icons.emoticon.view):gsub("Comments:", icons.emoticon.comment):gsub("Likes:", icons.emoticon.like):gsub("Dislikes:", icons.emoticon.dislike)  -- replace with icons
-                tempDesc = desc  .. "\\N----------\\N" .. afterLastPattern:gsub("\\N", " | ")            
-                tempDesc = tempDesc:gsub("\\N----------\\N", " | ")
-            else
-                tempDesc = afterLastPattern:gsub("\\N", " | ")
-            end
-        end
-        
-        if afterLastPattern then
-            if (select(2, afterLastPattern:gsub("\\N", "")) == 1) then -- get rid of last | if there's only one item
-                -- print("Erasing last item")
-                if mp.get_property_number("estimated-vf-fps") then
-                    tempDesc = tempDesc:gsub(" | ", "")
-                    state.videoDescription = tempDesc .. " | " .. 
-                    mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
-                    math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "" -- can't get a normal description, display something else    
-                else
-                    state.videoDescription = "No description"
-                end
-            end
-        end
-        
-        state.descriptionLoaded = true
-        if state.showingDescription then
-            show_description(state.localDescriptionClick)
-        end
-        msg.info("Loaded video description")
-    end)
+    end
 end
 
-function exec_dislikes(args, result)
-    local ret = mp.command_native_async({
-        name = "subprocess",
-        args = args,
-        capture_stdout = true,
-        capture_stderr = true
-    }, function(res, val, err)
-        local dislikes = val.stdout
-        dislikes = commas(dislikes:match('"dislikes":(%d+)'))
-        state.dislikecount = dislikes
-
-        if dislikes then
-            state.dislikes = "Dislikes: " .. dislikes
-            msg.info("WEB: Fetched dislike count")
-        else
-            state.dislikes = ""
-        end
-
-        if (not state.descriptionLoaded) then
-            if state.localDescriptionClick then
-                state.localDescriptionClick = state.localDescriptionClick .. '\\N' .. state.dislikes
-            else
-                state.localDescriptionClick = state.dislikes
-            end
-            state.videoDescription = state.localDescriptionClick
-        else
-            addLikeCountToTitle()
-        end
-    end)
-end
-
-function commas(number)
+function add_commas_to_number(number)
     if number == nil then return '' end
 
     return tostring(number) -- Make sure the "number" is a string
@@ -1895,18 +1831,18 @@ function commas(number)
 
 function addLikeCountToTitle()
     if (user_opts.show_description and user_opts.title_youtube_stats) then
-        state.viewcount = commas(state.localDescriptionClick:match('Views: (%d+)')) 
-        state.likecount = commas(state.localDescriptionClick:match('Likes: (%d+)'))
+        state.viewcount = add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)'))
+        state.likecount = add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount ~= '' and state.likecount ~= '' and state.dislikecount) then
-            mp.set_property("title", mp.get_property("media-title") .. 
-            " | " .. icons.emoticon.view .. state.viewcount .. 
-            " | " .. icons.emoticon.like .. state.likecount .. 
+            mp.set_property("title", mp.get_property("media-title") ..
+            " | " .. icons.emoticon.view .. state.viewcount ..
+            " | " .. icons.emoticon.like .. state.likecount ..
             " | " .. icons.emoticon.dislike .. state.dislikecount)
         elseif (state.viewcount ~= '' and state.likecount ~= '') then
-            mp.set_property("title", mp.get_property("media-title") .. 
-            " | " .. icons.emoticon.view .. state.viewcount .. 
+            mp.set_property("title", mp.get_property("media-title") ..
+            " | " .. icons.emoticon.view .. state.viewcount ..
             " | " .. icons.emoticon.like .. state.likecount)
-        end    
+        end
     end
 end
 
@@ -2057,25 +1993,25 @@ function show_description(text)
             if state.maxCommentPages == 1 then
                 pageText = "page"
             end
-            state.commentsAdditionalText = '\\N----------\\NPress LEFT/RIGHT to view comments\\N' .. state.maxCommentPages .. ' ' .. pageText .. ' (' .. #state.jsoncomments .. ' comments)'
+            state.commentsAdditionalText = '\\N────────────────────\\NPress LEFT/RIGHT to view comments\\N' .. state.maxCommentPages .. ' ' .. pageText .. ' (' .. #state.jsoncomments .. ' comments)'
             text = text .. state.commentsAdditionalText
         else
-            text = text .. '\\N----------\\NComments loading...'
+            text = text .. '\\N────────────────────\\NComments loading...'
         end
     end
     text = string.gsub(text, '\n', '\\N')
 
     -- enable scrolling of menu --
-    bind_keys("UP WHEEL_UP", "move_up", function() 
+    bind_keys("UP WHEEL_UP", "move_up", function()
         state.scrolledlines = state.scrolledlines + user_opts.scrolling_speed
-        if (state.scrolledlines > 25) then 
-            state.scrolledlines = 25 
+        if (state.scrolledlines > 25) then
+            state.scrolledlines = 25
         end
         resetDescTimer()
         request_tick()
     end, { repeatable = true })
-    bind_keys("DOWN WHEEL_DOWN", "move_down", function() 
-        state.scrolledlines = state.scrolledlines - user_opts.scrolling_speed 
+    bind_keys("DOWN WHEEL_DOWN", "move_down", function()
+        state.scrolledlines = state.scrolledlines - user_opts.scrolling_speed
         resetDescTimer()
         request_tick()
     end, { repeatable = true })
@@ -2100,12 +2036,12 @@ function show_description(text)
             lastCommentCount = totalCommentCount
         end
         loadSetOfComments(firstCommentCount)
-        return 'Comments\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. firstCommentCount .. '/' .. #state.jsoncomments .. ')\\N----------' .. state.commentDescription:gsub('\n', '\\N') ..  '\\N----------\\NEnd of page\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. lastCommentCount .. '/' .. totalCommentCount .. ')'
+        return 'Comments\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. firstCommentCount .. '/' .. #state.jsoncomments .. ')\\N────────────────────\\N' .. state.commentDescription:gsub('\n', '\\N') ..  '\\N────────────────────\\NEnd of page\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. lastCommentCount .. '/' .. totalCommentCount .. ')'
     end
-    
+
     state.commentsPage = 0
     if (state.is_URL and user_opts.show_youtube_comments) then
-        bind_keys("LEFT", "comments_left", function() 
+        bind_keys("LEFT", "comments_left", function()
             if (state.commentsParsed) then
                 state.commentsPage = state.commentsPage - 1
                 if (state.commentsPage == 0) then
@@ -2121,7 +2057,7 @@ function show_description(text)
             resetDescTimer()
             request_tick()
         end)
-        bind_keys("RIGHT", "comments_right", function() 
+        bind_keys("RIGHT", "comments_right", function()
             if (state.commentsParsed) then
                 state.commentsPage = state.commentsPage + 1
                 if (state.commentsPage > state.maxCommentPages) then
@@ -2166,7 +2102,7 @@ function render_message(ass)
             outline = outline * 0.85
         else
             fontsize = fontsize * counterscale / math.max(0.5 + math.min(lines/maxlines, 1), 1)
-            outline = outline * counterscale / math.max(0.5 + math.min(lines/maxlines, 1)/2, 1)    
+            outline = outline * counterscale / math.max(0.5 + math.min(lines/maxlines, 1)/2, 1)
         end
 
         if state.showingDescription then
@@ -2302,7 +2238,7 @@ function window_controls()
     -- and libass will complain that they are not present in the
     -- default font, even if another font with them is available.
 
-    if user_opts.window_controls then 
+    if user_opts.window_controls then
         -- Close: 🗙
         ne = new_element('close', 'button')
         ne.content = '\238\132\149'
@@ -2322,7 +2258,7 @@ function window_controls()
         lo.geometry = first_geo
         lo.style = osc_styles.window_control
         lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_minmax_hover) .. "&}"
-        
+
         -- Maximize: 🗖/🗗
         ne = new_element('maximize', 'button')
         if state.maximized or state.fullscreen then
@@ -2393,7 +2329,7 @@ layouts = function ()
 
     -- Controller Background
     local lo, geo
-    
+
     new_element('box_bg', 'box')
     lo = add_layout('box_bg')
     lo.geometry = {x = posX, y = posY, an = 7, w = osc_w, h = 1}
@@ -2411,11 +2347,11 @@ layouts = function ()
         lo.layer = 10
         lo.alpha[3] = 0
     end
-        
+
     -- Alignment
     local refX = osc_w / 2
     local refY = posY
-        
+
     -- Seekbar
     new_element('seekbarbg', 'box')
     lo = add_layout('seekbarbg')
@@ -2431,13 +2367,13 @@ layouts = function ()
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
-    
+
     if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
         lo = add_layout('persistentseekbar')
         lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progressheight}
         lo.style = osc_styles.seekbar_fg
         lo.slider.gap = 7
-        lo.slider.tooltip_an = 0   
+        lo.slider.tooltip_an = 0
     end
 
     local jump_buttons = user_opts.jump_buttons
@@ -2484,23 +2420,23 @@ layouts = function ()
         lo.layer = 13
         lo.alpha[1] = 128
         lo.style = user_opts.volumebar_match_seek_color and osc_styles.seekbar_bg or osc_styles.volumebar_bg
-        
+
         lo = add_layout("volumebar")
         lo.geometry = {x = 155, y = refY - 40, an = 4, w = 80, h = 8}
         lo.style = user_opts.volumebar_match_seek_color and osc_styles.seekbar_fg or osc_styles.volumebar_fg
         lo.slider.gap = 3
         lo.slider.tooltip_style = osc_styles.tooltip
-        lo.slider.tooltip_an = 2    
+        lo.slider.tooltip_an = 2
     end
 
     -- buttons
     if track_nextprev_buttons then
         lo = add_layout('pl_prev')
         lo.geometry = {x = refX - (60 + (chapter_skip_buttons and 60 or 0)) - offset, y = refY - 40 , an = 5, w = 30, h = 24}
-        lo.style = osc_styles.control_2    
+        lo.style = osc_styles.control_2
     end
 
-    if chapter_skip_buttons then 
+    if chapter_skip_buttons then
         lo = add_layout('skipback')
         lo.geometry = {x = refX - 60 - offset, y = refY - 40 , an = 5, w = 30, h = 24}
         lo.style = osc_styles.control_2
@@ -2582,7 +2518,7 @@ layouts = function ()
     lo = add_layout('tog_fs')
     lo.geometry = {x = osc_geo.w - 37, y = refY - 40, an = 5, w = 24, h = 24}
     lo.style = osc_styles.control_3
-    lo.visible = (osc_param.playresx >= 250 - outeroffset)    
+    lo.visible = (osc_param.playresx >= 250 - outeroffset)
 
     if ontop_button then
         lo = add_layout('tog_ontop')
@@ -2595,7 +2531,7 @@ layouts = function ()
         lo = add_layout('tog_loop')
         lo.geometry = {x = osc_geo.w - 82, y = refY - 40, an = 5, w = 24, h = 24}
         lo.style = osc_styles.control_3
-        lo.visible = (osc_param.playresx >= 600 - outeroffset)    
+        lo.visible = (osc_param.playresx >= 600 - outeroffset)
     end
 
     if info_button then
@@ -2622,7 +2558,7 @@ end
 
 -- Validate string type user options
 function validate_user_opts()
-    if user_opts.window_top_bar ~= "auto" and 
+    if user_opts.window_top_bar ~= "auto" and
        user_opts.window_top_bar ~= "yes" and
        user_opts.window_top_bar ~= "no" then
         msg.warn("window_top_bar cannot be '" .. user_opts.window_top_bar .. "'. Ignoring.")
@@ -2716,7 +2652,7 @@ local function osc_init()
     ne.content = function ()
         if state.is_URL then
             local title = "Loading description..."
-            if (state.descriptionLoaded) then
+            if state.descriptionLoaded then
                 title = state.videoDescription:sub(1, 300)
             end
             -- get rid of new lines
@@ -2750,7 +2686,7 @@ local function osc_init()
         function ()
             mp.commandv('playlist-prev', 'weak')
             destroyscrollingkeys()
-            show_message(get_playlist()) 
+            show_message(get_playlist())
         end
     ne.eventresponder['mbtn_right_up'] =
         function () show_message(get_playlist()) end
@@ -2763,12 +2699,12 @@ local function osc_init()
     ne.content = icons.next
     ne.enabled = (have_pl and (pl_pos < pl_count)) or (loop ~= 'no')
     ne.eventresponder['mbtn_left_up'] =
-        function () 
-            mp.commandv('playlist-next', 'weak') 
+        function ()
+            mp.commandv('playlist-next', 'weak')
             destroyscrollingkeys()
         end
     ne.eventresponder['enter'] =
-        function () 
+        function ()
             mp.commandv('playlist-next', 'weak')
             destroyscrollingkeys()
             show_message(get_playlist())
@@ -2818,7 +2754,7 @@ local function osc_init()
     ne.content = icons.rewind
     ne.enabled = (have_ch) or compact_mode -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
-        function () 
+        function ()
             if compact_mode then
                 mp.commandv('seek', -jump_amount, jump_mode)
             else
@@ -2826,8 +2762,8 @@ local function osc_init()
             end
         end
     ne.eventresponder['mbtn_right_down'] =
-        function () 
-            if compact_mode then     
+        function ()
+            if compact_mode then
                 mp.commandv("add", "chapter", -1)
                 show_message(get_chapterlist())
                 show_message(get_chapterlist()) -- run twice as it might show the wrong chapter without another function
@@ -2907,7 +2843,7 @@ local function osc_init()
 
     --
     update_tracklist()
-    
+
     --cy_audio
     ne = new_element('cy_audio', 'button')
     ne.enabled = (#tracks_osc.audio > 0)
@@ -2936,20 +2872,20 @@ local function osc_init()
         return msg
     end
     ne.nothingavailable = texts.noaudio
-    ne.eventresponder['mbtn_left_up'] = 
+    ne.eventresponder['mbtn_left_up'] =
     function () set_track('audio', 1) show_message(get_tracklist('audio')) end
-    ne.eventresponder['enter'] = 
-        function () 
-            set_track('audio', 1) 
+    ne.eventresponder['enter'] =
+        function ()
+            set_track('audio', 1)
             show_message(get_tracklist('audio'))
         end
-    ne.eventresponder['mbtn_right_up'] = 
+    ne.eventresponder['mbtn_right_up'] =
         function () set_track('audio', -1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_left_down'] =
     function () set_track('audio', 1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('audio')) end
-                
+
     --cy_sub
     ne = new_element('cy_sub', 'button')
     ne.enabled = #tracks_osc.sub > 0
@@ -2976,34 +2912,34 @@ local function osc_init()
         return msg
     end
     ne.nothingavailable = texts.nosub
-    ne.eventresponder['mbtn_left_up'] = 
-        function () 
+    ne.eventresponder['mbtn_left_up'] =
+        function ()
             mp.set_property_number("secondary-sid", 0)
-            set_track('sub', 1) 
-            show_message(get_tracklist('sub')) 
+            set_track('sub', 1)
+            show_message(get_tracklist('sub'))
         end
-    ne.eventresponder['enter'] = 
+    ne.eventresponder['enter'] =
         function ()
             mp.set_property_number("secondary-sid", 0)
             set_track('sub', 1)
             show_message(get_tracklist('sub'))
         end
     ne.eventresponder['mbtn_right_up'] =
-        function () 
+        function ()
             mp.set_property_number("secondary-sid", 0)
-            set_track('sub', -1) 
-            show_message(get_tracklist('sub')) 
+            set_track('sub', -1)
+            show_message(get_tracklist('sub'))
         end
     ne.eventresponder['shift+mbtn_left_down'] =
-    function () 
+    function ()
         mp.set_property_number("secondary-sid", 0)
-        set_track('sub', 1) 
-        show_message(get_tracklist('sub')) 
+        set_track('sub', 1)
+        show_message(get_tracklist('sub'))
     end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
-    
-    
+
+
 
     -- vol_ctrl
     ne = new_element("vol_ctrl", "button")
@@ -3025,20 +2961,20 @@ local function osc_init()
         end
     end
     ne.eventresponder['mbtn_left_up'] =
-        function () 
+        function ()
             mp.commandv('cycle', 'mute')
         end
     ne.eventresponder["wheel_up_press"] =
-        function () 
+        function ()
             if (state.mute) then mp.commandv('cycle', 'mute') end
             mp.commandv("osd-auto", "add", "volume", 5)
         end
     ne.eventresponder["wheel_down_press"] =
-        function () 
+        function ()
             if (state.mute) then mp.commandv('cycle', 'mute') end
             mp.commandv("osd-auto", "add", "volume", -5)
         end
-    
+
     --tog_fs
     ne = new_element('tog_fs', 'button')
     ne.content = function () return state.fullscreen and icons.fullscreen_exit or icons.fullscreen end
@@ -3068,7 +3004,7 @@ local function osc_init()
         function ()
             state.looping = not state.looping
             mp.set_property_native("loop-file", state.looping)
-        end    
+        end
 
     --download
     ne = new_element("download", "button")
@@ -3091,7 +3027,7 @@ local function osc_init()
                 -- use current or default ytdl-format
                 local mpv_ytdl = (user_opts.ytdl_format and user_opts.ytdl_format ~= "") and user_opts.ytdl_format or  mp.get_property("file-local-options/ytdl-format") or mp.get_property("ytdl-format") or ""
                 local ytdl_format = (mpv_ytdl and mpv_ytdl ~= "") and mpv_ytdl or "-f bestvideo+bestaudio/best"
-            
+
                 local command = {
                     "yt-dlp",
                     user_opts.ytdl_format,
@@ -3103,7 +3039,7 @@ local function osc_init()
                     state.url_path
                 }
 
-                local status = exec(command, download_done)
+                exec_async(command, download_done)
             end
         else
             show_message("\\N{\\an9}Can't be downloaded")
@@ -3118,8 +3054,8 @@ local function osc_init()
     ne.visible = (osc_param.playresx >= 900 - outeroffset - (user_opts.loop_button and 0 or 100) - (user_opts.ontop_button and 0 or 100) - (user_opts.info_button and 0 or 100))
     ne.eventresponder["mbtn_left_up"] = function ()
         local temp_sub_pos = mp.get_property("sub-pos")
-        if user_opts.screenshot_flag == "subtitles" or user_opts.screenshot_flag == "subtitles+each-frame" then 
-            mp.commandv("set", "sub-pos", 100) 
+        if user_opts.screenshot_flag == "subtitles" or user_opts.screenshot_flag == "subtitles+each-frame" then
+            mp.commandv("set", "sub-pos", 100)
         end
         mp.commandv("osd-msg", "screenshot", user_opts.screenshot_flag)
         mp.commandv("set", "sub-pos", temp_sub_pos)
@@ -3153,8 +3089,8 @@ local function osc_init()
     end
     ne.visible = (osc_param.playresx >= 700 - outeroffset - (user_opts.loop_button and 0 or 100))
     ne.eventresponder['mbtn_left_up'] =
-        function () 
-            mp.commandv('cycle', 'ontop') 
+        function ()
+            mp.commandv('cycle', 'ontop')
             if (state.initialborder == 'yes') then
                 if (mp.get_property('ontop') == 'yes') then
                     mp.commandv('set', 'border', "no")
@@ -3166,10 +3102,10 @@ local function osc_init()
         end
 
     ne.eventresponder['mbtn_right_up'] =
-        function () 
-            mp.commandv('cycle', 'ontop') 
+        function ()
+            mp.commandv('cycle', 'ontop')
         end
-    
+
     --seekbar
     ne = new_element('seekbar', 'slider')
     ne.enabled = not (mp.get_property('percent-pos') == nil)
@@ -3188,9 +3124,9 @@ local function osc_init()
             return {}
         end
     end
-    ne.slider.posF = function () 
+    ne.slider.posF = function ()
             if mp.get_property_bool("eof-reached") then return 100 end
-            return mp.get_property_number("percent-pos") 
+            return mp.get_property_number("percent-pos")
         end
     ne.slider.tooltipF = function (pos)
         state.touchingprogressbar = true
@@ -3273,7 +3209,7 @@ local function osc_init()
             local chapter
             local pos = get_slider_value(element)
             local diff = math.huge
-    
+
             for i, marker in ipairs(element.slider.markerF()) do
                 if math.abs(pos - marker) < diff then
                     diff = math.abs(pos - marker)
@@ -3329,7 +3265,7 @@ local function osc_init()
         end
         ne.eventresponder["reset"] = function (element) element.state.lastseek = nil end
         ne.eventresponder["wheel_up_press"] = function () mp.commandv("osd-msg", "add", "volume", 5) end
-        ne.eventresponder["wheel_down_press"] = function () mp.commandv("osd-msg", "add", "volume", -5) end    
+        ne.eventresponder["wheel_down_press"] = function () mp.commandv("osd-msg", "add", "volume", -5) end
     end
 
     --persistent seekbar
@@ -3340,10 +3276,10 @@ local function osc_init()
         ne.slider.markerF = function ()
             return {}
         end
-        ne.slider.posF = function () 
+        ne.slider.posF = function ()
             if mp.get_property_bool("eof-reached") then return 100 end
-            return mp.get_property_number('percent-pos', nil) 
-        end 
+            return mp.get_property_number('percent-pos', nil)
+        end
         ne.slider.tooltipF = function()
             return ""
         end
@@ -3376,25 +3312,25 @@ local function osc_init()
             return nil
         end
     end
-    
+
     -- Helper function to format time
     local function format_time(seconds)
         if not seconds then return "--:--" end
-        
+
         local hours = math.floor(seconds / 3600)
         local minutes = math.floor((seconds % 3600) / 60)
         local whole_seconds = math.floor(seconds % 60)
         local milliseconds = state.tc_ms and math.floor((seconds % 1) * 1000) or nil
-        
+
         -- Always show HH:MM:SS if user_opts.time_format is "fixed"
         local force_hours = user_opts.time_format == "fixed"
-        
+
         -- Format string templates
         local format_with_ms = (hours > 0 or force_hours) and "%02d:%02d:%02d.%03d" or "%02d:%02d.%03d"
         local format_without_ms = (hours > 0 or force_hours) and "%02d:%02d:%02d" or "%02d:%02d"
-        
+
         if state.tc_ms then
-            return string.format(format_with_ms, 
+            return string.format(format_with_ms,
                 (hours > 0 or force_hours) and hours or minutes,
                 (hours > 0 or force_hours) and minutes or whole_seconds,
                 (hours > 0 or force_hours) and whole_seconds or milliseconds,
@@ -3439,11 +3375,11 @@ local function osc_init()
             if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then
                 request_init()
                 local chapters = mp.get_property_native("chapter-list", {})
-                local chapter_title = (chapters[chapter_index + 1] and chapters[chapter_index + 1].title ~= "") and chapters[chapter_index + 1].title 
+                local chapter_title = (chapters[chapter_index + 1] and chapters[chapter_index + 1].title ~= "") and chapters[chapter_index + 1].title
                     or chapter_index + 1 .. "/" .. #chapters
                 chapter_title = mp.command_native({"escape-ass", chapter_title})
                 return string.format(user_opts.chapter_fmt, chapter_title)
-            end    
+            end
         end
         return "" -- fallback
     end
@@ -3456,13 +3392,13 @@ local function osc_init()
     ne.content = function()
         local duration = mp.get_property_number("duration", 0)
         if duration <= 0 then return "--:--" end
-        
-        local time_to_display = state.tc_right_rem and 
+
+        local time_to_display = state.tc_right_rem and
             mp.get_property_number("playtime-remaining", 0) or duration
-            
-        local prefix = state.tc_right_rem and 
+
+        local prefix = state.tc_right_rem and
             (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
-            
+
         return prefix .. format_time(time_to_display, false)
     end
     ne.eventresponder["mbtn_left_up"] = function()
@@ -3826,15 +3762,15 @@ function process_event(source, what)
         state.mouse_in_window = true
 
         local mouseX, mouseY = get_virt_mouse_pos()
-        if (user_opts.min_mouse_move == 0) or 
-            (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and 
-                ((math.abs(mouseX - state.last_mouseX) >= user_opts.min_mouse_move) 
+        if (user_opts.min_mouse_move == 0) or
+            (not ((state.last_mouseX == nil) or (state.last_mouseY == nil)) and
+                ((math.abs(mouseX - state.last_mouseX) >= user_opts.min_mouse_move)
                     or (math.abs(mouseY - state.last_mouseY) >= user_opts.min_mouse_move)
                 )
             ) then
                 if user_opts.bottom_hover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
                     local top_hover = window_controls_enabled() and (user_opts.window_title or user_opts.window_top_bar)
-                    if mouseY > osc_param.playresy - (user_opts.bottom_hover_zone or 200) or 
+                    if mouseY > osc_param.playresy - (user_opts.bottom_hover_zone or 200) or
                         ((user_opts.window_top_bar == "yes" or not (state.border and state.title_bar)) or state.fullscreen) and (mouseY < 40 and top_hover) then
                         show_osc()
                     else
@@ -3857,10 +3793,10 @@ function process_event(source, what)
 end
 
 -- called by mpv on every frame
-function tick()    
-    if (not state.enabled) then return end
+function tick()
+    if not state.enabled then return end
 
-    if (state.idle) then -- this is the screen mpv opens to (not playing a file directly), or if you quit a video (idle=yes in mpv.conf)
+    if state.idle then -- this is the screen mpv opens to (not playing a file directly), or if you quit a video (idle=yes in mpv.conf)
 
         -- render idle message
         msg.trace('idle message')
@@ -3891,7 +3827,7 @@ function tick()
                 ass:append(line_prefix .. line)
             end
         end
-   
+
         if user_opts.idle_screen then
             ass:new_event()
             ass:pos(display_w / 2, icon_y + 65)
@@ -4035,9 +3971,9 @@ mp.observe_property('paused-for-cache', 'bool',
 )
 mp.observe_property('loop-file', 'bool',
     function(name, val) -- ensure compatibility with auto looping scripts (eg: a script that sets videos under 2 seconds to loop by default)
-        if (val == nil) then 
+        if (val == nil) then
             state.looping = true;
-        else 
+        else
             state.looping = false
         end
     end
@@ -4113,7 +4049,7 @@ mp.enable_key_bindings('window-controls')
 
 
 function reset_timeout()
-    state.showtime = mp.get_time() 
+    state.showtime = mp.get_time()
 end
 
 -- mode can be auto/always/never/cycle
