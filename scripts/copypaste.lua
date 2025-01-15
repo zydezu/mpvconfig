@@ -5,7 +5,7 @@
     Copy and paste file paths, URLs and timestamps
 --]]
 
-local utils = require "mp.utils"
+mp.utils = require("mp.utils")
 
 local options = {
     copy_keybind = [[
@@ -20,8 +20,8 @@ local options = {
 
 -- File/URL pasting
 
-options.copy_keybind = utils.parse_json(options.copy_keybind)
-options.paste_keybind = utils.parse_json(options.paste_keybind)
+options.copy_keybind = mp.utils.parse_json(options.copy_keybind)
+options.paste_keybind = mp.utils.parse_json(options.paste_keybind)
 
 local device = "linux"
 if os.getenv("windir") ~= nil then
@@ -30,19 +30,19 @@ elseif os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" 
     device = "mac"
 end
 
-function file_exists(name)
+local function file_exists(name)
     local f = io.open(name, "r")
     if f ~= nil then io.close(f) return true else return false end
 end
 
-function bind_keys(keys, name, func, opts)
+local function bind_keys(keys, name, func, opts)
 	if not keys then
 		mp.add_forced_key_binding(keys, name, func, opts)
 		return
 	end
-	
+
 	for i = 1, #keys do
-		if i == 1 then 
+		if i == 1 then
 			mp.add_forced_key_binding(keys[i], name, func, opts)
 		else
 			mp.add_forced_key_binding(keys[i], name .. i, func, opts)
@@ -50,14 +50,24 @@ function bind_keys(keys, name, func, opts)
 	end
 end
 
-function set_clipboard(text)
+local function handle_res(res, args)
+	if not res.error and res.status == 0 then
+		return res.stdout
+	else
+		print("Error obtaining clipboard!")
+	end
+end
+
+local function set_clipboard(text)
     local pipe
     if device == "linux" then
 		pipe = io.popen("xclip -silent -selection clipboard -in", "w")
-		pipe:write(text)
-		pipe:close()
+        if (pipe ~= nil) then
+            pipe:write(text)
+            pipe:close()
+        end
     elseif device == "windows" then
-        local res = utils.subprocess({ args = {
+        mp.utils.subprocess({ args = {
             "powershell", "-NoProfile", "-Command", string.format([[& {
                 Trap {
                     Write-Error -ErrorRecord $_
@@ -69,12 +79,14 @@ function set_clipboard(text)
         } })
     elseif device == "mac" then
         pipe = io.popen("pbcopy","w")
-		pipe:write(text)
-		pipe:close()
+        if (pipe ~= nil) then
+            pipe:write(text)
+            pipe:close()
+        end
     end
 end
 
-function get_clipboard()
+local function get_clipboard()
     local clipboard
     if device == "linux" then
         clipboard = os.capture("xclip -selection clipboard -o")
@@ -94,7 +106,7 @@ function get_clipboard()
                 [Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
             }]]
         }
-        return handle_res(utils.subprocess({ args = args, cancellable = false }), args)
+        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     elseif device == "mac" then
 		clipboard = os.capture("pbpaste")
 		return clipboard
@@ -102,31 +114,23 @@ function get_clipboard()
     return ""
 end
 
-function handle_res(res, args)
-	if not res.error and res.status == 0 then
-		return res.stdout
-	else
-		print("Error obtaining clipboard!")
-	end
-end
-
 local function is_url(s)
     local url_pattern = "^[%w]+://[%w%.%-_]+%.[%a]+[-%w%.%-%_/?&=]*"
     return string.match(s, url_pattern) ~= nil
 end
 
-function add_item(name, file)
+local function add_item(name, file)
     if mp.get_property_number("playlist-count", 0) == 0 then
-        mp.commandv("loadfile", file)    
+        mp.commandv("loadfile", file)
     else
         mp.osd_message("Added " .. name .. " to playlist")
         mp.commandv("loadfile", file, "append-play")
     end
 end
 
-function is_timestamp(str)
+local function is_timestamp(str)
     local pattern = "^%d+:%d+$" -- Matches "1:05", "0:54", "12:05"
-    
+
     if string.match(str, pattern) then
         return true
     else
@@ -139,14 +143,14 @@ function is_timestamp(str)
     end
 end
 
-function convert_timestamp(timestamp)
+local function convert_timestamp(timestamp)
     local hours, minutes, seconds = 0, 0, 0
-    
+
     local parts = {}
     for part in string.gmatch(timestamp, "%d+") do
         table.insert(parts, tonumber(part))
     end
-    
+
     if #parts == 2 then
         minutes = parts[1]
         seconds = parts[2]
@@ -157,12 +161,12 @@ function convert_timestamp(timestamp)
     else
         return nil -- Invalid format
     end
-    
+
     local total_seconds = hours * 3600 + minutes * 60 + seconds
     return total_seconds
 end
 
-function copy()
+local function copy()
     local path = mp.get_property("path")
     set_clipboard(path)
     if is_url(path) then
@@ -172,11 +176,11 @@ function copy()
     end
 end
 
-function paste()
+local function paste()
     mp.osd_message("Loading...", 10)
     local clip = get_clipboard():gsub("\n", " ")
     if not clip then return end
-    clip_file = clip:gsub('"', "")
+    local clip_file = clip:gsub('"', "")
     if is_url(clip) then
         add_item("URL", clip)
     elseif file_exists(clip_file) then
@@ -189,7 +193,7 @@ function paste()
     end
 end
 
-function open()
+local function open()
     -- for ubuntu
     local url_browser_linux_cmd = "xdg-open \"$url\""
     local file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
@@ -208,7 +212,7 @@ function open()
             })
         elseif device == "mac" then
             cmd = url_browser_macos_cmd
-        end 
+        end
         cmd = cmd:gsub("$url", path)
     else
         if device == "linux" then
@@ -220,7 +224,7 @@ function open()
             })
         elseif device == "mac" then
             cmd = file_browser_macos_cmd
-        end 
+        end
         cmd = cmd:gsub("$path", path)
     end
     if device ~= "windows" then
