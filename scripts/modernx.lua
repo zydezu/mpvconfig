@@ -11,9 +11,9 @@
     Based on the osc.lua from mpv
 --]]
 
-local assdraw = require("mp.assdraw")
-local msg = require("mp.msg")
-local utils = require("mp.utils")
+mp.assdraw = require("mp.assdraw")
+mp.msg = require("mp.msg")
+mp.utils = require("mp.utils")
 
 -- ====================
 -- declarations
@@ -65,7 +65,6 @@ local function process_event() end
 local function tick() end
 local function reset_timeout() end
 local function visibility_mode(mode) end
-local duration
 
 -- ====================
 -- Parameters
@@ -340,7 +339,6 @@ local function dumptable(o)
        return tostring(o)
     end
 end
-
 
 local thumbfast = {
     width = 0,
@@ -702,7 +700,7 @@ local function request_init_resize()
 end
 
 local function render_wipe()
-    msg.trace('render_wipe()')
+    mp.msg.trace('render_wipe()')
     state.osd.data = "" -- allows set_osd to immediately update on enable
     state.osd:remove()
 end
@@ -843,7 +841,7 @@ local function prepare_elements()
         local bX1, bY1, bX2, bY2 = get_hitbox_coords_geo(elem_geo)
         element.hitbox = {x1 = bX1, y1 = bY1, x2 = bX2, y2 = bY2}
 
-        local style_ass = assdraw.ass_new()
+        local style_ass = mp.assdraw.ass_new()
 
         -- prepare static elements
         style_ass:append("{}") -- hack to troll new_event into inserting a \n
@@ -854,7 +852,7 @@ local function prepare_elements()
 
         element.style_ass = style_ass
 
-        local static_ass = assdraw.ass_new()
+        local static_ass = mp.assdraw.ass_new()
 
         if element.type == "box" then
             --draw box
@@ -968,7 +966,7 @@ function render_elements(master_ass)
 
     for n=1, #elements do
         local element = elements[n]
-        local style_ass = assdraw.ass_new()
+        local style_ass = mp.assdraw.ass_new()
         style_ass:merge(element.style_ass)
         ass_append_alpha(style_ass, element.layout.alpha, 0)
 
@@ -991,7 +989,7 @@ function render_elements(master_ass)
             end
         end
 
-        local elem_ass = assdraw.ass_new()
+        local elem_ass = mp.assdraw.ass_new()
         elem_ass:merge(style_ass)
 
         if not (element.type == 'button') then
@@ -1177,7 +1175,7 @@ function render_elements(master_ass)
 
             -- apply blur effect if "glow" is in hover effects
             if hovered and contains(user_opts.hover_effect, "glow") then
-                local shadow_ass = assdraw.ass_new()
+                local shadow_ass = mp.assdraw.ass_new()
                 shadow_ass:merge(style_ass)
                 shadow_ass:append("{\\blur" .. user_opts.button_glow_amount .. "}" .. hoverstyle .. buttontext)
                 elem_ass:merge(shadow_ass)
@@ -1228,7 +1226,7 @@ function render_persistent_progressbar(master_ass)
     for n=1, #elements do
         local element = elements[n]
         if (element.name == "persistentseekbar") then
-            local style_ass = assdraw.ass_new()
+            local style_ass = mp.assdraw.ass_new()
             style_ass:merge(element.style_ass)
             ass_append_alpha(style_ass, element.layout.alpha, 0, true)
 
@@ -1236,7 +1234,7 @@ function render_persistent_progressbar(master_ass)
                 ass_append_alpha(style_ass, element.layout.alpha, 255)
             end
 
-            local elem_ass = assdraw.ass_new()
+            local elem_ass = mp.assdraw.ass_new()
             elem_ass:merge(style_ass)
             if not (element.type == "button") then
                 elem_ass:merge(element.static_ass)
@@ -1526,10 +1524,10 @@ function check_path_url()
     if is_url(path) and path or nil then
         state.is_URL = true
         state.url_path = path
-        msg.info("URL detected.")
+        mp.msg.info("URL detected.")
 
         if user_opts.download_button then
-            msg.info("Fetching file size...")
+            mp.msg.info("Fetching file size...")
             local command = {
                 "yt-dlp",
                 ytdl_format,
@@ -1544,7 +1542,7 @@ function check_path_url()
         -- Youtube Return Dislike API
         state.dislikes = ""
         if path:find('youtu%.?be') and (user_opts.show_description or user_opts.title_youtube_stats) then
-            msg.info("[WEB] Loading dislike count...")
+            mp.msg.info("[WEB] Loading dislike count...")
             local filename = mp.get_property_osd("filename")
             local pattern = "v=([^&]+)"
             local match = string.match(filename, pattern)
@@ -1555,13 +1553,13 @@ function check_path_url()
                 if videoID then
                     exec_async({"curl","https://returnyoutubedislikeapi.com/votes?videoId=" .. videoID}, process_dislikes)
                 else
-                    msg.info("[WEB] Failed to fetch dislikes")
+                    mp.msg.info("[WEB] Failed to fetch dislikes")
                 end
             end
         end
 
         if user_opts.show_description then
-            msg.info("[WEB] Loading video description...")
+            mp.msg.info("[WEB] Loading video description...")
             local command = {
                 "yt-dlp",
                 "--no-download",
@@ -1572,7 +1570,7 @@ function check_path_url()
         end
 
         if user_opts.show_youtube_comments then
-            msg.info("[WEB] Downloading comments...")
+            mp.msg.info("[WEB] Downloading comments...")
             check_comments()
         end
     end
@@ -1614,19 +1612,19 @@ function check_comments()
 
         local filename = ""
         if (mp.get_property("filename")) then
-            msg.info("[WEB] Downloaded comments")
+            mp.msg.info("[WEB] Downloaded comments")
             filename = mp.command_native({"expand-path", user_opts.comments_download_path .. '/'}) .. mp.get_property("filename"):gsub("watch%?v=", ""):match("^[^%?&]+") .. ".info.json"
         else
-            msg.info("[WEB] Comments failed to download...")
+            mp.msg.info("[WEB] Comments failed to download...")
             return
         end
 
         if file_exists(filename) then
-            msg.info("[WEB] Reading comments file...")
+            mp.msg.info("[WEB] Reading comments file...")
             local lines = lines_from(filename)
-            state.jsoncomments = utils.parse_json(lines[1]).comments
+            state.jsoncomments = mp.utils.parse_json(lines[1]).comments
         else
-            msg.info("[WEB] Error opening comments file")
+            mp.msg.info("[WEB] Error opening comments file")
             return
         end
         state.maxCommentPages = math.ceil(#state.jsoncomments / comments_per_page)
@@ -1638,7 +1636,7 @@ function check_comments()
         if state.showingDescription then
             show_description(state.localDescriptionClick)
         end
-        msg.info("[WEB] Read and parsed comments")
+        mp.msg.info("[WEB] Read and parsed comments")
     end )
 end
 
@@ -1717,15 +1715,15 @@ function process_filesize(success, result, error)
 
     if state.file_size_bytes then
         state.file_size_normalized = format_file_size(state.file_size_bytes)
-        msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
+        mp.msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
     else
         local fs_prop = mp.get_property_osd("file-size")
         if fs_prop and fs_prop ~= "" then
             state.file_size_normalized = fs_prop
-            msg.info(fs_prop)
+            mp.msg.info(fs_prop)
         else
             state.file_size_normalized = "Unknown"
-            msg.info("Unable to retrieve file size.")
+            mp.msg.info("Unable to retrieve file size.")
         end
     end
 
@@ -1736,10 +1734,10 @@ local function download_done(success, result, error)
     if success then
         show_message("\\N{\\an9}[WEB] Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
         state.downloaded_once = true
-        msg.info("[WEB] Download completed")
+        mp.msg.info("[WEB] Download completed")
     else
         show_message("\\N{\\an9}[WEB] Download failed - " .. (error or "Unknown error"))
-        msg.info("[WEB] Download failed")
+        mp.msg.info("[WEB] Download failed")
     end
     state.downloading = false
 end
@@ -1836,7 +1834,7 @@ function process_vid_stats(success, result, error)
     if state.showingDescription then
         show_description(state.localDescriptionClick)
     end
-    msg.info("[WEB] Loaded video description")
+    mp.msg.info("[WEB] Loaded video description")
 end
 
 function process_dislikes(success, result, error)
@@ -1851,7 +1849,7 @@ function process_dislikes(success, result, error)
 
     if dislikes then
         state.dislikes = "Dislikes: " .. dislikes
-        msg.info("[WEB] Fetched dislike count")
+        mp.msg.info("[WEB] Fetched dislike count")
     else
         state.dislikes = ""
     end
@@ -1918,7 +1916,7 @@ function get_playlist()
     local message = string.format(texts.playlist .. ' [%d/%d]:\n', pos, count)
     for i, v in ipairs(limlist) do
         local title = v.title
-        local _, filename = utils.split_path(v.filename)
+        local _, filename = mp.utils.split_path(v.filename)
         if title == nil then
             title = filename
         end
@@ -2035,7 +2033,6 @@ function checkDesc()
 end
 
 function show_description(text)
-    duration = 10
     if (state.is_URL and user_opts.show_youtube_comments) then
         if (state.commentsParsed and user_opts.show_youtube_comments) then
             local pageText = "pages"
@@ -2133,7 +2130,7 @@ end
 
 function resetDescTimer()
     state.message_hide_timer:kill()
-    state.message_hide_timer.timeout = duration
+    state.message_hide_timer.timeout = 10
     state.message_hide_timer:resume()
 end
 
@@ -2235,7 +2232,7 @@ local function add_layout(name)
 
         return elements[name].layout
     else
-        msg.error("Can't add_layout to element '"..name.."', doesn't exist.")
+        mp.msg.error("Can't add_layout to element '"..name.."', doesn't exist.")
     end
 end
 
@@ -2613,13 +2610,13 @@ function validate_user_opts()
     if user_opts.window_top_bar ~= "auto" and
        user_opts.window_top_bar ~= "yes" and
        user_opts.window_top_bar ~= "no" then
-        msg.warn("window_top_bar cannot be '" .. user_opts.window_top_bar .. "'. Ignoring.")
+        mp.msg.warn("window_top_bar cannot be '" .. user_opts.window_top_bar .. "'. Ignoring.")
         user_opts.window_top_bar = "auto"
     end
 
     if user_opts.volume_control_type ~= "linear" and
     user_opts.volume_control_type ~= "logarithmic" then
-        msg.warn("volume_control_type cannot be '" .. user_opts.volume_control_type .. "'. Ignoring.")
+        mp.msg.warn("volume_control_type cannot be '" .. user_opts.volume_control_type .. "'. Ignoring.")
         user_opts.volume_control_type = "linear"
     end
 end
@@ -2633,7 +2630,7 @@ end
 
 -- OSC INIT
 local function osc_init()
-    msg.debug("osc_init")
+    mp.msg.debug("osc_init")
 
     -- set canvas resolution according to display aspect and scaling setting
     local baseResY = 720
@@ -2904,24 +2901,24 @@ local function osc_init()
     ne.content = icons.audio
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
-        local msg = texts.off
+        local message = texts.off
         if not (get_track('audio') == 0) then
-            msg = (texts.audio .. ' [' .. get_track('audio') .. ' ∕ ' .. #tracks_osc.audio .. ']')
+            message = (texts.audio .. ' [' .. get_track('audio') .. ' ∕ ' .. #tracks_osc.audio .. ']')
             local prop = mp.get_property('current-tracks/audio/title')
             if not prop then
                 prop = mp.get_property('current-tracks/audio/lang')
                 if not prop then
                     prop = texts.na
                 else
-                    msg = msg .. ' [' .. prop .. ']'
+                    message = message .. ' [' .. prop .. ']'
                 end
             end
-            return msg
+            return message
         end
         if not ne.enabled then
-            msg = "No audio tracks"
+            message = "No audio tracks"
         end
-        return msg
+        return message
     end
     ne.nothingavailable = texts.noaudio
     ne.eventresponder['mbtn_left_up'] =
@@ -2946,22 +2943,22 @@ local function osc_init()
     ne.content = icons.subtitle
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
-        local msg = texts.off
+        local message = texts.off
         if not (get_track('sub') == 0) then
-            msg = (texts.subtitle .. ' [' .. get_track('sub') .. ' ∕ ' .. #tracks_osc.sub .. ']')
+            message = (texts.subtitle .. ' [' .. get_track('sub') .. ' ∕ ' .. #tracks_osc.sub .. ']')
             local prop = mp.get_property('current-tracks/sub/lang')
             if not prop then
                 prop = texts.na
             else
-                msg = msg .. ' [' .. prop .. ']'
+                message = message .. ' [' .. prop .. ']'
             end
             prop = mp.get_property('current-tracks/sub/title')
             if prop then
-                msg = msg .. ' ' .. prop
+                message = message .. ' ' .. prop
             end
-            return msg
+            return message
         end
-        return msg
+        return message
     end
     ne.nothingavailable = texts.nosub
     ne.eventresponder['mbtn_left_up'] =
@@ -3046,11 +3043,11 @@ local function osc_init()
     ne.visible = (osc_param.playresx >= 600 - outeroffset)
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
-        local msg = texts.loopenable
+        local message = texts.loopenable
         if state.looping then
-            msg = texts.loopdisable
+            message = texts.loopdisable
         end
-        return msg
+        return message
     end
     ne.eventresponder['mbtn_left_up'] =
         function ()
@@ -3133,11 +3130,11 @@ local function osc_init()
     end
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
-        local msg = texts.ontopdisable
+        local message = texts.ontopdisable
         if mp.get_property('ontop') == 'no' then
-            msg = texts.ontop
+            message = texts.ontop
         end
-        return msg
+        return message
     end
     ne.visible = (osc_param.playresx >= 700 - outeroffset - (user_opts.loop_button and 0 or 100))
     ne.eventresponder['mbtn_left_up'] =
@@ -3476,7 +3473,7 @@ function show_osc()
     -- show when disabled can happen (e.g. mouse_move) due to async/delayed unbinding
     if not state.enabled then return end
 
-    msg.trace('show_osc')
+    mp.msg.trace('show_osc')
     --remember last time of invocation (mouse move)
     state.showtime = mp.get_time()
 
@@ -3488,7 +3485,7 @@ function show_osc()
 end
 
 function hide_osc()
-    msg.trace('hide_osc')
+    mp.msg.trace('hide_osc')
     if not state.enabled then
         -- typically hide happens at render() from tick(), but now tick() is
         -- no-op and won't render again to remove the osc, so do that manually.
@@ -3587,7 +3584,7 @@ local function enable_osc(enable)
 end
 
 local function render()
-    msg.trace('rendering')
+    mp.msg.trace('rendering')
     local current_screen_sizeX, current_screen_sizeY, aspect = mp.get_osd_size()
     local mouseX, mouseY = get_virt_mouse_pos()
     local now = mp.get_time()
@@ -3734,7 +3731,7 @@ local function render()
 
 
     -- actual rendering
-    local ass = assdraw.ass_new()
+    local ass = mp.assdraw.ass_new()
 
     -- Messages
     render_message(ass)
@@ -3851,7 +3848,7 @@ function tick()
     if state.idle then -- this is the screen mpv opens to (not playing a file directly), or if you quit a video (idle=yes in mpv.conf)
 
         -- render idle message
-        msg.trace('idle message')
+        mp.msg.trace('idle message')
         local _, _, display_aspect = mp.get_osd_size()
         if display_aspect == 0 then
             return
@@ -3862,7 +3859,7 @@ function tick()
         local icon_x, icon_y = (display_w - 1800 / 32) / 2, 140
         local line_prefix = ('{\\rDefault\\an7\\1a&H00&\\bord0\\shad0\\pos(%f,%f)}'):format(icon_x, icon_y)
 
-        local ass = assdraw.ass_new()
+        local ass = mp.assdraw.ass_new()
 
         -- mpv logo
         if user_opts.idle_screen then
@@ -4120,9 +4117,9 @@ function visibility_mode(mode)
 end
 
 mp.register_script_message("thumbfast-info", function(json)
-    local data = utils.parse_json(json)
+    local data = mp.utils.parse_json(json)
     if type(data) ~= "table" or not data.width or not data.height then
-        msg.error("thumbfast-info: received json didn't produce a table with thumbnail information")
+        mp.msg.error("thumbfast-info: received json didn't produce a table with thumbnail information")
     else
         thumbfast = data
     end
