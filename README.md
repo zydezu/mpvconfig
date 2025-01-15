@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - FIX: change some mpv.conf settings
 - UPDATE: bring `selectformat.lua` up-to-date with  [https://github.com/koonix/mpv-selectformat](https://github.com/koonix/mpv-selectformat)
+- REFACTOR: refactor all scripts
 
 ### 2025-01-14
 
