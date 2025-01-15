@@ -7,24 +7,22 @@
     Automatically loop files below a certain length
 --]]
 
-local utils = require "mp.utils"
-
 local options = {
     autoloop_threshold = 10,    -- automatically set the loop files below this length
     savepos_threshold = 60,     -- save the position on videos above this length 
     play_from_start = true,     -- play autlooping videos from the start
 }
-(require "mp.options").read_options(options)
+require("mp.options").read_options(options)
 
 local loop_overridden = false
 
-function set_loop()
+local function set_loop()
     if not loop_overridden then
         mp.osd_message("")
         local duration = mp.get_property_native("duration")
 
         -- Checks whether the loop status was changed for the last file
-        was_loop = mp.get_property_native("loop-file")
+        local was_loop = mp.get_property_native("loop-file")
 
         -- Cancel operation if there is no file duration
         if not duration then
@@ -52,7 +50,7 @@ function set_loop()
         end
     end
     mp.observe_property("loop-file", "bool",
-        function(name, val) loop_overridden = true end
+        function() loop_overridden = true end
     )
 end
 
