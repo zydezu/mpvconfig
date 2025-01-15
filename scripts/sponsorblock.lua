@@ -80,8 +80,11 @@ local options = {
     skip = true
 }
 
-mp.options = require "mp.options"
-mp.options.read_options(options, "sponsorblock")
+-- declarations
+local function update() end
+local function select_category(selected) end
+
+require("mp.options").read_options(options, "sponsorblock")
 
 local legacy = mp.command_native_async == nil
 --[[
@@ -92,11 +95,16 @@ end
 options.local_database = false
 
 local utils = require "mp.utils"
-scripts_dir = mp.find_config_file("scripts")
+local function expand_path(path)
+   return mp.command_native({"expand-path", path})
+end
 
-local sponsorblock = utils.join_path(scripts_dir, "sponsorblock_shared/sponsorblock.py")
-local uid_path = utils.join_path(scripts_dir, "sponsorblock_shared/sponsorblock.txt")
-local database_file = options.local_database and utils.join_path(scripts_dir, "sponsorblock_shared/sponsorblock.db") or ""
+local sponsorblock = mp.find_config_file("scripts/sponsorblock_shared/sponsorblock.py")
+local uid_path = expand_path("~~state/sponsorblock.txt")
+local database_file = options.local_database and expand_path("~~cache/sponsorblock.db") or ""
+mp.msg.debug("uid_path: " .. uid_path)
+mp.msg.debug("database_file: " .. database_file)
+
 local youtube_id = nil
 local ranges = {}
 local init = false
@@ -115,25 +123,25 @@ for category in string.gmatch(options.skip_categories, "([^,]+)") do
     categories[category] = true
 end
 
-function file_exists(name)
+local function file_exists(name)
     local f = io.open(name,"r")
     if f ~= nil then io.close(f) return true else return false end
 end
 
-function t_count(t)
+local function t_count(t)
     local count = 0
     for _ in pairs(t) do count = count + 1 end
     return count
 end
 
-function time_sort(a, b)
+local function time_sort(a, b)
     if a.time == b.time then
         return string.match(a.title, "segment end")
     end
     return a.time < b.time
 end
 
-function parse_update_interval()
+local function parse_update_interval()
     local s = options.auto_update_interval
     if s == "" then return 0 end -- Interval Disabled
 
@@ -153,7 +161,7 @@ function parse_update_interval()
     return num * time_table[mod]
 end
 
-function clean_chapters()
+local function clean_chapters()
     local chapters = mp.get_property_native("chapter-list")
     local new_chapters = {}
     for _, chapter in pairs(chapters) do
@@ -164,24 +172,24 @@ function clean_chapters()
     mp.set_property_native("chapter-list", new_chapters)
 end
 
-function create_chapter(chapter_title, chapter_time)
+local function create_chapter(chapter_title, chapter_time)
     local chapters = mp.get_property_native("chapter-list")
     local duration = mp.get_property_native("duration")
-    table.insert(chapters, {title=chapter_title, time=(duration == nil or duration > chapter_time) and chapter_time or duration - .001})
+    table.insert(chapters, {title="[SponsorBlock] " .. chapter_title, time=(duration == nil or duration > chapter_time) and chapter_time or duration - .001})
     table.sort(chapters, time_sort)
     mp.set_property_native("chapter-list", chapters)
 end
 
-function process(uuid, t, new_ranges)
-    start_time = tonumber(string.match(t, "[^,]+"))
-    end_time = tonumber(string.sub(string.match(t, ",[^,]+"), 2))
+local function process(uuid, t, new_ranges)
+    local start_time = tonumber(string.match(t, "[^,]+"))
+    local end_time = tonumber(string.sub(string.match(t, ",[^,]+"), 2))
     for o_uuid, o_t in pairs(ranges) do
         if (start_time >= o_t.start_time and start_time <= o_t.end_time) or (o_t.start_time >= start_time and o_t.start_time <= end_time) then
             new_ranges[o_uuid] = o_t
             return
         end
     end
-    category = string.match(t, "[^,]+$")
+    local category = string.match(t, "[^,]+$")
     if categories[category] and end_time - start_time >= options.min_duration then
         new_ranges[uuid] = {
             start_time = start_time,
@@ -198,7 +206,7 @@ function process(uuid, t, new_ranges)
     end
 end
 
-function getranges(_, exists, db, more)
+local function getranges(_, exists, db, more)
     if type(exists) == "table" and exists["status"] == "1" then
         if options.server_fallback then
             mp.add_timeout(0, function() getranges(true, true, "") end)
@@ -241,7 +249,7 @@ function getranges(_, exists, db, more)
     local r_count = 0
     if more then r_count = -1 end
     for t in string.gmatch(sponsors.stdout, "[^:%s]+") do
-        uuid = string.match(t, "([^,]+),[^,]+$")
+        local uuid = string.match(t, "([^,]+),[^,]+$")
         if ranges[uuid] then
             new_ranges[uuid] = ranges[uuid]
         else
@@ -255,7 +263,7 @@ function getranges(_, exists, db, more)
     end
 end
 
-function fast_forward()
+local function fast_forward()
     if options.fast_forward and options.fast_forward == true then
         speed_timer = nil
         mp.set_property("speed", 1)
@@ -266,7 +274,7 @@ function fast_forward()
     mp.set_property("speed", new_speed)
 end
 
-function fade_audio(step)
+local function fade_audio(step)
     local last_volume = mp.get_property_number("volume")
     local new_volume = math.max(options.audio_fade_cap, math.min(last_volume + step, volume_before))
     if new_volume == last_volume then
@@ -278,7 +286,7 @@ function fade_audio(step)
     mp.set_property("volume", new_volume)
 end
 
-function skip_ads(name, pos)
+local function skip_ads(name, pos)
     if pos == nil then return end
     local sponsor_ahead = false
     for uuid, t in pairs(ranges) do
@@ -344,7 +352,7 @@ function skip_ads(name, pos)
     end
 end
 
-function vote(dir)
+local function vote(dir)
     if last_skip.uuid == "" then return mp.osd_message("[sponsorblock] no sponsors skipped, can't submit vote") end
     local updown = dir == "1" and "up" or "down"
     if last_skip.dir == dir then return mp.osd_message("[sponsorblock] " .. updown .. "vote already submitted") end
@@ -380,121 +388,7 @@ function update()
     }}, getranges)
 end
 
-function file_loaded()
-    local initialized = init
-    ranges = {}
-    segment = {a = 0, b = 0, progress = 0, first = true}
-    last_skip = {uuid = "", dir = nil}
-    chapter_cache = {}
-    local video_path = mp.get_property("path", "")
-    mp.msg.debug("Path: " .. video_path)
-    local video_referer = string.match(mp.get_property("http-header-fields", ""), "Referer:([^,]+)") or ""
-    mp.msg.debug("Referer: " .. video_referer)
-
-    local urls = {
-        "ytdl://([%w-_]+).*",
-        "https?://youtu%.be/([%w-_]+).*",
-        "https?://w?w?w?%.?youtube%.com/v/([%w-_]+).*",
-        "/watch.*[?&]v=([%w-_]+).*",
-        "/embed/([%w-_]+).*"
-    }
-    youtube_id = nil
-    for i, url in ipairs(urls) do 
-        youtube_id = youtube_id or string.match(video_path, url) or string.match(video_referer, url)
-        if youtube_id then break end
-    end
-    youtube_id = youtube_id or string.match(video_path, options.local_pattern)
-    
-    if not youtube_id or string.len(youtube_id) < 11 or (local_pattern and string.len(youtube_id) ~= 11) then return end
-    youtube_id = string.sub(youtube_id, 1, 11)
-    mp.msg.debug("Found YouTube ID: " .. youtube_id)
-    init = true
-    if not options.local_database then
-        getranges(true, true)
-    else
-        local exists = file_exists(database_file)
-        if exists and options.server_fallback then
-            getranges(true, true)
-            mp.add_timeout(0, function() getranges(true, true, "", true) end)
-        elseif exists then
-            getranges(true, true)
-        elseif options.server_fallback then
-            mp.add_timeout(0, function() getranges(true, true, "") end)
-        end
-    end
-    if initialized then return end
-    if options.skip then
-        mp.observe_property("time-pos", "native", skip_ads)
-    end
-    if options.display_name ~= "" then
-        local args = {
-            options.python_path,
-            sponsorblock,
-            "username",
-            database_file,
-            options.server_address,
-            youtube_id,
-            "",
-            "",
-            uid_path,
-            options.user_id,
-            options.display_name
-        }
-        if not legacy then
-            mp.command_native_async({name = "subprocess", playback_only = false, args = args}, function () end)
-        else
-            utils.subprocess_detached({args = args})
-        end
-    end
-    if not options.local_database or (not options.auto_update and file_exists(database_file)) then return end
-
-    if file_exists(database_file) then
-        local db_info = utils.file_info(database_file)
-        local cur_time = os.time(os.date("*t"))
-        local upd_interval = parse_update_interval()
-        if upd_interval == nil or os.difftime(cur_time, db_info.mtime) < upd_interval then return end
-    end
-
-    update()
-end
-
-function set_segment()
-    if not youtube_id then return end
-    local pos = mp.get_property_number("time-pos")
-    if pos == nil then return end
-    if segment.progress > 1 then
-        segment.progress = segment.progress - 2
-    end
-    if segment.progress == 1 then
-        segment.progress = 0
-        segment.b = pos
-        mp.osd_message("[sponsorblock] segment boundary B set, press again for boundary A", 3)
-    else
-        segment.progress = 1
-        segment.a = pos
-        mp.osd_message("[sponsorblock] segment boundary A set, press again for boundary B", 3)
-    end
-    if options.make_chapters and not segment.first then
-        local start_time = math.min(segment.a, segment.b)
-        local end_time = math.max(segment.a, segment.b)
-        if end_time - start_time ~= 0 and end_time ~= 0 then
-            clean_chapters()
-            create_chapter("Preview segment start", start_time)
-            create_chapter("Preview segment end", end_time)
-        end
-    end
-    segment.first = false
-end
-
-function select_category(selected)
-    for category in string.gmatch(options.categories, "([^,]+)") do
-        mp.remove_key_binding("select_category_"..category)
-        mp.remove_key_binding("kp_select_category_"..category)
-    end
-    submit_segment(selected)
-end
-
-function submit_segment(category)
+local function submit_segment(category)
     if not youtube_id then return end
     local start_time = math.min(segment.a, segment.b)
     local end_time = math.max(segment.a, segment.b)
@@ -557,13 +451,134 @@ function submit_segment(category)
     end
 end
 
+function select_category(selected)
+    for category in string.gmatch(options.categories, "([^,]+)") do
+        mp.remove_key_binding("select_category_"..category)
+        mp.remove_key_binding("kp_select_category_"..category)
+    end
+    submit_segment(selected)
+end
+
+local function file_loaded()
+    local initialized = init
+    ranges = {}
+    segment = {a = 0, b = 0, progress = 0, first = true}
+    last_skip = {uuid = "", dir = nil}
+    chapter_cache = {}
+    local video_path = mp.get_property("path", "")
+    mp.msg.debug("Path: " .. video_path)
+    local video_referer = string.match(mp.get_property("http-header-fields", ""), "Referer:([^,]+)") or ""
+    mp.msg.debug("Referer: " .. video_referer)
+
+    local urls = {
+        "ytdl://([%w-_]+).*",
+        "https?://youtu%.be/([%w-_]+).*",
+        "https?://w?w?w?%.?youtube%.com/v/([%w-_]+).*",
+        "/watch.*[?&]v=([%w-_]+).*",
+        "/embed/([%w-_]+).*"
+    }
+    youtube_id = nil
+    for i, url in ipairs(urls) do 
+        youtube_id = youtube_id or string.match(video_path, url) or string.match(video_referer, url)
+        if youtube_id then break end
+    end
+    youtube_id = youtube_id or string.match(video_path, options.local_pattern)
+    
+    if not youtube_id or string.len(youtube_id) < 11 or (options.local_pattern and string.len(youtube_id) ~= 11) then return end
+    youtube_id = string.sub(youtube_id, 1, 11)
+    mp.msg.debug("Found YouTube ID: " .. youtube_id)
+    init = true
+    if not options.local_database then
+        getranges(true, true)
+    else
+        local exists = file_exists(database_file)
+        if exists and options.server_fallback then
+            getranges(true, true)
+            mp.add_timeout(0, function() getranges(true, true, "", true) end)
+        elseif exists then
+            getranges(true, true)
+        elseif options.server_fallback then
+            mp.add_timeout(0, function() getranges(true, true, "") end)
+        end
+    end
+    if initialized then return end
+    if options.skip then
+        mp.observe_property("time-pos", "native", skip_ads)
+    end
+    if options.display_name ~= "" then
+        local args = {
+            options.python_path,
+            sponsorblock,
+            "username",
+            database_file,
+            options.server_address,
+            youtube_id,
+            "",
+            "",
+            uid_path,
+            options.user_id,
+            options.display_name
+        }
+        if not legacy then
+            mp.command_native_async({name = "subprocess", playback_only = false, args = args}, function () end)
+        else
+            utils.subprocess_detached({args = args})
+        end
+    end
+    if not options.local_database or (not options.auto_update and file_exists(database_file)) then return end
+
+    if file_exists(database_file) then
+        local db_info = utils.file_info(database_file)
+        local cur_time = os.time(os.date("*t").tostring())
+        local upd_interval = parse_update_interval()
+        if upd_interval == nil or os.difftime(cur_time, db_info.mtime) < upd_interval then return end
+    end
+
+    update()
+end
+
+local function set_segment()
+    if not youtube_id then return end
+    local pos = mp.get_property_number("time-pos")
+    if pos == nil then return end
+    if segment.progress > 1 then
+        segment.progress = segment.progress - 2
+    end
+    if segment.progress == 1 then
+        segment.progress = 0
+        segment.b = pos
+        mp.osd_message("[sponsorblock] segment boundary B set, press again for boundary A", 3)
+    else
+        segment.progress = 1
+        segment.a = pos
+        mp.osd_message("[sponsorblock] segment boundary A set, press again for boundary B", 3)
+    end
+    if options.make_chapters and not segment.first then
+        local start_time = math.min(segment.a, segment.b)
+        local end_time = math.max(segment.a, segment.b)
+        if end_time - start_time ~= 0 and end_time ~= 0 then
+            clean_chapters()
+            create_chapter("Preview segment start", start_time)
+            create_chapter("Preview segment end", end_time)
+        end
+    end
+    segment.first = false
+end
+
+-- Automatically migrate files if needed
+for new, old in pairs({
+      [uid_path]      = expand_path("~~/scripts/sponsorblock_shared/sponsorblock.txt"),
+      [database_file] = expand_path("~~/scripts/sponsorblock_shared/sponsorblock.db"),
+}) do
+   mp.msg.debug(old .. " → " .. new)
+   if file_exists(old) and not file_exists(new) and new ~= "" then
+      mp.msg.info("Migrating " .. old)
+      os.rename(old, new)
+   end
+end
+
 mp.register_event("file-loaded", file_loaded)
 mp.add_key_binding("g", "set_segment", set_segment)
 mp.add_key_binding("G", "submit_segment", submit_segment)
 mp.add_key_binding("h", "upvote_segment", function() return vote("1") end)
 mp.add_key_binding("H", "downvote_segment", function() return vote("0") end)
--- Bindings below are for backwards compatibility and could be removed at any time
-mp.add_key_binding(nil, "sponsorblock_set_segment", set_segment)
-mp.add_key_binding(nil, "sponsorblock_submit_segment", submit_segment)
-mp.add_key_binding(nil, "sponsorblock_upvote", function() return vote("1") end)
-mp.add_key_binding(nil, "sponsorblock_downvote", function() return vote("0") end)

@@ -62,10 +62,8 @@ local function set_clipboard(text)
     local pipe
     if device == "linux" then
 		pipe = io.popen("xclip -silent -selection clipboard -in", "w")
-        if (pipe ~= nil) then
-            pipe:write(text)
-            pipe:close()
-        end
+        pipe:write(text)
+        pipe:close()
     elseif device == "windows" then
         mp.utils.subprocess({ args = {
             "powershell", "-NoProfile", "-Command", string.format([[& {
@@ -79,10 +77,8 @@ local function set_clipboard(text)
         } })
     elseif device == "mac" then
         pipe = io.popen("pbcopy","w")
-        if (pipe ~= nil) then
-            pipe:write(text)
-            pipe:close()
-        end
+        pipe:write(text)
+        pipe:close()
     end
 end
 

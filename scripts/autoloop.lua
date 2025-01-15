@@ -16,7 +16,7 @@ local options = {
 }
 (require "mp.options").read_options(options)
 
-loop_overridden = false
+local loop_overridden = false
 
 function set_loop()
     if not loop_overridden then
