@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-01-16
+
+- REFACTOR: organise options in mpv.conf 
+
 ### 2025-01-15
 
 - FIX: change some mpv.conf settings
