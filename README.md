@@ -35,7 +35,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-01-16
 
-- REFACTOR: organise options in mpv.conf 
+- REFACTOR: organise options in mpv.conf
+- FIX: add script-binding keybindings to input.conf
 
 ### 2025-01-15
 

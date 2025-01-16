@@ -472,17 +472,17 @@ local function check_downloaded_subs()
     end
 end
 
-mp.add_key_binding("Alt+n", "netease-download", function() 
+mp.add_key_binding("alt+n", "netease-download", function() 
     manual_run = true
     netease_download()
 end)
 
-mp.add_key_binding("Alt+m", "musixmatch-download", function() 
+mp.add_key_binding("alt+m", "musixmatch-download", function() 
     manual_run = true
     auto_download()
 end)
 
-mp.add_key_binding("Alt+o", "offset-sub", function()
+mp.add_key_binding("alt+o", "offset-sub", function()
     local sub_path = mp.get_property("current-tracks/sub/external-filename")
 
     if not sub_path then

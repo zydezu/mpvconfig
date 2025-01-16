@@ -58,7 +58,7 @@ local function screenshot_done()
     mp.commandv("screenshot");
     mp.commandv("set", "sub-pos", temp_sub_pos)
     mp.osd_message("Screenshot saved to: " ..
-        mp.command_native({"expand-path", mp.get_property("screenshot-directory")}))
+        mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/"))
     count = count + 1
     if options.save_as_time_stamp then
         mp.set_property("screenshot-template", "%tY-%tm-%td_%tH-%tM-%tS" .. "(" .. count .. ")")

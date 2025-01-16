@@ -2016,6 +2016,7 @@ function destroyscrollingkeys()
 end
 
 function checkDesc()
+    if not user_opts.show_description then return end
     if state.descriptionLoaded or state.localDescriptionIsClickable then
         if state.showingDescription then
             state.showingDescription = false
@@ -3951,18 +3952,18 @@ if user_opts.key_bindings then
     end
 
     -- chapter scrubbing
-    mp.add_key_binding("CTRL+LEFT", "prevfile", function()
+    mp.add_key_binding("ctrl+left", "prevfile", function()
         mp.commandv('playlist-prev', 'weak')
         destroyscrollingkeys()
     end);
-    mp.add_key_binding("CTRL+RIGHT", "nextfile", function()
+    mp.add_key_binding("ctrl+right", "nextfile", function()
         mp.commandv('playlist-next', 'weak')
         destroyscrollingkeys()
     end);
-    mp.add_key_binding("SHIFT+LEFT", "prevchapter", function()
+    mp.add_key_binding("shift+left", "prevchapter", function()
         changeChapter(-1)
     end);
-    mp.add_key_binding("SHIFT+RIGHT", "nextchapter", function()
+    mp.add_key_binding("shift+right", "nextchapter", function()
         changeChapter(1)
     end);
 
@@ -3975,19 +3976,21 @@ if user_opts.key_bindings then
         set_track('sub', 1) show_message(get_tracklist('sub'))
     end);
 
-    if (user_opts.persistent_progresstoggle) then
+    if user_opts.persistent_progresstoggle then
         mp.add_key_binding("b", "persistenttoggle", function()
-            state.persistent_progresstoggle = not state.persistent_progresstoggle
-            tick()
-            print("Persistent progress bar toggled")
+            if user_opts.persistent_progresstoggle then
+                state.persistent_progresstoggle = not state.persistent_progresstoggle
+                tick()
+                print("Persistent progress bar toggled")    
+            end
         end);
     end
 
-    if (user_opts.show_description) then
+    if user_opts.show_description then
         mp.add_key_binding("d", "show_description", checkDesc);
     end
 
-    mp.add_key_binding("TAB", 'get_chapterlist', function() show_message(get_chapterlist()) end)
+    mp.add_key_binding("tab", 'get_chapterlist', function() show_message(get_chapterlist()) end)
 
     mp.add_key_binding("p", "pinwindow", function()
         mp.commandv('cycle', 'ontop')

@@ -117,4 +117,4 @@ local function check_for_dual_subs()
 end
 
 mp.register_event("file-loaded", check_for_dual_subs)
-mp.add_key_binding("CTRL+b", "check_for_dual_subs", check_for_dual_subs)
+mp.add_key_binding("ctrl+b", "check_for_dual_subs", check_for_dual_subs)
