@@ -2448,14 +2448,17 @@ local function layouts()
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
                              geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
     lo.alpha[3] = 0
-    lo.button.maxchars = geo.w / 11
+    -- lo.button.maxchars = geo.w / 11
 
     -- Description
     if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
-        geo = {x = 25, y = refY - 122, an = 1, w = osc_geo.w - 80, h = 19}
+        geo = {x = 25, y = refY - 122, an = 1, w = osc_geo.w - 50, h = 19}
         lo = add_layout("description")
         lo.geometry = geo
-        lo.style = osc_styles.description
+
+        lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.description,
+        geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
+
         lo.alpha[3] = 0
         -- lo.button.maxchars = geo.w / 7
     end
@@ -4028,6 +4031,12 @@ mp.observe_property('loop-file', 'bool',
     end
 )
 mp.observe_property('border', 'bool',
+    function(name, val)
+        state.border = val
+        request_init_resize()
+    end
+)
+mp.observe_property('title-bar', 'bool',
     function(name, val)
         state.border = val
         request_init_resize()
