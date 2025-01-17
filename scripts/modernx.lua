@@ -177,7 +177,7 @@ local user_opts = {
     title_color = "#FFFFFF",                -- color of the title (above seekbar)
     seekbarfg_color = "#1D96F5",            -- color of the seekbar progress and handle, in Hex color format
     seekbarbg_color = "#FFFFFF",            -- color of the remaining seekbar, in Hex color format
-    seekbar_cache_color = "#FFFFFF",        -- color of the cache ranges on the seekbar
+    seekbar_cache_color = "#1D96F5",        -- color of the cache ranges on the seekbar
     volumebar_match_seek_color = false,     -- match volume bar color with seekbar color (ignores side_buttons_color)
     time_color = "#FFFFFF",                 -- color of the timestamps (below seekbar)
     chapter_title_color = "#FFFFFF",        -- color of the chapter title next to timestamp (below seekbar)
@@ -205,15 +205,16 @@ local user_opts = {
 
     -- Progress bar settings
     seek_handle_size = 0.8,                 -- size ratio of the seekbar handle (range: 0 ~ 1)
+    progress_bar_height = 16,               -- height of the progress bar
     seek_range = true,                      -- show seek range overlay
-    seek_range_alpha = 175,                 -- transparency of the seek range
+    seek_range_alpha = 150,                 -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
     automatic_keyframe_limit = 600,         -- videos longer than this (in seconds) will have keyframes on the seekbar
 
     persistent_progress = false,            -- always show a small progress line at the bottom of the screen
-    persistent_progressheight = 17,         -- the height of the persistent_progress bar
+    persistent_progressheight = 17,         -- height of the persistent_progress bar
     persistent_buffer = false,              -- show the buffer on the persistent progress line
     persistent_progresstoggle = true,       -- enable toggling the persistent_progress bar
 
@@ -1148,8 +1149,10 @@ function render_elements(master_ass)
 
                 local xp, rh = draw_seekbar_handle(element, elem_ass) -- handle posistion, handle radius
                 draw_seekbar_progress(element, elem_ass)
-                draw_seekbar_ranges(element, elem_ass, xp, rh)
-                draw_sponsorblock_ranges(element, elem_ass, xp, rh)
+                if element.name == "seekbar" then
+                    draw_seekbar_ranges(element, elem_ass, xp, rh)
+                    draw_sponsorblock_ranges(element, elem_ass, xp, rh)
+                end
 
                 elem_ass:draw_stop()
 
@@ -2562,7 +2565,7 @@ local function layouts()
     lo.alpha[3] = 128
 
     lo = add_layout('seekbar')
-    lo.geometry = {x = refX, y = refY - 100, an = 5, w = osc_geo.w - 50, h = 16}
+    lo.geometry = {x = refX, y = refY - 100, an = 5, w = osc_geo.w - 50, h = user_opts.progress_bar_height}
     lo.style = osc_styles.seekbar_fg
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
