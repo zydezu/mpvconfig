@@ -11,7 +11,7 @@ local options = {
     python_path = ON_WINDOWS and "python" or "python3",
 
     -- Categories to fetch
-    categories = "sponsor",
+    categories = "sponsor,intro,outro,interaction,selfpromo,filler",
     -- categories = "sponsor,intro,outro,interaction,selfpromo,filler",
 
     -- Categories to skip automatically
@@ -178,7 +178,7 @@ local function create_chapter(chapter_title, chapter_time, is_start)
     local duration = mp.get_property_native("duration")
     table.insert(chapters,
         {
-            title="[SponsorBlock|" .. (is_start and "Start" or "End") .. "] " .. chapter_title,
+            title="[SponsorBlock] " .. chapter_title,
             time=(duration == nil or duration > chapter_time) and chapter_time or duration - .001
         }
     )

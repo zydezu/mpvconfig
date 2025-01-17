@@ -187,13 +187,15 @@ local user_opts = {
     held_element_color = "#999999",         -- color of the element when held down (pressed)
     hover_effect_color = "#FFFFFF",         -- color of a hovered button when hover_effect includes "color"
     thumbnail_border_color = "#FFFFFF",     -- color of the border for thumbnails (with thumbfast)
+    thumbnail_border_outline = "#000000",   -- color of the border outline for thumbnails
 
     fade_alpha = 100,                       -- alpha of the title bar background box
     fade_blur_strength = 75,                -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
     title_bar_fade_alpha = 150,             -- alpha of the OSC background box
     title_bar_fade_blur_strength = 100,     -- blur strength for the title bar alpha fade
     window_fade_alpha = 75,                 -- alpha of the window title bar
-    thumbnail_border = 1,                   -- the width of the thumbnail border
+    thumbnail_border = 3,                   -- width of the thumbnail border (for thumbfast)
+    thumbnail_border_radius = 3,            -- rounded corner radius for thumbnail border (0 to disable)
 
     -- Button hover effects
     hover_effect = "size,glow,color",       -- active button hover effects: "glow", "size", "color"; can use multiple separated by commas
@@ -223,6 +225,7 @@ local user_opts = {
     -- Experimental
     show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
     show_sponsorblock_segments = true,      -- EXPERIMENTAL - show sponsorblock segments on the progress bar
+    sponsorblock_sponsor_color = "#5BD45B",
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
@@ -382,7 +385,7 @@ local osc_styles = {
     element_hover = "{" .. (contains(user_opts.hover_effect, "color") and "\\1c&H" .. osc_color_convert(user_opts.hover_effect_color) .. "&" or "") .."\\2c&HFFFFFF&" .. (contains(user_opts.hover_effect, "size") and string.format("\\fscx%s\\fscy%s", user_opts.hover_button_size, user_opts.hover_button_size) or "") .. "}",
     seekbar_bg = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.seekbarbg_color) .. "&}",
     seekbar_fg = "{\\blur1\\bord1\\1c&H" .. osc_color_convert(user_opts.seekbarfg_color) .. "&}",
-    thumbnail = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.thumbnail_border_color) .. "&\\3c&H000000&}",
+    thumbnail = "{\\blur0\\bord1\\1c&H" .. osc_color_convert(user_opts.thumbnail_border_color) .. "&\\3c&H" .. osc_color_convert(user_opts.thumbnail_border_outline) .. "&}",
     time = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.time_color) .. "&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     title = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.title_color) .. "&\\3c&H0&\\fs".. user_opts.title_font_size .."\\q2\\fn" .. user_opts.font .. "}",
     tooltip = "{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
@@ -1035,7 +1038,9 @@ local function draw_seekbar_ranges(element, elem_ass, xp, rh, override_alpha)
 end
 
 local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
-    if #state.sponsor_segments == 0 then return end
+    if not user_opts.show_sponsorblock_segments then 
+        return
+    end
 
     local handle = xp and rh
     xp = xp or 0
@@ -1047,13 +1052,18 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
     elem_ass:merge(element.style_ass)
     ass_append_alpha(elem_ass, element.layout.alpha, 50)
     -- apply sponsorblock color
-    elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
+    elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.sponsorblock_sponsor_color) .. "&}")
     elem_ass:merge(element.static_ass)
 
-    for _, range in pairs(state.sponsor_segments) do
-        local pstart = get_slider_ele_pos_for(element, range["start"])
-        local pend = get_slider_ele_pos_for(element, range["end"])
-        elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+    for key, value in pairs(state.sponsor_segments) do
+        print(key .. " | " .. dumptable(value))
+        if key == "sponsor" then
+            for _, range in pairs(value) do
+                local pstart = get_slider_ele_pos_for(element, range["start"])
+                local pend = get_slider_ele_pos_for(element, range["end"])
+                elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+            end
+        end
     end
 end
 
@@ -1122,21 +1132,6 @@ function render_elements(master_ass)
                 draw_seekbar_ranges(element, elem_ass, xp, rh)
                 draw_sponsorblock_ranges(element, elem_ass, xp, rh)
 
-                -- if #state.sponsor_segments > 1 then
-                --     elem_ass:draw_stop()
-                --     elem_ass:merge(element.style_ass)
-                --     ass_append_alpha(elem_ass, element.layout.alpha, 50)
-                --     -- apply sponsorblock color
-                --     elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
-                --     elem_ass:merge(element.static_ass)
-
-                --     for _, range in pairs(state.sponsor_segments) do
-                --         local pstart = get_slider_ele_pos_for(element, range["start"])
-                --         local pend = get_slider_ele_pos_for(element, range["end"])
-                --         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
-                --     end
-                -- end
-
                 elem_ass:draw_stop()
 
                 -- add tooltip
@@ -1169,7 +1164,7 @@ function render_elements(master_ass)
                             end
                         end
 
-                        if (element.name == "seekbar") then
+                        if element.name == "seekbar" then
                             state.sliderpos = sliderpos
                         end
 
@@ -1190,13 +1185,18 @@ function render_elements(master_ass)
                                 thumbX = math.floor(thumbX + 0.5)
                                 thumbY = math.floor(thumbY + 0.5)
 
-                                if (state.anitype == nil) then
+                                if state.anitype == nil then
                                     elem_ass:new_event()
+                                    elem_ass:append("{\\rDefault}")
                                     elem_ass:pos(thumbX * r_w, ty - thumbMarginY - thumbfast.height * r_h)
                                     elem_ass:an(7)
                                     elem_ass:append(osc_styles.thumbnail)
                                     elem_ass:draw_start()
-                                    elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
+                                    if user_opts.thumbnail_border_radius and user_opts.thumbnail_border_radius > 0 then
+                                        elem_ass:round_rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h, user_opts.thumbnail_border_radius)
+                                    else
+                                        elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h, (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
+                                    end
                                     elem_ass:draw_stop()
 
                                     -- force tooltip to be centered on the thumb, even at far left/right of screen
@@ -1523,20 +1523,10 @@ function checktitle()
             end
         end
 
-        local function format_file_size_2dp(file_size)
-            local units = {"bytes", "KB", "MB", "GB", "TB"}
-            local unit_index = 1
-            while file_size >= 1024 and unit_index < #units do
-                file_size = file_size / 1024
-                unit_index = unit_index + 1
-            end
-            return string.format("%.2f %s", file_size, units[unit_index])
-        end
-
         if (user_opts.show_file_size) then
             local file_size = mp.get_property_native("file-size")
             if (file_size ~= nil) then
-                file_size = format_file_size_2dp(file_size)
+                file_size = mp.utils.format_bytes_humanized(file_size)
                 if (state.localDescription == nil) then -- only metadata
                     state.localDescription = "Size: " .. file_size
                     state.localDescriptionClick = state.localDescriptionClick .. state.localDescription
@@ -1799,8 +1789,8 @@ function process_filesize(success, result, error)
     state.file_size_bytes = tonumber(fileSizeString)
 
     if state.file_size_bytes then
-        state.file_size_normalized = format_file_size(state.file_size_bytes)
-        mp.msg.info("File size: " .. state.file_size_bytes .. " B (" .. state.file_size_normalized .. ")")
+        state.file_size_normalized = mp.utils.format_bytes_humanized(state.file_size_bytes)
+        mp.msg.info("[WEB] Download size: " .. state.file_size_normalized)
     else
         local fs_prop = mp.get_property_osd("file-size")
         if fs_prop and fs_prop ~= "" then
@@ -1978,18 +1968,6 @@ function addLikeCountToTitle()
     end
 end
 
-function format_file_size(file_size)
-    local units = {"bytes", "KB", "MB", "GB", "TB"}
-    local unit_index = 1
-
-    while file_size >= 1024 and unit_index < #units do
-        file_size = file_size / 1024
-        unit_index = unit_index + 1
-    end
-
-    return string.format("%.1f %s", file_size, units[unit_index])
-end
-
 -- playlist and chapters --
 function get_playlist()
     local pos = mp.get_property_number('playlist-pos', 0) + 1
@@ -2032,29 +2010,52 @@ function get_chapterlist()
 end
 
 local function make_sponsorblock_segments()
+    local sponsor_types = {
+        "sponsor",
+        "intro",
+        "outro",
+        "interaction",
+        "selfpromo",
+        "filler" }
+
     state.sponsor_segments = {}
     local temp_segment = {}
     local is_start_added = false
+    local current_category = ""
 
     local duration = mp.get_property_number('duration', nil)
 
     if duration then
         for _, chapter in ipairs(state.chapter_list) do
             if chapter.title then
-                if string.find(chapter.title, ("SponsorBlock|Start"):gsub("[%[%]]", "%%%1")) then
-                    if not is_start_added then
-                        temp_segment["start"] = chapter.time / duration * 100
-                        is_start_added = true
+
+                for _, value in ipairs(sponsor_types) do
+                    if string.find(string.lower(chapter.title), value) then
+                        current_category = value
+                        if not temp_segment[current_category] then
+                            temp_segment[current_category] = {}
+                        end
+                        if not state.sponsor_segments[current_category] then
+                            state.sponsor_segments[current_category] = {}
+                        end
                     end
                 end
-                if string.find(chapter.title, ("SponsorBlock|End"):gsub("[%[%]]", "%%%1")) then
-                    if is_start_added then
-                        temp_segment["end"] = chapter.time / duration * 100
+
+                if string.find(chapter.title, ("start"):gsub("[%[%]]", "%%%1")) then
+                    if not is_start_added then
+                        temp_segment[current_category]["start"] = chapter.time / duration * 100
+                        temp_segment[current_category]["is_start_added"] = true
+                    end
+                end
+                if string.find(chapter.title, ("end"):gsub("[%[%]]", "%%%1")) then
+                    if temp_segment[current_category]["is_start_added"] then
+                        temp_segment[current_category]["end"] = chapter.time / duration * 100
                         if state.sponsor_segments ~= 2 then
-                            table.sort(temp_segment, function(a, b) return a.time < b.time end)
-                            table.insert(state.sponsor_segments, temp_segment)
+                            temp_segment[current_category]["is_start_added"] = nil
+                            -- table.sort(temp_segment[current_category], function(a, b) return a.time < b.time end)
+                            table.insert(state.sponsor_segments[current_category], temp_segment[current_category])
                         end
-                        temp_segment = {}
+                        temp_segment[current_category] = {}
                         is_start_added = false
                     end
                 end
@@ -2062,9 +2063,11 @@ local function make_sponsorblock_segments()
         end
     end
 
-    -- for _, value in ipairs(state.sponsor_segments) do
-    --     print(dumptable(value))
-    -- end
+    print("-------------------------------------------")
+
+    for key, value in pairs(state.sponsor_segments) do
+        print(key .. dumptable(value))
+    end
 end
 
 function show_message(text, duration)
