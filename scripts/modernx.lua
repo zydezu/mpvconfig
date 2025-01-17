@@ -1025,15 +1025,32 @@ function render_elements(master_ass)
                     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
                 end
 
-                if seek_ranges then
+                -- if seek_ranges then
+                --     elem_ass:draw_stop()
+                --     elem_ass:merge(element.style_ass)
+                --     ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)
+                --     elem_ass:merge(element.static_ass)
+
+                --     for _,range in pairs(seek_ranges) do
+                --         print(dumptable(range))
+
+                --         local pstart = get_slider_ele_pos_for(element, range['start'])
+                --         local pend = get_slider_ele_pos_for(element, range['end'])
+                --         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+                --     end
+                -- end
+
+                if #state.sponsor_segments > 1 then
                     elem_ass:draw_stop()
                     elem_ass:merge(element.style_ass)
                     ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)
                     elem_ass:merge(element.static_ass)
 
-                    for _,range in pairs(seek_ranges) do
-                        local pstart = get_slider_ele_pos_for(element, range['start'])
-                        local pend = get_slider_ele_pos_for(element, range['end'])
+                    for _, range in pairs(state.sponsor_segments) do
+                        print(dumptable(range))
+
+                        local pstart = get_slider_ele_pos_for(element, range["start%"])
+                        local pend = get_slider_ele_pos_for(element, range["end%"])
                         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
                     end
                 end
@@ -1270,7 +1287,7 @@ function render_persistent_progressbar(master_ass)
                 elem_ass:merge(element.style_ass)
                 ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha, true)
                 elem_ass:merge(element.static_ass)
-                for _,range in pairs(seek_ranges) do
+                for _, range in pairs(seek_ranges) do
                     local pstart = get_slider_ele_pos_for(element, range["start"])
                     local pend = get_slider_ele_pos_for(element, range["end"])
                     elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
@@ -1954,30 +1971,33 @@ function get_chapterlist()
     return message
 end
 
-local function make_sponsor_segments()
+local function make_sponsorblock_segments()
     state.sponsor_segments = {}
+    local temp_segment = {}
 
-    print("-------------------------")
+    local duration = mp.get_property_number('duration', nil)
 
-    for _, chapter in ipairs(state.chapter_list) do
-        -- print(dumptable(chapter))
-        if chapter.title then
-            local startend = nil
-            if string.find(chapter.title, ("SponsorBlock|Start"):gsub("[%[%]]", "%%%1")) then
-                startend = "START"
-            end
-            if string.find(chapter.title, ("SponsorBlock|End"):gsub("[%[%]]", "%%%1")) then
-                startend = "END"
-            end
-
-            if startend then
-                print(
-                    chapter.time .. " | " ..
-                    (startend and startend or "")
-                )
+    if duration then
+        for _, chapter in ipairs(state.chapter_list) do
+            if chapter.title then
+                if string.find(chapter.title, ("SponsorBlock|Start"):gsub("[%[%]]", "%%%1")) then
+                    -- temp_segment["start"] = chapter.time
+                    temp_segment["start%"] = chapter.time / duration * 100
+                end
+                if string.find(chapter.title, ("SponsorBlock|End"):gsub("[%[%]]", "%%%1")) then
+                    -- temp_segment["end"] = chapter.time
+                    temp_segment["end%"] = chapter.time / duration * 100
+                    table.sort(temp_segment, function(a, b) return a.time < b.time end)
+                    table.insert(state.sponsor_segments, temp_segment)
+                    temp_segment = {}
+                end
             end
         end
     end
+
+    -- for _, value in ipairs(state.sponsor_segments) do
+    --     print(dumptable(value))
+    -- end
 end
 
 function show_message(text, duration)
@@ -3197,7 +3217,7 @@ local function osc_init()
     state.slider_element = ne.enabled and ne or nil  -- used for forced_title
     ne.slider.markerF = function ()
         local duration = mp.get_property_number('duration', nil)
-        if not (duration == nil) then
+        if duration then
             local chapters = mp.get_property_native("chapter-list", {})
             local markers = {}
             for n = 1, #chapters do
@@ -3962,7 +3982,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     list = list or {}  -- safety, shouldn't return nil
     table.sort(list, function(a, b) return a.time < b.time end)
     state.chapter_list = list
-    make_sponsor_segments()
+    make_sponsorblock_segments()
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
