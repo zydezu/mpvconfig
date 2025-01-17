@@ -176,7 +176,7 @@ local user_opts = {
     title_color = "#FFFFFF",                -- color of the title (above seekbar)
     seekbarfg_color = "#1D96F5",            -- color of the seekbar progress and handle, in Hex color format
     seekbarbg_color = "#FFFFFF",            -- color of the remaining seekbar, in Hex color format
-    seekbar_cache_color = "#1D96F5",        -- color of the cache ranges on the seekbar
+    seekbar_cache_color = "#FFFFFF",        -- color of the cache ranges on the seekbar
     volumebar_match_seek_color = false,     -- match volume bar color with seekbar color (ignores side_buttons_color)
     time_color = "#FFFFFF",                 -- color of the timestamps (below seekbar)
     chapter_title_color = "#FFFFFF",        -- color of the chapter title next to timestamp (below seekbar)
@@ -203,7 +203,7 @@ local user_opts = {
     -- Progress bar settings
     seekbar_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
     seek_range = true,                      -- show seek range overlay
-    seek_rangealpha = 175,                  -- transparency of the seek range
+    seek_rangealpha = 25,                  -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
@@ -1025,25 +1025,26 @@ function render_elements(master_ass)
                     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
                 end
 
-                -- if seek_ranges then
-                --     elem_ass:draw_stop()
-                --     elem_ass:merge(element.style_ass)
-                --     ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)
-                --     elem_ass:merge(element.static_ass)
+                if seek_ranges then
+                    elem_ass:draw_stop()
+                    elem_ass:merge(element.style_ass)
+                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)                    
+                    elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.seekbar_cache_color) .. "&}")
+                    elem_ass:merge(element.static_ass)
 
-                --     for _,range in pairs(seek_ranges) do
-                --         print(dumptable(range))
-
-                --         local pstart = get_slider_ele_pos_for(element, range['start'])
-                --         local pend = get_slider_ele_pos_for(element, range['end'])
-                --         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
-                --     end
-                -- end
+                    for _,range in pairs(seek_ranges) do
+                        local pstart = get_slider_ele_pos_for(element, range['start'])
+                        local pend = get_slider_ele_pos_for(element, range['end'])
+                        elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+                    end
+                end
 
                 if #state.sponsor_segments > 1 then
                     elem_ass:draw_stop()
                     elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)
+                    ass_append_alpha(elem_ass, element.layout.alpha, 0)
+                    -- apply sponsorblock color
+                    elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
                     elem_ass:merge(element.static_ass)
 
                     for _, range in pairs(state.sponsor_segments) do
