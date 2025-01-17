@@ -36,11 +36,15 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-01-17
 
 - FEATURE: added coloured segments on the progress bar, like on Youtube with SponsorBlock to `modernX.lua` - NOTE: requires a custom version of sponsorblock.lua [https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua)
+- This adds the following options: `show_sponsorblock_segments`, `add_sponsorblock_chapters`, `sponsorblock_sponsor_color`, `sponsorblock_intro_color`, `sponsorblock_outro_color`, `sponsorblock_interaction_color`, `sponsorblock_selfpromo_color` and `sponsorblock_filler_color`
+- Fix `seekbar_cache_color` to `modernX.lua`
+- Added `progress_bar_height` to `modernX.lua`
 
 ### 2025-01-16
 
 - REFACTOR: organise options in mpv.conf
 - FIX: add script-binding keybindings to input.conf
+- FIX: title and description text is now cropped properly and doesn't run off screen
 
 ### 2025-01-15
 

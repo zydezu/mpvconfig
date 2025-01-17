@@ -213,10 +213,10 @@ local user_opts = {
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
     automatic_keyframe_limit = 600,         -- videos longer than this (in seconds) will have keyframes on the seekbar
 
-    persistent_progress = false,            -- always show a small progress line at the bottom of the screen
-    persistent_progressheight = 17,         -- height of the persistent_progress bar
+    persistent_progress_default = false,    -- always show a small progress line at the bottom of the screen
+    persistent_progress_height = 17,        -- height of the persistent_progress bar
     persistent_buffer = false,              -- show the buffer on the persistent progress line
-    persistent_progresstoggle = true,       -- enable toggling the persistent_progress bar
+    persistent_progress_toggle = true,      -- enable toggling the persistent_progress bar
 
     -- Web videos
     title_youtube_stats = true,             -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
@@ -443,7 +443,7 @@ local state = {
     initialborder = mp.get_property('border'),
     playingWhilstSeeking = false,
     playingWhilstSeekingWaitingForEnd = false,
-    persistent_progresstoggle = user_opts.persistent_progress,
+    persistent_progresstoggle = user_opts.persistent_progress_default,
 
     downloaded_once = false,
     downloading = false,
@@ -2571,9 +2571,9 @@ local function layouts()
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
 
-    if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
+    if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         lo = add_layout('persistentseekbar')
-        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progressheight}
+        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progress_height}
         lo.style = osc_styles.seekbar_fg
         lo.slider.gap = 7
         lo.slider.tooltip_an = 0
@@ -3475,7 +3475,7 @@ local function osc_init()
     end
 
     --persistent seekbar
-    if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
+    if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         ne = new_element('persistentseekbar', 'slider')
         ne.enabled = not (mp.get_property('percent-pos') == nil)
         state.slider_element = ne.enabled and ne or nil  -- used for forced_title
@@ -3897,7 +3897,7 @@ local function render()
     if state.osc_visible then
         render_elements(ass)
     end
-    if user_opts.persistent_progress or state.persistent_progresstoggle then
+    if user_opts.persistent_progress_default or state.persistent_progresstoggle then
         render_persistent_progressbar(ass)
     end
 
@@ -4133,9 +4133,9 @@ if user_opts.key_bindings then
         show_message(get_tracklist("sub"))
     end);
 
-    if user_opts.persistent_progresstoggle then
+    if user_opts.persistent_progress_toggle then
         mp.add_key_binding("b", "persistenttoggle", function()
-            if user_opts.persistent_progresstoggle then
+            if user_opts.persistent_progress_toggle then
                 state.persistent_progresstoggle = not state.persistent_progresstoggle
                 tick()
             end
