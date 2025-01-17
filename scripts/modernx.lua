@@ -118,10 +118,11 @@ local user_opts = {
     time_format = "dynamic",                -- "dynamic" or "fixed" - dynamic shows MM:SS when possible, fixed always shows HH:MM:SS
     time_font_size = 18,                    -- font size of the time display
 
-    show_description = true,                -- show video description on web videos
+    show_description = true,                -- show video description - description on web videos or metadata/stats on local video
     show_file_size = true,                  -- show the current file's size in the description
     description_font_size = 19,             -- font size of the description text (below title)
     description_alpha = 100,                -- alpha of the description background box
+    scrolling_speed = 40,                   -- the speed of scrolling text in description/comment menus
 
     date_format = "%Y-%m-%d",               -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
 
@@ -161,7 +162,6 @@ local user_opts = {
     download_path = "~~desktop/mpv/downloads", -- default download directory for videos (https://mpv.io/manual/master/#paths)
 
     loop_button = false,                    -- show loop button
-
     loop_in_pause = true,                   -- enable looping by right-clicking pause
 
     playpause_size = 30,                    -- icon size for the play/pause button
@@ -202,9 +202,9 @@ local user_opts = {
     hover_effect_for_sliders = false,       -- apply hover effects to slider handles
 
     -- Progress bar settings
-    seek_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
+    seek_handle_size = 0.8,                 -- size ratio of the seekbar handle (range: 0 ~ 1)
     seek_range = true,                      -- show seek range overlay
-    seek_range_alpha = 200,                  -- transparency of the seek range
+    seek_range_alpha = 175,                 -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
@@ -212,15 +212,17 @@ local user_opts = {
 
     persistent_progress = false,            -- always show a small progress line at the bottom of the screen
     persistent_progressheight = 17,         -- the height of the persistent_progress bar
-    persistent_buffer = false,              -- on web videos, show the buffer on the persistent progress line
+    persistent_buffer = false,              -- show the buffer on the persistent progress line
     persistent_progresstoggle = true,       -- enable toggling the persistent_progress bar
 
-    -- Experimental
+    -- Web videos
     title_youtube_stats = true,             -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
-    show_youtube_comments = false,          -- EXPERIMENTAL - not ready
-    comments_download_path = "~~desktop/mpv/downloads/comments", -- the download path for the comment JSON file
-    scrolling_speed = 40,                   -- the speed of scrolling text in menus
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
+    comments_download_path = "~~desktop/mpv/downloads/comments", -- the download path for the comment JSON file
+
+    -- Experimental
+    show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
+    show_sponsorblock_segments = true,      -- EXPERIMENTAL - show sponsorblock segments on the progress bar
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
@@ -1032,6 +1034,29 @@ local function draw_seekbar_ranges(element, elem_ass, xp, rh, override_alpha)
     end
 end
 
+local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
+    if #state.sponsor_segments == 0 then return end
+
+    local handle = xp and rh
+    xp = xp or 0
+    rh = rh or 0
+    local slider_lo = element.layout.slider
+    local elem_geo = element.layout.geometry
+
+    elem_ass:draw_stop()
+    elem_ass:merge(element.style_ass)
+    ass_append_alpha(elem_ass, element.layout.alpha, 50)
+    -- apply sponsorblock color
+    elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
+    elem_ass:merge(element.static_ass)
+
+    for _, range in pairs(state.sponsor_segments) do
+        local pstart = get_slider_ele_pos_for(element, range["start"])
+        local pend = get_slider_ele_pos_for(element, range["end"])
+        elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+    end
+end
+
 function render_elements(master_ass)
     -- when the slider is dragged or hovered and we have a target chapter name
     -- then we use it instead of the normal title. we calculate it before the
@@ -1092,39 +1117,25 @@ function render_elements(master_ass)
                 local s_min = element.slider.min.value
                 local s_max = element.slider.max.value
 
-                -- draw pos marker
                 local xp, rh = draw_seekbar_handle(element, elem_ass) -- handle posistion, handle radius
                 draw_seekbar_progress(element, elem_ass)
                 draw_seekbar_ranges(element, elem_ass, xp, rh)
+                draw_sponsorblock_ranges(element, elem_ass, xp, rh)
 
-                -- if seek_ranges then
+                -- if #state.sponsor_segments > 1 then
                 --     elem_ass:draw_stop()
                 --     elem_ass:merge(element.style_ass)
-                --     ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_range_alpha)                    
-                --     elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.seekbar_cache_color) .. "&}")
+                --     ass_append_alpha(elem_ass, element.layout.alpha, 50)
+                --     -- apply sponsorblock color
+                --     elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
                 --     elem_ass:merge(element.static_ass)
 
-                --     for _,range in pairs(seek_ranges) do
-                --         local pstart = get_slider_ele_pos_for(element, range['start'])
-                --         local pend = get_slider_ele_pos_for(element, range['end'])
+                --     for _, range in pairs(state.sponsor_segments) do
+                --         local pstart = get_slider_ele_pos_for(element, range["start"])
+                --         local pend = get_slider_ele_pos_for(element, range["end"])
                 --         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
                 --     end
                 -- end
-
-                if #state.sponsor_segments > 1 then
-                    elem_ass:draw_stop()
-                    elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, 50)
-                    -- apply sponsorblock color
-                    elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
-                    elem_ass:merge(element.static_ass)
-
-                    for _, range in pairs(state.sponsor_segments) do
-                        local pstart = get_slider_ele_pos_for(element, range["start"])
-                        local pend = get_slider_ele_pos_for(element, range["end"])
-                        elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
-                    end
-                end
 
                 elem_ass:draw_stop()
 
