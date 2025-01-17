@@ -1263,7 +1263,7 @@ function render_persistent_progressbar(master_ass)
         if element.name == "persistentseekbar" then
             local style_ass = mp.assdraw.ass_new()
             style_ass:merge(element.style_ass)
-            if state.animation and not state.osc_visible then
+            if state.animation or not state.osc_visible then
                 ass_append_alpha(style_ass, element.layout.alpha, 0, true)
 
                 local elem_ass = mp.assdraw.ass_new()
