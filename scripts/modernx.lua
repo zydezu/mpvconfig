@@ -207,7 +207,7 @@ local user_opts = {
     seek_handle_size = 0.8,                 -- size ratio of the seekbar handle (range: 0 ~ 1)
     progress_bar_height = 16,               -- height of the progress bar
     seek_range = true,                      -- show seek range overlay
-    seek_range_alpha = 150,                 -- transparency of the seek range
+    seek_range_alpha = 175,                 -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
@@ -224,7 +224,8 @@ local user_opts = {
     
     -- sponsorblock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to work!
     show_sponsorblock_segments = true,      -- show sponsorblock segments on the progress bar
-    add_sponsorblock_chapters = true,       -- add sponsorblock chapters to the chapter list
+    add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
+    sponsorblock_seek_range_alpha = 75,     -- transparency of sponsorblock segments
     sponsor_types = {                       -- what categories to show in the progress bar
         "sponsor",                          -- all categories: 
         "intro",                            --      sponsor, intro, outro, 
@@ -1070,7 +1071,7 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
     local function set_draw_color(color, value, slider_lo, elem_geo)
         elem_ass:draw_stop()
         elem_ass:merge(element.style_ass)
-        ass_append_alpha(elem_ass, element.layout.alpha, 50)
+        ass_append_alpha(elem_ass, element.layout.alpha, user_opts.sponsorblock_seek_range_alpha)
         elem_ass:append("{\\1cH&" .. osc_color_convert(color) .. "&}")
         elem_ass:merge(element.static_ass)
 
@@ -2579,6 +2580,7 @@ local function layouts()
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
+    lo.layer = 100
 
     if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         lo = add_layout('persistentseekbar')
@@ -2605,7 +2607,7 @@ local function layouts()
     local outeroffset = (chapter_skip_buttons and 0 or 100) + (jump_buttons and 0 or 100)
 
     -- Title
-    geo = {x = 25, y = refY - 122 + (((state.localDescription ~= nil or state.is_URL) and user_opts.show_description) and -20 or 0), an = 1, w = osc_geo.w - 50, h = 35}
+    geo = {x = 25, y = refY - 117 + (((state.localDescription ~= nil or state.is_URL) and user_opts.show_description) and -20 or 0), an = 1, w = osc_geo.w - 50, h = 35}
     lo = add_layout("title")
     lo.geometry = geo
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
@@ -2615,7 +2617,7 @@ local function layouts()
 
     -- Description
     if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
-        geo = {x = 25, y = refY - 122, an = 1, w = osc_geo.w - 50, h = 19}
+        geo = {x = 25, y = refY - 117, an = 1, w = osc_geo.w - 50, h = 19}
         lo = add_layout("description")
         lo.geometry = geo
 
