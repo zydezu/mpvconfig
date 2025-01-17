@@ -15,7 +15,7 @@ local options = {
     python_path = ON_WINDOWS and "python" or "python3",
 
     -- Categories to fetch
-    categories = "sponsor,intro,outro,interaction,selfpromo,filler",
+    categories = "sponsor,intro,outro,interaction,selfpromo,preview,music_offtopic,filler",
 
     -- Categories to skip automatically
     skip_categories = "sponsor",

@@ -231,6 +231,8 @@ local user_opts = {
         "outro",                            --      interaction, selfpromo, preview, 
         "interaction",                      --      music_offtopic, filler
         "selfpromo",
+        "preview",
+        "music_offtopic",
         "filler"
     },
     sponsorblock_sponsor_color = "#00D400", -- color for sponsors
@@ -238,6 +240,8 @@ local user_opts = {
     sponsorblock_outro_color = "#0202ED",   -- color for endcards/credits
     sponsorblock_interaction_color = "#CC00FF", -- color for interaction reminders (reminders to subscribe)
     sponsorblock_selfpromo_color = "#FFFF00",   -- color for unpaid/self promotion
+    sponsorblock_preview_color = "#008FD6",   -- color for unpaid/self promotion
+    sponsorblock_music_offtopic_color = "#FF9900",   -- color for unpaid/self promotion
     sponsorblock_filler_color = "#7300FF",  -- color for filler tangent/jokes
 
     -- Experimental
@@ -378,6 +382,8 @@ local sponsorblock_color_map = {
     outro = user_opts.sponsorblock_outro_color,
     interaction = user_opts.sponsorblock_interaction_color,
     selfpromo = user_opts.sponsorblock_selfpromo_color,
+    preview = user_opts.sponsorblock_preview_color,
+    music_offtopic = user_opts.sponsorblock_music_offtopic_color,
     filler = user_opts.sponsorblock_filler_color
 }
 
@@ -4087,7 +4093,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     table.sort(list, function(a, b) return a.time < b.time end)
     state.chapter_list_pre_sponsorblock = list
     state.chapter_list = list
-    make_sponsorblock_segments()
+    -- make_sponsorblock_segments()
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
