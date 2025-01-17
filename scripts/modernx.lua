@@ -1959,18 +1959,22 @@ local function make_sponsor_segments()
 
     print("-------------------------")
 
-    local chapters = state.chapter_list
-
-    for _, chapter in ipairs(chapters) do
+    for _, chapter in ipairs(state.chapter_list) do
         -- print(dumptable(chapter))
         if chapter.title then
-            if string.find(chapter.title, "SponsorBlock") then
-                local startend = true
-                if string.find(chapter.title, "end") then
-                    startend = false
-                end
+            local startend = nil
+            if string.find(chapter.title, ("SponsorBlock|Start"):gsub("[%[%]]", "%%%1")) then
+                startend = "START"
+            end
+            if string.find(chapter.title, ("SponsorBlock|End"):gsub("[%[%]]", "%%%1")) then
+                startend = "END"
+            end
 
-                print(chapter.time .. (startend and "START" or "END"))
+            if startend then
+                print(
+                    chapter.time .. " | " ..
+                    (startend and startend or "")
+                )
             end
         end
     end
@@ -3997,11 +4001,15 @@ if user_opts.key_bindings then
 
     -- extra key bindings
     mp.add_key_binding("x", "cycleaudiotracks", function()
-        set_track('audio', 1) show_message(get_tracklist('audio'))
+        mp.set_property_number("secondary-sid", 0)
+        set_track("audio", 1)
+        show_message(get_tracklist("audio"))
     end);
 
     mp.add_key_binding("c", "cyclecaptions", function()
-        set_track('sub', 1) show_message(get_tracklist('sub'))
+        mp.set_property_number("secondary-sid", 0)
+        set_track("sub", 1)
+        show_message(get_tracklist("sub"))
     end);
 
     if user_opts.persistent_progresstoggle then

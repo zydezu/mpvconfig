@@ -19,7 +19,7 @@
     determine whether to show them bot has primary and secondary subtitles
 --]]
 
-local utils = require "mp.utils"
+mp.utils = require("mp.utils")
 
 local options = {
     original_sub = {"[ja]"},
@@ -47,7 +47,8 @@ local function check_for_dual_subs()
     local subtitle_count = get_subtitle_count()
 
     if subtitle_count > 0 then
-        local _, filename = utils.split_path(mp.get_property("current-tracks/sub/external-filename"))
+        mp.commandv("set", "sub", "1")
+        local _, filename = mp.utils.split_path(mp.get_property("current-tracks/sub/external-filename"))
         local ext = filename:match("^.+(%..+)$")
         local filename_noext = filename:gsub(ext, "")
 
@@ -78,7 +79,7 @@ local function check_for_dual_subs()
 
         if tag_to_use then
             for i, sub_filename in ipairs(subtitle_filenames) do
-                _, sub_filename = utils.split_path(sub_filename)
+                _, sub_filename = mp.utils.split_path(sub_filename)
                 local sub_ext = sub_filename:match("^.+(%..+)$")
                 local sub_filename_noext = sub_filename:gsub(sub_ext, "")
 
@@ -105,16 +106,30 @@ local function check_for_dual_subs()
                 print("Found two subtitles - showing dual subtitles")
 
                 mp.set_property_number("sid", primary_track_id)
-                mp.set_property_number("secondary-sid", secondary_track_id)                
+                mp.set_property_number("secondary-sid", secondary_track_id)
+
+                return true
             else
                 -- no dual subtitles detected
             end
-
         else
-            return -- nothing detected
+            return false -- nothing detected
         end
     end
+
+    return false
+end
+
+local function osd_msg(message)
+    print(message)
+    mp.osd_message(message)
+end
+
+local function key_bind_check_for_dual_subs()
+    osd_msg("Checking for dual subs...")
+    local result = check_for_dual_subs()
+    osd_msg(result and "Applied dual subs" or "Couldn't find dual subs")
 end
 
 mp.register_event("file-loaded", check_for_dual_subs)
-mp.add_key_binding("ctrl+b", "check_for_dual_subs", check_for_dual_subs)
+mp.add_key_binding("ctrl+b", "key_bind_check_for_dual_subs", key_bind_check_for_dual_subs)
