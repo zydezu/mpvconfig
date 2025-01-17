@@ -202,9 +202,9 @@ local user_opts = {
     hover_effect_for_sliders = false,       -- apply hover effects to slider handles
 
     -- Progress bar settings
-    seekbar_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
+    seek_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
     seek_range = true,                      -- show seek range overlay
-    seek_rangealpha = 200,                  -- transparency of the seek range
+    seek_range_alpha = 200,                  -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
@@ -872,7 +872,7 @@ local function prepare_elements()
             --draw static slider parts
             local slider_lo = element.layout.slider
             -- calculate positions of min and max points
-            element.slider.min.ele_pos = user_opts.seekbar_handle_size * elem_geo.h / 2
+            element.slider.min.ele_pos = user_opts.seek_handle_size * elem_geo.h / 2
             element.slider.max.ele_pos = elem_geo.w - element.slider.min.ele_pos
             element.slider.min.glob_pos = element.hitbox.x1 + element.slider.min.ele_pos
             element.slider.max.glob_pos = element.hitbox.x1 + element.slider.max.ele_pos
@@ -953,6 +953,39 @@ function get_chapter(possec)
     end
 end
 
+local function draw_seekbar_handle(element, elem_ass, override_alpha)
+    local pos = element.slider.posF()
+    if not pos then
+        return 0, 0
+    end
+    local display_handle = user_opts.seek_handle_size > 0
+    local elem_geo = element.layout.geometry
+    local rh = display_handle and (user_opts.seek_handle_size * elem_geo.h / 2) or 0 -- handle radius
+    local xp = get_slider_ele_pos_for(element, pos) -- handle position
+    local handle_hovered = mouse_hit_coords(element.hitbox.x1 + xp - rh, element.hitbox.y1 + elem_geo.h / 2 - rh, element.hitbox.x1 + xp + rh, element.hitbox.y1 + elem_geo.h / 2 + rh) and element.enabled
+
+    if display_handle then
+        -- Apply size hover_effect only if hovering over the handle
+        if handle_hovered and user_opts.hover_effect_for_sliders then
+            if contains(user_opts.hover_effect, "size") then
+                rh = rh * (user_opts.hover_button_size / 100)
+            end
+        end
+
+        ass_draw_cir_cw(elem_ass, xp, elem_geo.h / 2, rh)
+
+        if user_opts.hover_effect_for_sliders then
+            elem_ass:draw_stop()
+            elem_ass:merge(element.style_ass)
+            ass_append_alpha(elem_ass, element.layout.alpha, override_alpha or 0)
+            elem_ass:merge(element.static_ass)
+        end
+
+        return xp, rh
+    end
+    return xp, 0
+end
+
 -- Draw seekbar progress more accurately
 local function draw_seekbar_progress(element, elem_ass)
     local pos = element.slider.posF()
@@ -965,6 +998,40 @@ local function draw_seekbar_progress(element, elem_ass)
     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
 end
 
+-- Draws seekbar ranges according to user_opts 
+local function draw_seekbar_ranges(element, elem_ass, xp, rh, override_alpha)
+    local handle = xp and rh
+    xp = xp or 0
+    rh = rh or 0
+    local slider_lo = element.layout.slider
+    local elem_geo = element.layout.geometry
+    local seekRanges = element.slider.seek_rangesF()
+    if not seekRanges then
+        return
+    end
+    elem_ass:draw_stop()
+    elem_ass:merge(element.style_ass)
+    ass_append_alpha(elem_ass, element.layout.alpha, override_alpha or user_opts.seek_range_alpha)
+    elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.seekbar_cache_color) .. "&}")
+    elem_ass:merge(element.static_ass)
+
+    for _, range in pairs(seekRanges) do
+        local pstart = math.max(0, get_slider_ele_pos_for(element, range["start"]) - slider_lo.gap)
+        local pend = math.min(elem_geo.w, get_slider_ele_pos_for(element, range["end"]) + slider_lo.gap)
+
+        if handle and (pstart < xp + rh and pend > xp - rh) then
+            if pstart < xp - rh then
+                elem_ass:rect_cw(pstart, slider_lo.gap, xp - rh, elem_geo.h - slider_lo.gap)
+            end
+            pstart = xp + rh
+        end
+
+        if pend > pstart then
+            elem_ass:rect_cw(pstart, slider_lo.gap, pend, elem_geo.h - slider_lo.gap)
+        end
+    end
+end
+
 function render_elements(master_ass)
     -- when the slider is dragged or hovered and we have a target chapter name
     -- then we use it instead of the normal title. we calculate it before the
@@ -974,7 +1041,6 @@ function render_elements(master_ass)
     -- disable displaying chapter name in title when thumbfast is available
     -- because thumbfast will render it above the thumbnail instead
     if thumbfast.disabled then
-        local se, ae = state.slider_element, elements[state.active_element]
         if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
             local dur = mp.get_property_number("duration", 0)
             if dur > 0 then
@@ -1027,24 +1093,23 @@ function render_elements(master_ass)
                 local s_max = element.slider.max.value
 
                 -- draw pos marker
-                local seek_ranges = element.slider.seek_rangesF()
-                local rh = user_opts.seekbar_handle_size * elem_geo.h / 2 -- Handle radius
-
+                local xp, rh = draw_seekbar_handle(element, elem_ass) -- handle posistion, handle radius
                 draw_seekbar_progress(element, elem_ass)
+                draw_seekbar_ranges(element, elem_ass, xp, rh)
 
-                if seek_ranges then
-                    elem_ass:draw_stop()
-                    elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha)                    
-                    elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.seekbar_cache_color) .. "&}")
-                    elem_ass:merge(element.static_ass)
+                -- if seek_ranges then
+                --     elem_ass:draw_stop()
+                --     elem_ass:merge(element.style_ass)
+                --     ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_range_alpha)                    
+                --     elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.seekbar_cache_color) .. "&}")
+                --     elem_ass:merge(element.static_ass)
 
-                    for _,range in pairs(seek_ranges) do
-                        local pstart = get_slider_ele_pos_for(element, range['start'])
-                        local pend = get_slider_ele_pos_for(element, range['end'])
-                        elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
-                    end
-                end
+                --     for _,range in pairs(seek_ranges) do
+                --         local pstart = get_slider_ele_pos_for(element, range['start'])
+                --         local pend = get_slider_ele_pos_for(element, range['end'])
+                --         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+                --     end
+                -- end
 
                 if #state.sponsor_segments > 1 then
                     elem_ass:draw_stop()
@@ -1055,8 +1120,6 @@ function render_elements(master_ass)
                     elem_ass:merge(element.static_ass)
 
                     for _, range in pairs(state.sponsor_segments) do
-                        print(dumptable(range))
-
                         local pstart = get_slider_ele_pos_for(element, range["start"])
                         local pend = get_slider_ele_pos_for(element, range["end"])
                         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
@@ -1272,24 +1335,11 @@ function render_persistent_progressbar(master_ass)
                     elem_ass:merge(element.static_ass)
                 end
 
-                local slider_lo = element.layout.slider
-                local elem_geo = element.layout.geometry
-
                 -- draw pos marker
                 draw_seekbar_progress(element, elem_ass)
 
-                local seek_ranges = element.slider.seek_rangesF()
-
-                if user_opts.persistent_buffer and seek_ranges then
-                    elem_ass:draw_stop()
-                    elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha, true)
-                    elem_ass:merge(element.static_ass)
-                    for _, range in pairs(seek_ranges) do
-                        local pstart = get_slider_ele_pos_for(element, range["start"])
-                        local pend = get_slider_ele_pos_for(element, range["end"])
-                        elem_ass:rect_cw(pstart, slider_lo.gap, pend, elem_geo.h - slider_lo.gap)
-                    end
+                if user_opts.persistent_buffer then
+                    draw_seekbar_ranges(element, elem_ass, nil, nil)
                 end
 
                 elem_ass:draw_stop()
