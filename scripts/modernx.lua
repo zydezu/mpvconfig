@@ -953,6 +953,18 @@ function get_chapter(possec)
     end
 end
 
+-- Draw seekbar progress more accurately
+local function draw_seekbar_progress(element, elem_ass)
+    local pos = element.slider.posF()
+    if not pos then
+        return
+    end
+    local xp = get_slider_ele_pos_for(element, pos)
+    local slider_lo = element.layout.slider
+    local elem_geo = element.layout.geometry
+    elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
+end
+
 function render_elements(master_ass)
     -- when the slider is dragged or hovered and we have a target chapter name
     -- then we use it instead of the normal title. we calculate it before the
@@ -1015,17 +1027,10 @@ function render_elements(master_ass)
                 local s_max = element.slider.max.value
 
                 -- draw pos marker
-                local pos = element.slider.posF()
                 local seek_ranges = element.slider.seek_rangesF()
                 local rh = user_opts.seekbar_handle_size * elem_geo.h / 2 -- Handle radius
-                local xp
 
-                if pos then
-                    xp = get_slider_ele_pos_for(element, pos)
-                    slider_lo = element.layout.slider
-                    elem_geo = element.layout.geometry
-                    elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
-                end
+                draw_seekbar_progress(element, elem_ass)
 
                 if seek_ranges then
                     elem_ass:draw_stop()
@@ -1255,50 +1260,41 @@ end
 function render_persistent_progressbar(master_ass)
     for n=1, #elements do
         local element = elements[n]
-        if (element.name == "persistentseekbar") then
+        if element.name == "persistentseekbar" then
             local style_ass = mp.assdraw.ass_new()
             style_ass:merge(element.style_ass)
-            ass_append_alpha(style_ass, element.layout.alpha, 0, true)
+            if state.animation and not state.osc_visible then
+                ass_append_alpha(style_ass, element.layout.alpha, 0, true)
 
-            if not state.animation and state.osc_visible then
-                ass_append_alpha(style_ass, element.layout.alpha, 255)
-            end
-
-            local elem_ass = mp.assdraw.ass_new()
-            elem_ass:merge(style_ass)
-            if not (element.type == "button") then
-                elem_ass:merge(element.static_ass)
-            end
-
-            local slider_lo = element.layout.slider
-            local elem_geo = element.layout.geometry
-
-            -- draw pos marker
-            local pos = element.slider.posF()
-            local seek_ranges = element.slider.seek_rangesF()
-            local rh = 0 -- Handle radius
-            local xp
-
-            if pos then
-                xp = get_slider_ele_pos_for(element, pos)
-                ass_draw_cir_cw(elem_ass, xp, elem_geo.h/2, rh)
-                elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
-            end
-
-            if user_opts.persistent_buffer and seek_ranges then
-                elem_ass:draw_stop()
-                elem_ass:merge(element.style_ass)
-                ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha, true)
-                elem_ass:merge(element.static_ass)
-                for _, range in pairs(seek_ranges) do
-                    local pstart = get_slider_ele_pos_for(element, range["start"])
-                    local pend = get_slider_ele_pos_for(element, range["end"])
-                    elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+                local elem_ass = mp.assdraw.ass_new()
+                elem_ass:merge(style_ass)
+                if element.type ~= "button" then
+                    elem_ass:merge(element.static_ass)
                 end
-            end
 
-            elem_ass:draw_stop()
-            master_ass:merge(elem_ass)
+                local slider_lo = element.layout.slider
+                local elem_geo = element.layout.geometry
+
+                -- draw pos marker
+                draw_seekbar_progress(element, elem_ass)
+
+                local seek_ranges = element.slider.seek_rangesF()
+
+                if user_opts.persistent_buffer and seek_ranges then
+                    elem_ass:draw_stop()
+                    elem_ass:merge(element.style_ass)
+                    ass_append_alpha(elem_ass, element.layout.alpha, user_opts.seek_rangealpha, true)
+                    elem_ass:merge(element.static_ass)
+                    for _, range in pairs(seek_ranges) do
+                        local pstart = get_slider_ele_pos_for(element, range["start"])
+                        local pend = get_slider_ele_pos_for(element, range["end"])
+                        elem_ass:rect_cw(pstart, slider_lo.gap, pend, elem_geo.h - slider_lo.gap)
+                    end
+                end
+
+                elem_ass:draw_stop()
+                master_ass:merge(elem_ass)
+            end
         end
     end
 end
