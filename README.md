@@ -39,6 +39,8 @@ Please note that many of these scripts have been slightly modified from their in
 - This adds the following options: `show_sponsorblock_segments`, `add_sponsorblock_chapters`, `sponsorblock_sponsor_color`, `sponsorblock_intro_color`, `sponsorblock_outro_color`, `sponsorblock_interaction_color`, `sponsorblock_selfpromo_color` and `sponsorblock_filler_color`
 - Fix `seekbar_cache_color` to `modernX.lua`
 - Added `progress_bar_height` to `modernX.lua`
+- FIX: fix thumbnail border clipping through text weird
+- FEAT: `modernX.lua` now sets the tick rate to the monitors refresh rate
 
 ### 2025-01-16
 

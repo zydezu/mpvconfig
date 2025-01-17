@@ -388,7 +388,7 @@ local sponsorblock_color_map = {
     filler = user_opts.sponsorblock_filler_color
 }
 
-local tick_delay = 1 / 100 -- 100FPS
+local tick_delay = 1 / 60 -- 60FPS
 local audio_track_count = 0 -- TODO: implement
 local sub_track_count = 0 -- TODO: implement
 local window_control_box_width = 138
@@ -1428,7 +1428,13 @@ function limited_list(prop, pos)
     return count, reslist
 end
 
--- downloading --
+local function set_tick_delay(_, display_fps)
+    -- may be nil if unavailable or 0 fps is reported
+    if not display_fps then
+        return
+    end
+    tick_delay = 1 / display_fps
+end
 
 local function newfilereset()
     request_init()
@@ -1445,15 +1451,16 @@ end
 
 local function startupevents()
     state.new_file_flag = true
+    set_tick_delay("display_fps", mp.get_property_number("display_fps"))
     state.videoDescription = "Loading description..."
     state.file_size_normalized = "Approximating size..."
     check_path_url()
     checktitle()
     if user_opts.automatic_keyframe_mode then
         if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
-             user_opts.seekbar_keyframes = true
+            user_opts.seekbar_keyframes = true
         else
-             user_opts.seekbar_keyframes = false
+            user_opts.seekbar_keyframes = false
         end
      end
     destroyscrollingkeys() -- close description
@@ -4238,6 +4245,7 @@ mp.observe_property('osd-dimensions', 'native', function(name, val)
     --  we might have to worry about property update ordering)
     request_init_resize()
 end)
+mp.observe_property("display-fps", "number", set_tick_delay)
 -- mouse show/hide bindings
 mp.set_key_bindings({
     {'mouse_move',              function(e) process_event('mouse_move', nil) end},
