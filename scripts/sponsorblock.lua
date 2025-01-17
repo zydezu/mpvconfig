@@ -172,10 +172,15 @@ local function clean_chapters()
     mp.set_property_native("chapter-list", new_chapters)
 end
 
-local function create_chapter(chapter_title, chapter_time)
+local function create_chapter(chapter_title, chapter_time, is_start)
     local chapters = mp.get_property_native("chapter-list")
     local duration = mp.get_property_native("duration")
-    table.insert(chapters, {title="[SponsorBlock] " .. chapter_title, time=(duration == nil or duration > chapter_time) and chapter_time or duration - .001})
+    table.insert(chapters,
+        {
+            title="[SponsorBlock|" .. (is_start and "Start" or "End") .. "] " .. chapter_title,
+            time=(duration == nil or duration > chapter_time) and chapter_time or duration - .001
+        }
+    )
     table.sort(chapters, time_sort)
     mp.set_property_native("chapter-list", chapters)
 end
@@ -201,8 +206,8 @@ local function process(uuid, t, new_ranges)
     if options.make_chapters and not chapter_cache[uuid] then
         chapter_cache[uuid] = true
         local category_title = (category:gsub("^%l", string.upper):gsub("_", " "))
-        create_chapter(category_title .. " segment start (" .. string.sub(uuid, 1, 6) .. ")", start_time)
-        create_chapter(category_title .. " segment end (" .. string.sub(uuid, 1, 6) .. ")", end_time)
+        create_chapter(category_title .. " segment start (" .. string.sub(uuid, 1, 6) .. ")", start_time, true)
+        create_chapter(category_title .. " segment end (" .. string.sub(uuid, 1, 6) .. ")", end_time, false)
     end
 end
 
@@ -430,8 +435,8 @@ local function submit_segment(category)
             mp.osd_message("[sponsorblock] segment submitted")
             if options.make_chapters then
                 clean_chapters()
-                create_chapter("Submitted segment start", start_time)
-                create_chapter("Submitted segment end", end_time)
+                create_chapter("Submitted segment start", start_time, true)
+                create_chapter("Submitted segment end", end_time, false)
             end
         elseif string.match(submit.stdout, "error") then
             mp.osd_message("[sponsorblock] segment submission failed, server may be down. try again", 5)
@@ -558,8 +563,8 @@ local function set_segment()
         local end_time = math.max(segment.a, segment.b)
         if end_time - start_time ~= 0 and end_time ~= 0 then
             clean_chapters()
-            create_chapter("Preview segment start", start_time)
-            create_chapter("Preview segment end", end_time)
+            create_chapter("Preview segment start", start_time, true)
+            create_chapter("Preview segment end", end_time, false)
         end
     end
     segment.first = false

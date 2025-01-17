@@ -171,7 +171,7 @@ local user_opts = {
     osc_color = "#000000",                  -- accent color of the OSC and title bar
     window_title_color = "#FFFFFF",         -- color of the title in borderless/fullscreen mode
     window_controls_color = "#FFFFFF",      -- color of the window controls (close, minimize, maximize) in borderless/fullscreen mode
-    window_controls_close_hover = "#E81123", -- color of close window control on hover
+    window_controls_close_hover = "#E81123",-- color of close window control on hover
     window_controls_minmax_hover = "#53A4FC",-- color of min/max window controls on hover
     title_color = "#FFFFFF",                -- color of the title (above seekbar)
     seekbarfg_color = "#1D96F5",            -- color of the seekbar progress and handle, in Hex color format
@@ -190,7 +190,7 @@ local user_opts = {
     fade_alpha = 100,                       -- alpha of the title bar background box
     fade_blur_strength = 75,                -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
     title_bar_fade_alpha = 150,             -- alpha of the OSC background box
-    title_bar_fade_blur_strength = 100,      -- blur strength for the title bar alpha fade
+    title_bar_fade_blur_strength = 100,     -- blur strength for the title bar alpha fade
     window_fade_alpha = 75,                 -- alpha of the window title bar
     thumbnail_border = 1,                   -- the width of the thumbnail border
 
@@ -447,12 +447,15 @@ local state = {
     showingDescription = false,
     scrolledlines = 25,
     youtubeuploader = "",
+    jsoncomments= {},
     youtubecomments = {},
     commentsParsed = false,
     currentCommentIndex = 0,
     commentsPage = 0,
     maxCommentPages = 0,
     commentsAdditionalText = "",
+
+    sponsor_segments = {},
 
     message_text = nil, -- TODO: needs to be removed
     message_hide_timer = nil, -- TODO: needs to be removed
@@ -874,15 +877,15 @@ local function prepare_elements()
             element.slider.max.glob_pos = element.hitbox.x1 + element.slider.max.ele_pos
 
             static_ass:draw_start()
+
             -- a hack which prepares the whole slider area to allow center placements such like an=5
             static_ass:rect_cw(0, 0, elem_geo.w, elem_geo.h)
             static_ass:rect_ccw(0, 0, elem_geo.w, elem_geo.h)
-            -- marker nibbles
+            -- chapter marker nibbles
             if element.slider.markerF ~= nil and slider_lo.gap > 0 then
                 local markers = element.slider.markerF()
-                for _,marker in pairs(markers) do
-                    if marker >= element.slider.min.value and
-                    marker <= element.slider.max.value then
+                for _, marker in pairs(markers) do
+                    if marker >= element.slider.min.value and marker <= element.slider.max.value then
                         local s = get_slider_ele_pos_for(element, marker)
                         if slider_lo.gap > 5 then -- draw triangles
                             --top
@@ -928,6 +931,10 @@ local function prepare_elements()
             element.layout.alpha[1] = 100
         end
     end
+end
+
+function create_extra_slider(starttime, endtime, color)
+
 end
 
 --
@@ -1245,8 +1252,6 @@ function render_persistent_progressbar(master_ass)
 
             local slider_lo = element.layout.slider
             local elem_geo = element.layout.geometry
-            local s_min = element.slider.min.value
-            local s_max = element.slider.max.value
 
             -- draw pos marker
             local pos = element.slider.posF()
@@ -1947,6 +1952,28 @@ function get_chapterlist()
             (v.current and '●' or '○'), title)
     end
     return message
+end
+
+local function make_sponsor_segments()
+    state.sponsor_segments = {}
+
+    print("-------------------------")
+
+    local chapters = state.chapter_list
+
+    for _, chapter in ipairs(chapters) do
+        -- print(dumptable(chapter))
+        if chapter.title then
+            if string.find(chapter.title, "SponsorBlock") then
+                local startend = true
+                if string.find(chapter.title, "end") then
+                    startend = false
+                end
+
+                print(chapter.time .. (startend and "START" or "END"))
+            end
+        end
+    end
 end
 
 function show_message(text, duration)
@@ -3931,6 +3958,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     list = list or {}  -- safety, shouldn't return nil
     table.sort(list, function(a, b) return a.time < b.time end)
     state.chapter_list = list
+    make_sponsor_segments()
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
