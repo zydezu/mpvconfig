@@ -110,6 +110,7 @@ local user_opts = {
 
     show_chapter_title = true,              -- show chapter title alongside timestamp (below seekbar)
     chapter_fmt = "%s",                     -- format for chapter display on seekbar hover (set to "no" to disable)
+    show_chapter_markers = false,           -- show chapter markers on the seekbar
 
     time_total = true,                      -- show total time instead of remaining time
     time_ms = false,                        -- show timecodes with milliseconds
@@ -203,7 +204,7 @@ local user_opts = {
     -- Progress bar settings
     seekbar_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
     seek_range = true,                      -- show seek range overlay
-    seek_rangealpha = 25,                  -- transparency of the seek range
+    seek_rangealpha = 200,                  -- transparency of the seek range
     seekbar_keyframes = false,              -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,         -- automatically set keyframes for the seekbar based on video length
@@ -882,7 +883,7 @@ local function prepare_elements()
             static_ass:rect_cw(0, 0, elem_geo.w, elem_geo.h)
             static_ass:rect_ccw(0, 0, elem_geo.w, elem_geo.h)
             -- chapter marker nibbles
-            if element.slider.markerF ~= nil and slider_lo.gap > 0 then
+            if user_opts.show_chapter_markers and element.slider.markerF ~= nil and slider_lo.gap > 0 then
                 local markers = element.slider.markerF()
                 for _, marker in pairs(markers) do
                     if marker >= element.slider.min.value and marker <= element.slider.max.value then
@@ -1021,7 +1022,8 @@ function render_elements(master_ass)
 
                 if pos then
                     xp = get_slider_ele_pos_for(element, pos)
-                    ass_draw_cir_cw(elem_ass, xp, elem_geo.h/2, rh)
+                    slider_lo = element.layout.slider
+                    elem_geo = element.layout.geometry
                     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
                 end
 
@@ -1042,7 +1044,7 @@ function render_elements(master_ass)
                 if #state.sponsor_segments > 1 then
                     elem_ass:draw_stop()
                     elem_ass:merge(element.style_ass)
-                    ass_append_alpha(elem_ass, element.layout.alpha, 0)
+                    ass_append_alpha(elem_ass, element.layout.alpha, 50)
                     -- apply sponsorblock color
                     elem_ass:append("{\\1cH&" .. osc_color_convert("#5BD45B") .. "&}")
                     elem_ass:merge(element.static_ass)
@@ -1050,8 +1052,8 @@ function render_elements(master_ass)
                     for _, range in pairs(state.sponsor_segments) do
                         print(dumptable(range))
 
-                        local pstart = get_slider_ele_pos_for(element, range["start%"])
-                        local pend = get_slider_ele_pos_for(element, range["end%"])
+                        local pstart = get_slider_ele_pos_for(element, range["start"])
+                        local pend = get_slider_ele_pos_for(element, range["end"])
                         elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
                     end
                 end
@@ -1975,6 +1977,7 @@ end
 local function make_sponsorblock_segments()
     state.sponsor_segments = {}
     local temp_segment = {}
+    local is_start_added = false
 
     local duration = mp.get_property_number('duration', nil)
 
@@ -1982,15 +1985,21 @@ local function make_sponsorblock_segments()
         for _, chapter in ipairs(state.chapter_list) do
             if chapter.title then
                 if string.find(chapter.title, ("SponsorBlock|Start"):gsub("[%[%]]", "%%%1")) then
-                    -- temp_segment["start"] = chapter.time
-                    temp_segment["start%"] = chapter.time / duration * 100
+                    if not is_start_added then
+                        temp_segment["start"] = chapter.time / duration * 100
+                        is_start_added = true
+                    end
                 end
                 if string.find(chapter.title, ("SponsorBlock|End"):gsub("[%[%]]", "%%%1")) then
-                    -- temp_segment["end"] = chapter.time
-                    temp_segment["end%"] = chapter.time / duration * 100
-                    table.sort(temp_segment, function(a, b) return a.time < b.time end)
-                    table.insert(state.sponsor_segments, temp_segment)
-                    temp_segment = {}
+                    if is_start_added then
+                        temp_segment["end"] = chapter.time / duration * 100
+                        if state.sponsor_segments ~= 2 then
+                            table.sort(temp_segment, function(a, b) return a.time < b.time end)
+                            table.insert(state.sponsor_segments, temp_segment)
+                        end
+                        temp_segment = {}
+                        is_start_added = false
+                    end
                 end
             end
         end
