@@ -224,7 +224,7 @@ local user_opts = {
     
     -- sponsorblock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to work!
     show_sponsorblock_segments = true,      -- show sponsorblock segments on the progress bar
-    add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
+    add_sponsorblock_chapters = true,       -- add sponsorblock chapters to the chapter list
     sponsor_types = {                       -- what categories to show in the progress bar
         "sponsor",                          -- all categories: 
         "intro",                            --      sponsor, intro, outro, 
@@ -4087,6 +4087,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     table.sort(list, function(a, b) return a.time < b.time end)
     state.chapter_list_pre_sponsorblock = list
     state.chapter_list = list
+    make_sponsorblock_segments()
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
