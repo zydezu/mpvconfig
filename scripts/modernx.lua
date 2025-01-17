@@ -221,18 +221,28 @@ local user_opts = {
     -- Web videos
     title_youtube_stats = true,             -- update the window/OSC title bar with YouTube video stats (views, likes, dislikes)
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
-    comments_download_path = "~~desktop/mpv/downloads/comments", -- the download path for the comment JSON file
+    
+    -- sponsorblock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to work!
+    show_sponsorblock_segments = true,      -- show sponsorblock segments on the progress bar
+    add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
+    sponsor_types = {                       -- what categories to show in the progress bar
+        "sponsor",                          -- all categories: 
+        "intro",                            --      sponsor, intro, outro, 
+        "outro",                            --      interaction, selfpromo, preview, 
+        "interaction",                      --      music_offtopic, filler
+        "selfpromo",
+        "filler"
+    },
+    sponsorblock_sponsor_color = "#00D400", -- color for sponsors
+    sponsorblock_intro_color = "#00FFFF",   -- color for intermission/intro animations
+    sponsorblock_outro_color = "#0202ED",   -- color for endcards/credits
+    sponsorblock_interaction_color = "#CC00FF", -- color for interaction reminders (reminders to subscribe)
+    sponsorblock_selfpromo_color = "#FFFF00",   -- color for unpaid/self promotion
+    sponsorblock_filler_color = "#7300FF",  -- color for filler tangent/jokes
 
     -- Experimental
     show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
-    show_sponsorblock_segments = true,      -- EXPERIMENTAL - show sponsorblock segments on the progress bar
-    add_sponsorblock_chapters = false,      -- EXPERIMENTAL - add sponsorblock chapters to the chapter list
-    sponsorblock_sponsor_color = "#00D400",
-    sponsorblock_intro_color = "#00FFFF",
-    sponsorblock_outro_color = "#0202ED",
-    sponsorblock_interaction_color = "#CC00FF",
-    sponsorblock_selfpromo_color = "#FFFF00",
-    sponsorblock_filler_color = "#7300FF",
+    comments_download_path = "~~desktop/mpv/downloads/comments", -- EXPERIMENTAL - the download path for the comment JSON file
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
@@ -360,6 +370,15 @@ local thumbfast = {
     height = 0,
     disabled = true,
     available = false
+}
+
+local sponsorblock_color_map = {
+    sponsor = user_opts.sponsorblock_sponsor_color,
+    intro = user_opts.sponsorblock_intro_color,
+    outro = user_opts.sponsorblock_outro_color,
+    interaction = user_opts.sponsorblock_interaction_color,
+    selfpromo = user_opts.sponsorblock_selfpromo_color,
+    filler = user_opts.sponsorblock_filler_color
 }
 
 local tick_delay = 1 / 100 -- 100FPS
@@ -1071,18 +1090,9 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
     for key, value in pairs(state.sponsor_segments) do
         elem_ass = temp
 
-        if key == "sponsor" then
-            set_draw_color(user_opts.sponsorblock_sponsor_color, value, slider_lo, elem_geo)
-        elseif key == "intro" then
-            set_draw_color(user_opts.sponsorblock_intro_color, value, slider_lo, elem_geo)
-        elseif key == "outro" then
-            set_draw_color(user_opts.sponsorblock_outro_color, value, slider_lo, elem_geo)
-        elseif key == "interaction" then
-            set_draw_color(user_opts.sponsorblock_interaction_color, value, slider_lo, elem_geo)
-        elseif key == "selfpromo" then
-            set_draw_color(user_opts.sponsorblock_selfpromo_color, value, slider_lo, elem_geo)
-        elseif key == "filler" then
-            set_draw_color(user_opts.sponsorblock_filler_color, value, slider_lo, elem_geo)
+        local color = sponsorblock_color_map[key]
+        if color then
+            set_draw_color(color, value, slider_lo, elem_geo)
         end
     end
 end
@@ -2033,14 +2043,7 @@ end
 local function make_sponsorblock_segments()
     if not user_opts.show_sponsorblock_segments then return end
 
-    local sponsor_types = {
-        "sponsor",
-        "intro",
-        "outro",
-        "interaction",
-        "selfpromo",
-        "filler"
-    }
+    local sponsor_types = user_opts.sponsor_types
 
     state.sponsor_segments = {}
     local temp_segment = {}
