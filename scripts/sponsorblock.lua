@@ -3,6 +3,10 @@
 -- This script skips sponsored segments of YouTube videos
 -- using data from https://github.com/ajayyy/SponsorBlock
 
+-- this is the version needed for modernX! 
+-- https://github.com/zydezu/ModernX
+-- https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua
+
 local ON_WINDOWS = package.config:sub(1,1) ~= "/"
 
 local options = {
@@ -12,7 +16,6 @@ local options = {
 
     -- Categories to fetch
     categories = "sponsor,intro,outro,interaction,selfpromo,filler",
-    -- categories = "sponsor,intro,outro,interaction,selfpromo,filler",
 
     -- Categories to skip automatically
     skip_categories = "sponsor",
@@ -45,9 +48,6 @@ local options = {
 
     -- Use sponsor times from server if they're more up to date than our local database
     server_fallback = true,
-
-    -- Create chapters at sponsor boundaries for OSC display and manual skipping
-    make_chapters = true,
 
     -- Minimum duration for sponsors (in seconds), segments under that threshold will be ignored
     min_duration = 1,
@@ -204,7 +204,7 @@ local function process(uuid, t, new_ranges)
             skipped = false
         }
     end
-    if options.make_chapters and not chapter_cache[uuid] then
+    if true and not chapter_cache[uuid] then
         chapter_cache[uuid] = true
         local category_title = (category:gsub("^%l", string.upper):gsub("_", " "))
         create_chapter(category_title .. " segment start (" .. string.sub(uuid, 1, 6) .. ")", start_time, true)
@@ -434,7 +434,7 @@ local function submit_segment(category)
         if string.match(submit.stdout, "success") then
             segment = {a = 0, b = 0, progress = 0, first = true}
             mp.osd_message("[sponsorblock] segment submitted")
-            if options.make_chapters then
+            if true then
                 clean_chapters()
                 create_chapter("Submitted segment start", start_time, true)
                 create_chapter("Submitted segment end", end_time, false)
@@ -559,7 +559,7 @@ local function set_segment()
         segment.a = pos
         mp.osd_message("[sponsorblock] segment boundary A set, press again for boundary B", 3)
     end
-    if options.make_chapters and not segment.first then
+    if true and not segment.first then
         local start_time = math.min(segment.a, segment.b)
         local end_time = math.max(segment.a, segment.b)
         if end_time - start_time ~= 0 and end_time ~= 0 then
@@ -583,7 +583,10 @@ for new, old in pairs({
    end
 end
 
-mp.register_event("file-loaded", file_loaded)
+mp.register_event("file-loaded", function ()
+    file_loaded()
+    mp.command_native_async({"script-message", "sponsorblock-done"}, function() end)
+end)
 mp.add_key_binding("g", "set_segment", set_segment)
 mp.add_key_binding("G", "submit_segment", submit_segment)
 mp.add_key_binding("h", "upvote_segment", function() return vote("1") end)

@@ -225,7 +225,13 @@ local user_opts = {
     -- Experimental
     show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
     show_sponsorblock_segments = true,      -- EXPERIMENTAL - show sponsorblock segments on the progress bar
-    sponsorblock_sponsor_color = "#5BD45B",
+    add_sponsorblock_chapters = false,      -- EXPERIMENTAL - add sponsorblock chapters to the chapter list
+    sponsorblock_sponsor_color = "#00D400",
+    sponsorblock_intro_color = "#00FFFF",
+    sponsorblock_outro_color = "#0202ED",
+    sponsorblock_interaction_color = "#CC00FF",
+    sponsorblock_selfpromo_color = "#FFFF00",
+    sponsorblock_filler_color = "#7300FF",
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
@@ -428,6 +434,7 @@ local state = {
     osd = mp.create_osd_overlay('ass-events'),
     new_file_flag = false,                  -- flag to detect new file starts
     chapter_list = {},                      -- sorted by time
+    chapter_list_pre_sponsorblock = {},
     mute = false,
     looping = false,
     sliderpos = 0,
@@ -939,10 +946,6 @@ local function prepare_elements()
     end
 end
 
-function create_extra_slider(starttime, endtime, color)
-
-end
-
 --
 -- Element Rendering
 --
@@ -1038,6 +1041,20 @@ local function draw_seekbar_ranges(element, elem_ass, xp, rh, override_alpha)
 end
 
 local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
+    local function set_draw_color(color, value, slider_lo, elem_geo)
+        elem_ass:draw_stop()
+        elem_ass:merge(element.style_ass)
+        ass_append_alpha(elem_ass, element.layout.alpha, 50)
+        elem_ass:append("{\\1cH&" .. osc_color_convert(color) .. "&}")
+        elem_ass:merge(element.static_ass)
+
+        for _, range in pairs(value) do
+            local pstart = get_slider_ele_pos_for(element, range["start"])
+            local pend = get_slider_ele_pos_for(element, range["end"])
+            elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
+        end
+    end
+
     if not user_opts.show_sponsorblock_segments then 
         return
     end
@@ -1048,21 +1065,23 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
     local slider_lo = element.layout.slider
     local elem_geo = element.layout.geometry
 
-    elem_ass:draw_stop()
-    elem_ass:merge(element.style_ass)
-    ass_append_alpha(elem_ass, element.layout.alpha, 50)
-    -- apply sponsorblock color
-    elem_ass:append("{\\1cH&" .. osc_color_convert(user_opts.sponsorblock_sponsor_color) .. "&}")
-    elem_ass:merge(element.static_ass)
+    local temp = elem_ass
 
     for key, value in pairs(state.sponsor_segments) do
-        print(key .. " | " .. dumptable(value))
+        elem_ass = temp
+
         if key == "sponsor" then
-            for _, range in pairs(value) do
-                local pstart = get_slider_ele_pos_for(element, range["start"])
-                local pend = get_slider_ele_pos_for(element, range["end"])
-                elem_ass:rect_cw(pstart - rh, slider_lo.gap, pend + rh, elem_geo.h - slider_lo.gap)
-            end
+            set_draw_color(user_opts.sponsorblock_sponsor_color, value, slider_lo, elem_geo)
+        elseif key == "intro" then
+            set_draw_color(user_opts.sponsorblock_intro_color, value, slider_lo, elem_geo)
+        elseif key == "outro" then
+            set_draw_color(user_opts.sponsorblock_outro_color, value, slider_lo, elem_geo)
+        elseif key == "interaction" then
+            set_draw_color(user_opts.sponsorblock_interaction_color, value, slider_lo, elem_geo)
+        elseif key == "selfpromo" then
+            set_draw_color(user_opts.sponsorblock_selfpromo_color, value, slider_lo, elem_geo)
+        elseif key == "filler" then
+            set_draw_color(user_opts.sponsorblock_filler_color, value, slider_lo, elem_geo)
         end
     end
 end
@@ -1208,7 +1227,6 @@ function render_elements(master_ass)
 
 
                                 -- chapter title
-                                local se, ae = state.slider_element, elements[state.active_element]
                                 if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
                                     local dur = mp.get_property_number("duration", 0)
                                     if dur > 0 then
@@ -2010,13 +2028,16 @@ function get_chapterlist()
 end
 
 local function make_sponsorblock_segments()
+    if not user_opts.show_sponsorblock_segments then return end
+
     local sponsor_types = {
         "sponsor",
         "intro",
         "outro",
         "interaction",
         "selfpromo",
-        "filler" }
+        "filler"
+    }
 
     state.sponsor_segments = {}
     local temp_segment = {}
@@ -2026,9 +2047,8 @@ local function make_sponsorblock_segments()
     local duration = mp.get_property_number('duration', nil)
 
     if duration then
-        for _, chapter in ipairs(state.chapter_list) do
+        for _, chapter in ipairs(state.chapter_list_pre_sponsorblock) do
             if chapter.title then
-
                 for _, value in ipairs(sponsor_types) do
                     if string.find(string.lower(chapter.title), value) then
                         current_category = value
@@ -2063,11 +2083,20 @@ local function make_sponsorblock_segments()
         end
     end
 
-    print("-------------------------------------------")
-
-    for key, value in pairs(state.sponsor_segments) do
-        print(key .. dumptable(value))
+    if not user_opts.add_sponsorblock_chapters then
+        -- remove [SponsorBlock] chapters
+        local updated_chapters = {}
+        for _, chapter in ipairs(state.chapter_list_pre_sponsorblock) do
+            if not string.find(chapter.title, "%[SponsorBlock%]") then
+                table.insert(updated_chapters, chapter)
+            end
+        end
+        -- updated chapter list
+        state.chapter_list = updated_chapters
+        mp.set_property_native("chapter-list", updated_chapters)
     end
+
+    print("Added SponsorBlock segments")
 end
 
 function show_message(text, duration)
@@ -3640,7 +3669,7 @@ end
 
 function adjustSubtitles(visible)
     if visible and user_opts.raise_subtitles and state.osc_visible == true and (state.fullscreen == false or user_opts.show_fullscreen) then
-        local w, h = mp.get_osd_size()
+        local _, h = mp.get_osd_size()
         if h > 0 then
             local subpos = math.floor((osc_param.playresy - user_opts.raise_subtitle_amount)/osc_param.playresy*100)
             if subpos < 0 then
@@ -3870,8 +3899,7 @@ local function render()
     end
 
     -- submit
-    set_osd(osc_param.playresy * osc_param.display_aspect,
-            osc_param.playresy, ass.text)
+    set_osd(osc_param.playresy * osc_param.display_aspect, osc_param.playresy, ass.text)
 end
 
 --
@@ -4051,8 +4079,8 @@ mp.observe_property('playlist', nil, request_init)
 mp.observe_property("chapter-list", "native", function(_, list) -- chapter list changes
     list = list or {}  -- safety, shouldn't return nil
     table.sort(list, function(a, b) return a.time < b.time end)
+    state.chapter_list_pre_sponsorblock = list
     state.chapter_list = list
-    make_sponsorblock_segments()
     request_init()
 end)
 mp.observe_property('seeking', nil, function()
@@ -4107,7 +4135,6 @@ if user_opts.key_bindings then
             if user_opts.persistent_progresstoggle then
                 state.persistent_progresstoggle = not state.persistent_progresstoggle
                 tick()
-                print("Persistent progress bar toggled")    
             end
         end);
     end
@@ -4262,6 +4289,8 @@ mp.register_script_message("thumbfast-info", function(json)
         thumbfast = data
     end
 end)
+
+mp.register_script_message("sponsorblock-done", make_sponsorblock_segments)
 
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
