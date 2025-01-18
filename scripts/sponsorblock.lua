@@ -585,7 +585,7 @@ end
 
 mp.register_event("file-loaded", function ()
     file_loaded()
-    if #ranges > 0 then
+    if youtube_id and #ranges > 0 then
         mp.command_native_async({"script-message", "sponsorblock-done"}, function() end)
     end
 end)
