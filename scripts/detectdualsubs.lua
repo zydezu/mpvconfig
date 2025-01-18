@@ -48,6 +48,10 @@ local function check_for_dual_subs()
 
     if subtitle_count > 0 then
         mp.commandv("set", "sub", "1")
+        if not mp.get_property_bool("current-tracks/sub/external-filename") then
+            return
+        end
+
         local _, filename = mp.utils.split_path(mp.get_property("current-tracks/sub/external-filename"))
         local ext = filename:match("^.+(%..+)$")
         local filename_noext = filename:gsub(ext, "")

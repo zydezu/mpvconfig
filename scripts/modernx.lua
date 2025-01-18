@@ -2968,10 +2968,6 @@ layouts["reduced"] = function ()
 
     -- Chapter Title (next to timestamp)
     if user_opts.show_chapter_title then
-        lo = add_layout("separator")
-        lo.geometry = {x = 65 + (state.tc_ms and 25 or 0) + (show_hours and 16 or 0), y = refY - 84, an = 7, w = 30, h = 20}
-        lo.style = osc_styles.time
-
         lo = add_layout("chapter_title")
         lo.geometry = {x = 77 + (state.tc_ms and 25 or 0) + (show_hours and 16 or 0), y = refY - 84, an = 7, w = osc_geo.w - 200 - ((show_hours or state.tc_ms) and 60 or 0), h = 20}
         lo.style = osc_styles.chapter_title
