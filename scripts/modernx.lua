@@ -76,7 +76,7 @@ local user_opts = {
     -- Language and display --
     language = "en",                        -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",               -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
-    layout_option = "reduced",              -- use the original/reduced layout
+    layout_option = "original",             -- use the original/reduced layout
     idle_screen = true,                     -- show mpv logo when idle
     key_bindings = true,                    -- register additional key bindings, such as chapter scrubbing, pinning the window
     window_top_bar = "auto",                -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
