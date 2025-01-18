@@ -48,9 +48,9 @@ local function show_message(text, duration) end
 local function bind_keys() end
 local function unbind_keys() end
 local function destroyscrollingkeys() end
-local function checkDesc() end
+local function check_description() end
 local function show_description(text) end
-local function resetDescTimer() end
+local function reset_desc_timer() end
 local function render_message() end
 local function window_controls() end
 local function validate_user_opts() end
@@ -1853,11 +1853,11 @@ end
 
 local function download_done(success, result, error)
     if success then
-        show_message("\\N{\\an9}[WEB] Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
+        show_message("{\\an9}[WEB] Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
         state.downloaded_once = true
         mp.msg.info("[WEB] Download completed")
     else
-        show_message("\\N{\\an9}[WEB] Download failed - " .. (error or "Unknown error"))
+        show_message("{\\an9}[WEB] Download failed - " .. (error or "Unknown error"))
         mp.msg.info("[WEB] Download failed")
     end
     state.downloading = false
@@ -2136,7 +2136,7 @@ function show_message(text, duration)
 
     -- replace actual linebreaks with ASS linebreaks
     text = string.gsub(text, '\n', '\\N')
-
+    text = "\\N" .. text
     state.message_text = text
 
     if not state.message_hide_timer then
@@ -2177,7 +2177,7 @@ end
 function destroyscrollingkeys()
     state.showingDescription = false
     state.scrolledlines = 25
-    show_message("",0.01) -- dirty way to clear text
+    show_message("", 0.01) -- clear text
     unbind_keys("UP WHEEL_UP", "move_up")
     unbind_keys("DOWN WHEEL_DOWN", "move_down")
     unbind_keys("ENTER MBTN_LEFT", "select")
@@ -2186,7 +2186,7 @@ function destroyscrollingkeys()
     unbind_keys("RIGHT", "comments_right")
 end
 
-function checkDesc()
+function check_description()
     if not user_opts.show_description then return end
     if state.descriptionLoaded or state.localDescriptionIsClickable then
         if state.showingDescription then
@@ -2194,10 +2194,10 @@ function checkDesc()
             destroyscrollingkeys()
         else
             state.showingDescription = true
-            if (state.is_URL) then
+            if state.is_URL then
                 show_description(state.localDescriptionClick)
             else
-                if (state.localDescriptionClick == nil) then
+                if state.localDescriptionClick == nil then
                     show_description(state.localDescription)
                 else
                     show_description(state.localDescriptionClick)
@@ -2208,8 +2208,8 @@ function checkDesc()
 end
 
 function show_description(text)
-    if (state.is_URL and user_opts.show_youtube_comments) then
-        if (state.commentsParsed and user_opts.show_youtube_comments) then
+    if state.is_URL and user_opts.show_youtube_comments then
+        if state.commentsParsed and user_opts.show_youtube_comments then
             local pageText = "pages"
             if state.maxCommentPages == 1 then
                 pageText = "page"
@@ -2228,12 +2228,12 @@ function show_description(text)
         if (state.scrolledlines > 25) then
             state.scrolledlines = 25
         end
-        resetDescTimer()
+        reset_desc_timer()
         request_tick()
     end, { repeatable = true })
     bind_keys("DOWN WHEEL_DOWN", "move_down", function()
         state.scrolledlines = state.scrolledlines - user_opts.scrolling_speed
-        resetDescTimer()
+        reset_desc_timer()
         request_tick()
     end, { repeatable = true })
     bind_keys("ENTER", "select", destroyscrollingkeys)
@@ -2241,7 +2241,7 @@ function show_description(text)
         if (state.commentsPage > 0) then
             state.commentsPage = 0
             state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
-            resetDescTimer()
+            reset_desc_timer()
             request_tick()
             state.scrolledlines = 25
         else
@@ -2275,7 +2275,7 @@ function show_description(text)
                 end
                 state.scrolledlines = 25
             end
-            resetDescTimer()
+            reset_desc_timer()
             request_tick()
         end)
         bind_keys("RIGHT", "comments_right", function()
@@ -2289,21 +2289,22 @@ function show_description(text)
                 end
                 state.scrolledlines = 25
             end
-            resetDescTimer()
+            reset_desc_timer()
             request_tick()
         end)
     end
 
+    text = "\\N" .. text
     state.message_text = text
 
     if not state.message_hide_timer then
         state.message_hide_timer = mp.add_timeout(0, request_tick)
     end
-    resetDescTimer()
+    reset_desc_timer()
     request_tick()
 end
 
-function resetDescTimer()
+function reset_desc_timer()
     state.message_hide_timer:kill()
     state.message_hide_timer.timeout = 10
     state.message_hide_timer:resume()
@@ -2311,7 +2312,7 @@ end
 
 function render_message(ass)
     if state.message_hide_timer and state.message_hide_timer:is_enabled() and state.message_text then
-        local _, lines = string.gsub(state.message_text, '\\N', '')
+        local _, lines = string.gsub(state.message_text, "\\N", "")
 
         local fontsize = tonumber(mp.get_property('options/osd-font-size'))
         local outline = tonumber(mp.get_property('options/osd-border-size'))
@@ -2341,7 +2342,6 @@ function render_message(ass)
 
         if state.showingDescription then
             ass:pos(20, state.scrolledlines)
-            local alpha = 10
         end
     else
         state.message_text = nil
@@ -3146,7 +3146,7 @@ local function osc_init()
     end
     ne.eventresponder['mbtn_left_up'] =
         function ()
-            checkDesc()
+            check_description()
         end
 
     -- playlist buttons
@@ -3495,11 +3495,11 @@ local function osc_init()
             local localpath = mp.command_native({"expand-path", user_opts.download_path})
 
             if state.downloaded_once then
-                show_message("\\N{\\an9}" .. texts.downloaded .. "...")
+                show_message("{\\an9}" .. texts.downloaded .. "...")
             elseif state.downloading then
-                show_message("\\N{\\an9}" .. texts.download_in_progress .. "...")
+                show_message("{\\an9}" .. texts.download_in_progress .. "...")
             else
-                show_message("\\N{\\an9}" .. texts.downloading .. "...")
+                show_message("{\\an9}" .. texts.downloading .. "...")
                 state.downloading = true
 
                 -- use current or default ytdl-format
@@ -3520,7 +3520,7 @@ local function osc_init()
                 exec_async(command, download_done)
             end
         else
-            show_message("\\N{\\an9}Can't be downloaded")
+            show_message("{\\an9}Can't be downloaded")
         end
     end
 
@@ -4416,7 +4416,7 @@ if user_opts.key_bindings then
     end
 
     if user_opts.show_description then
-        mp.add_key_binding("d", "show_description", checkDesc);
+        mp.add_key_binding("d", "show_description", check_description);
     end
 
     mp.add_key_binding("tab", 'get_chapterlist', function() show_message(get_chapterlist()) end)
