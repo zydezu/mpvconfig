@@ -41,6 +41,7 @@ Please note that many of these scripts have been slightly modified from their in
 - Added `progress_bar_height` to `modernX.lua`
 - FIX: fix thumbnail border clipping through text weird
 - FEAT: `modernX.lua` now sets the tick rate to the monitors refresh rate
+- FIX: fix state.title_bar not being respected after pinning
 
 ### 2025-01-16
 

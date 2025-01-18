@@ -76,7 +76,7 @@ local user_opts = {
     -- Language and display --
     language = "en",                        -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",               -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
-    layout_option = "original",             -- use the original/reduced layout
+    layout_option = "reduced",             -- use the original/reduced layout
     idle_screen = true,                     -- show mpv logo when idle
     key_bindings = true,                    -- register additional key bindings, such as chapter scrubbing, pinning the window
     window_top_bar = "auto",                -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
@@ -457,6 +457,7 @@ local state = {
     showhide_enabled = false,
 
     border = true,
+    title_bar = true,
     maximized = false,
     osd = mp.create_osd_overlay('ass-events'),
     new_file_flag = false,                  -- flag to detect new file starts
@@ -852,7 +853,7 @@ end
 function window_controls_enabled()
     local val = user_opts.window_top_bar
     if val == 'auto' then
-        return (not state.border) or state.fullscreen
+        return (not state.border) or (not state.title_bar) or state.fullscreen
     else
         return val ~= 'no'
     end
@@ -2561,7 +2562,7 @@ layouts["original"] = function ()
 
     local top_titlebar = window_controls_enabled() and (user_opts.window_title or user_opts.window_controls)
 
-    if not user_opts.title_bar_box and ((user_opts.window_top_bar == "yes" or not (state.border and state.title_bar)) or state.fullscreen) and top_titlebar then
+    if not user_opts.title_bar_box and (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
         new_element("title_alpha_bg", "box")
         lo = add_layout("title_alpha_bg")
         lo.geometry = {x = posX, y = -100, an = 7, w = osc_w, h = -1}
@@ -2816,7 +2817,7 @@ layouts["reduced"] = function ()
 
     local top_titlebar = window_controls_enabled() and (user_opts.window_title or user_opts.window_controls)
 
-    if not user_opts.title_bar_box and ((user_opts.window_top_bar == "yes" or not (state.border and state.title_bar)) or state.fullscreen) and top_titlebar then
+    if not user_opts.title_bar_box and (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
         new_element("title_alpha_bg", "box")
         lo = add_layout("title_alpha_bg")
         lo.geometry = {x = posX, y = -100, an = 7, w = osc_w, h = -1}
@@ -4247,7 +4248,7 @@ function process_event(source, what)
                 if user_opts.bottom_hover then -- if enabled, only show osc if mouse is hovering at the bottom of the screen (where the UI elements are)
                     local top_hover = window_controls_enabled() and (user_opts.window_title or user_opts.window_top_bar)
                     if mouseY > osc_param.playresy - (user_opts.bottom_hover_zone or 200) or
-                        ((user_opts.window_top_bar == "yes" or not (state.border and state.title_bar)) or state.fullscreen) and (mouseY < 40 and top_hover) then
+                        (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and (mouseY < 40 and top_hover) then
                         show_osc()
                     else
                         hide_osc()
@@ -4422,8 +4423,8 @@ if user_opts.key_bindings then
 
     mp.add_key_binding("p", "pinwindow", function()
         mp.commandv('cycle', 'ontop')
-        if (state.initialborder == 'yes') then
-            if (mp.get_property('ontop') == 'yes') then
+        if state.initialborder == 'yes' then
+            if mp.get_property('ontop') == 'yes' then
                 show_message("Pinned window")
                 mp.commandv('set', 'border', "no")
             else
@@ -4469,7 +4470,7 @@ mp.observe_property('border', 'bool',
 )
 mp.observe_property('title-bar', 'bool',
     function(name, val)
-        state.border = val
+        state.title_bar = val
         request_init_resize()
     end
 )
