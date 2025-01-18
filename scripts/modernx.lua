@@ -76,7 +76,7 @@ local user_opts = {
     -- Language and display --
     language = "en",                        -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",               -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
-    layout_option = "reduced",             -- use the original/reduced layout
+    layout_option = "reduced",              -- use the original/reduced layout
     idle_screen = true,                     -- show mpv logo when idle
     key_bindings = true,                    -- register additional key bindings, such as chapter scrubbing, pinning the window
     window_top_bar = "auto",                -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
@@ -130,7 +130,7 @@ local user_opts = {
     window_title = true,                    -- show window title in borderless/fullscreen mode
     window_controls = true,                 -- show window controls (close, minimize, maximize) in borderless/fullscreen
     title_bar_box = false,                  -- show title bar as a box instead of a black fade
-    window_controls_title = "${media-title}",-- same as title but for window_controls
+    window_controls_title = "${media-title}", -- same as title but for window_controls
 
     -- Subtitle display settings
     raise_subtitles = true,                 -- whether to raise subtitles above the osc when it's shown
@@ -172,8 +172,8 @@ local user_opts = {
     osc_color = "#000000",                  -- accent color of the OSC and title bar
     window_title_color = "#FFFFFF",         -- color of the title in borderless/fullscreen mode
     window_controls_color = "#FFFFFF",      -- color of the window controls (close, minimize, maximize) in borderless/fullscreen mode
-    window_controls_close_hover = "#E81123",-- color of close window control on hover
-    window_controls_minmax_hover = "#53A4FC",-- color of min/max window controls on hover
+    window_controls_close_hover = "#E81123", -- color of close window control on hover
+    window_controls_minmax_hover = "#53A4FC", -- color of min/max window controls on hover
     title_color = "#FFFFFF",                -- color of the title (above seekbar)
     seekbarfg_color = "#1D96F5",            -- color of the seekbar progress and handle, in Hex color format
     seekbarbg_color = "#FFFFFF",            -- color of the remaining seekbar, in Hex color format
@@ -240,9 +240,9 @@ local user_opts = {
     sponsorblock_intro_color = "#00FFFF",   -- color for intermission/intro animations
     sponsorblock_outro_color = "#0202ED",   -- color for endcards/credits
     sponsorblock_interaction_color = "#CC00FF", -- color for interaction reminders (reminders to subscribe)
-    sponsorblock_selfpromo_color = "#FFFF00",   -- color for unpaid/self promotion
-    sponsorblock_preview_color = "#008FD6",   -- color for unpaid/self promotion
-    sponsorblock_music_offtopic_color = "#FF9900",   -- color for unpaid/self promotion
+    sponsorblock_selfpromo_color = "#FFFF00", -- color for unpaid/self promotion
+    sponsorblock_preview_color = "#008FD6", -- color for unpaid/self promotion
+    sponsorblock_music_offtopic_color = "#FF9900", -- color for unpaid/self promotion
     sponsorblock_filler_color = "#7300FF",  -- color for filler tangent/jokes
 
     -- Experimental
