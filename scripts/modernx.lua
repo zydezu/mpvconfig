@@ -1083,7 +1083,7 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
         end
     end
 
-    if not user_opts.show_sponsorblock_segments then 
+    if not user_opts.show_sponsorblock_segments then
         return
     end
 
@@ -2807,7 +2807,7 @@ layouts["reduced"] = function ()
 
     -- Controller Background
     local lo, geo
-    
+
     new_element('box_bg', 'box')
     lo = add_layout('box_bg')
     lo.geometry = {x = posX, y = posY, an = 7, w = osc_w, h = 1}
@@ -2825,11 +2825,11 @@ layouts["reduced"] = function ()
         lo.layer = 10
         lo.alpha[3] = 0
     end
-        
+
     -- Alignment
     local refX = osc_w / 2
     local refY = posY
-        
+
     -- Seekbar
     new_element('seekbarbg', 'box')
     lo = add_layout('seekbarbg')
@@ -2845,13 +2845,13 @@ layouts["reduced"] = function ()
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
-    
+
     if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
         lo = add_layout('persistentseekbar')
         lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progressheight}
         lo.style = osc_styles.seekbar_fg
         lo.slider.gap = 7
-        lo.slider.tooltip_an = 0   
+        lo.slider.tooltip_an = 0
     end
 
     local jump_buttons = user_opts.jump_buttons
@@ -2871,22 +2871,23 @@ layouts["reduced"] = function ()
     local outeroffset = (chapter_skip_buttons and 0 or 100) + (jump_buttons and 0 or 100)
 
     -- Title
-    geo = {x = 25, y = refY - 97, an = 1, w = osc_geo.w - 50, h = 35}
+    geo = {x = 25, y = refY - 97, an = 1, w = osc_geo.w - 170, h = 35}
     lo = add_layout("title")
     lo.geometry = geo
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
-                             geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
+                             geo.y - geo.h, geo.x + osc_geo.w - 170, geo.y + geo.h)
     lo.alpha[3] = 0
-    lo.button.maxchars = geo.w / 11
+    lo.button.maxchars = geo.w / 5
 
     -- Description
     if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
-        geo = {x = osc_geo.w - 25, y = refY - 115, an = 9, w = osc_geo.w - 80, h = 19}
+        geo = {x = osc_geo.w - 25, y = refY - 115, an = 9, w = 120, h = 19}
         lo = add_layout("description")
         lo.geometry = geo
-        lo.style = osc_styles.description
+        lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.description,
+        geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
         lo.alpha[3] = 0
-        lo.button.maxchars = geo.w / 7
+        -- lo.button.maxchars = geo.w / 11
     end
 
     -- Volumebar
@@ -2898,23 +2899,23 @@ layouts["reduced"] = function ()
         lo.layer = 13
         lo.alpha[1] = 128
         lo.style = user_opts.volumebar_match_seek_color and osc_styles.seekbar_bg or osc_styles.volumebar_bg
-        
+
         lo = add_layout("volumebar")
         lo.geometry = {x = 155, y = refY - 40, an = 4, w = 80, h = 8}
         lo.style = user_opts.volumebar_match_seek_color and osc_styles.seekbar_fg or osc_styles.volumebar_fg
         lo.slider.gap = 3
         lo.slider.tooltip_style = osc_styles.tooltip
-        lo.slider.tooltip_an = 2    
+        lo.slider.tooltip_an = 2
     end
 
     -- buttons
     if track_nextprev_buttons then
         lo = add_layout('pl_prev')
         lo.geometry = {x = refX - (60 + (chapter_skip_buttons and 60 or 0)) - offset, y = refY - 40 , an = 5, w = 30, h = 24}
-        lo.style = osc_styles.control_2    
+        lo.style = osc_styles.control_2
     end
 
-    if chapter_skip_buttons then 
+    if chapter_skip_buttons then
         lo = add_layout('skipback')
         lo.geometry = {x = refX - 60 - offset, y = refY - 40 , an = 5, w = 30, h = 24}
         lo.style = osc_styles.control_2
@@ -2996,7 +2997,7 @@ layouts["reduced"] = function ()
     lo = add_layout('tog_fs')
     lo.geometry = {x = osc_geo.w - 37, y = refY - 40, an = 5, w = 24, h = 24}
     lo.style = osc_styles.control_3
-    lo.visible = (osc_param.playresx >= 250 - outeroffset)    
+    lo.visible = (osc_param.playresx >= 250 - outeroffset)
 
     if ontop_button then
         lo = add_layout('tog_ontop')
@@ -3009,7 +3010,7 @@ layouts["reduced"] = function ()
         lo = add_layout('tog_loop')
         lo.geometry = {x = osc_geo.w - 82, y = refY - 40, an = 5, w = 24, h = 24}
         lo.style = osc_styles.control_3
-        lo.visible = (osc_param.playresx >= 600 - outeroffset)    
+        lo.visible = (osc_param.playresx >= 600 - outeroffset)
     end
 
     if info_button then
@@ -3128,10 +3129,15 @@ local function osc_init()
     ne = new_element('description', 'button')
     ne.visible = (state.localDescription ~= nil or state.is_URL) and user_opts.show_description
     ne.content = function ()
+        if #state.videoDescription > 25 and user_opts.layout_option == "reduced" then
+            return "View description"
+        end
+
         if state.is_URL then
             local title = "Loading description..."
             if state.descriptionLoaded then
                 title = state.videoDescription:sub(1, 300)
+
             end
             -- get rid of new lines
             title = string.gsub(title, '\\N', ' ')

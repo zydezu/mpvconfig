@@ -585,7 +585,9 @@ end
 
 mp.register_event("file-loaded", function ()
     file_loaded()
-    mp.command_native_async({"script-message", "sponsorblock-done"}, function() end)
+    if #ranges > 0 then
+        mp.command_native_async({"script-message", "sponsorblock-done"}, function() end)
+    end
 end)
 mp.add_key_binding("g", "set_segment", set_segment)
 mp.add_key_binding("G", "submit_segment", submit_segment)
