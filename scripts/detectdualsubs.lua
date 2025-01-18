@@ -48,7 +48,7 @@ local function check_for_dual_subs()
 
     if subtitle_count > 0 then
         mp.commandv("set", "sub", "1")
-        if not mp.get_property_bool("current-tracks/sub/external-filename") then
+        if not mp.get_property("current-tracks/sub/external-filename") then
             return
         end
 
