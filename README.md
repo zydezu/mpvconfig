@@ -38,6 +38,7 @@ Please note that many of these scripts have been slightly modified from their in
 - FIX: fix some subtitles not showing up on YouTube videos
 - FIX: ytdl formats not being respected in modernx.lua
 - FIX: crop text properly on title bar
+- FIX: add edge date case
 
 ### 2025-01-17
 

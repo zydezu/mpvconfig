@@ -1595,12 +1595,16 @@ end
 
 function normaliseDate(date)
     date = string.gsub(date:gsub("/", ""), "-", "")
+    local date_table
+    if string.find(date:sub(1,8), ":") then
+        return date
+    end
     if (#date > 8) then -- YYYYMMDD HHMMSS (plus a time)
-        local dateTable = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
-        return os.date(user_opts.date_format, os.time(dateTable)) .. date:sub(9)
+        date_table = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
+        return os.date(user_opts.date_format, os.time(date_table)) .. date:sub(9)
     elseif (#date > 4) then -- YYYYMMDD
-        local dateTable = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
-        return os.date(user_opts.date_format, os.time(dateTable))
+        date_table = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
+        return os.date(user_opts.date_format, os.time(date_table))
     else -- YYYY
         return date
     end
