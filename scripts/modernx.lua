@@ -1632,12 +1632,6 @@ function check_path_url()
     local path = mp.get_property("path")
     if not path then return nil end
 
-    if string.find(path, "https://") then
-        path = string.gsub(path, "ytdl://", "") -- Remove "ytdl://" prefix
-    else
-        path = string.gsub(path, "ytdl://", "https://") -- Replace "ytdl://" with "https://"
-    end
-
     -- use current or default ytdl-format
     local mpv_ytdl = (user_opts.ytdl_format and user_opts.ytdl_format ~= "") and user_opts.ytdl_format or  mp.get_property("file-local-options/ytdl-format") or mp.get_property("ytdl-format") or ""
     local ytdl_format = (mpv_ytdl and mpv_ytdl ~= "") and mpv_ytdl or "-f bestvideo+bestaudio/best"
@@ -3506,7 +3500,6 @@ local function osc_init()
 
                 -- use current or default ytdl-format
                 local mpv_ytdl = (user_opts.ytdl_format and user_opts.ytdl_format ~= "") and user_opts.ytdl_format or  mp.get_property("file-local-options/ytdl-format") or mp.get_property("ytdl-format") or ""
-                local ytdl_format = (mpv_ytdl and mpv_ytdl ~= "") and mpv_ytdl or "-f bestvideo+bestaudio/best"
 
                 local command = {
                     "yt-dlp",
