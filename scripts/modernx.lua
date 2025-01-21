@@ -3503,7 +3503,7 @@ local function osc_init()
 
                 local command = {
                     "yt-dlp",
-                    user_opts.ytdl_format,
+                    mpv_ytdl,
                     "--remux", "mp4",
                     "--add-metadata",
                     "--embed-subs",
