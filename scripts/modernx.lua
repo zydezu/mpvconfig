@@ -1632,10 +1632,6 @@ function check_path_url()
     local path = mp.get_property("path")
     if not path then return nil end
 
-    -- use current or default ytdl-format
-    local mpv_ytdl = (user_opts.ytdl_format and user_opts.ytdl_format ~= "") and user_opts.ytdl_format or  mp.get_property("file-local-options/ytdl-format") or mp.get_property("ytdl-format") or ""
-    local ytdl_format = (mpv_ytdl and mpv_ytdl ~= "") and mpv_ytdl or "-f bestvideo+bestaudio/best"
-
     if is_url(path) and path or nil then
         state.is_URL = true
         state.url_path = path
@@ -1645,7 +1641,6 @@ function check_path_url()
             mp.msg.info("Fetching file size...")
             local command = {
                 "yt-dlp",
-                ytdl_format,
                 "--no-download",
                 "-O",
                 "%(filesize,filesize_approx)s", -- Fetch file size or approximate size
