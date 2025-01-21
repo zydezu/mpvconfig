@@ -358,6 +358,7 @@ local function contains(list, item)
     return false
 end
 
+-- debug function
 local function dumptable(o)
     if type(o) == 'table' then
        local s = '{ '
