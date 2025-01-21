@@ -1632,6 +1632,12 @@ function check_path_url()
     local path = mp.get_property("path")
     if not path then return nil end
 
+    if string.find(path, "https://") then
+        path = string.gsub(path, "ytdl://", "") -- Remove "ytdl://" prefix
+    else
+        path = string.gsub(path, "ytdl://", "https://") -- Replace "ytdl://" with "https://"
+    end
+
     if is_url(path) and path or nil then
         state.is_URL = true
         state.url_path = path
