@@ -35,7 +35,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-01-21
 
-- FIX: Fix some subtitles not showing up on YouTube videos
+- FIX: fix some subtitles not showing up on YouTube videos
+- FIX: ytdl formats not being respected in modernx.lua
 
 ### 2025-01-17
 
