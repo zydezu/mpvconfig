@@ -2514,14 +2514,16 @@ function window_controls()
         end
         lo = add_layout('window_title')
 
-        local geo = {x = 20, y = button_y + 14, an = 1, w = osc_param.playresx - 50, h = wc_geo.h}
+        local geo = {x = 20, y = button_y + 14, an = 1, w = osc_param.playresx - 150, h = wc_geo.h}
         if user_opts.title_bar_box then
-            geo = {x = 10, y = button_y + 10, an = 1, w = osc_param.playresx - 50, h = wc_geo.h}
+            geo = {x = 10, y = button_y + 10, an = 1, w = osc_param.playresx - 150, h = wc_geo.h}
         end
 
         lo.geometry = geo
-        lo.style = osc_styles.window_title
-        lo.button.maxchars = geo.w / 10
+        lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.window_title,
+                    geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
+
+        -- lo.button.maxchars = geo.w / 10
     end
 end
 
