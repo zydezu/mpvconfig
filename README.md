@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-01-21
+
+- FIX: Fix some subtitles not showing up on YouTube videos
+
 ### 2025-01-17
 
 - FEATURE: added coloured segments on the progress bar, like on Youtube with SponsorBlock to `modernX.lua` - NOTE: requires a custom version of sponsorblock.lua [https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua)
