@@ -248,6 +248,7 @@ local user_opts = {
     -- Experimental
     show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
     comments_download_path = "~~desktop/mpv/downloads/comments", -- EXPERIMENTAL - the download path for the comment JSON file
+    FORCE_fix_not_ontop = false,            -- EXPERIMENTAL - try and mitigate https://github.com/zydezu/ModernX/issues/30, https://github.com/akiirui/mpv-handler/issues/48
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
@@ -1465,6 +1466,11 @@ local function startupevents()
         end
      end
     destroyscrollingkeys() -- close description
+
+    if user_opts.FORCE_fix_not_ontop then
+        mp.commandv("cycle", "ontop")
+        mp.commandv("cycle", "ontop")
+    end
 end
 
 function checktitle()
@@ -3564,7 +3570,7 @@ local function osc_init()
     ne.visible = (osc_param.playresx >= 700 - outeroffset - (user_opts.loop_button and 0 or 100))
     ne.eventresponder['mbtn_left_up'] =
         function ()
-            mp.commandv('cycle', 'ontop')
+            mp.commandv("cycle", "ontop")
             if (state.initialborder == 'yes') then
                 if (mp.get_property('ontop') == 'yes') then
                     mp.commandv('set', 'border', "no")
@@ -3577,7 +3583,7 @@ local function osc_init()
 
     ne.eventresponder['mbtn_right_up'] =
         function ()
-            mp.commandv('cycle', 'ontop')
+            mp.commandv("cycle", "ontop")
         end
 
     --seekbar
@@ -4418,7 +4424,7 @@ if user_opts.key_bindings then
     mp.add_key_binding("tab", 'get_chapterlist', function() show_message(get_chapterlist()) end)
 
     mp.add_key_binding("p", "pinwindow", function()
-        mp.commandv('cycle', 'ontop')
+        mp.commandv("cycle", "ontop")
         if state.initialborder == 'yes' then
             if mp.get_property('ontop') == 'yes' then
                 show_message("Pinned window")
