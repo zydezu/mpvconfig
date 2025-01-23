@@ -14,7 +14,9 @@ local options = {
     paste_keybind = [[
     ["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
     ]],
-    open_keybind = "o"
+    open_keybind = "o",
+    linux_copy_command = "xclip -silent -selection clipboard -in",
+    linux_paste_command = "xclip -selection clipboard -o",
 }
 (require "mp.options").read_options(options)
 
@@ -61,7 +63,7 @@ end
 local function set_clipboard(text)
     local pipe
     if device == "linux" then
-		pipe = io.popen("xclip -silent -selection clipboard -in", "w")
+		pipe = io.popen(options.linux_copy_command, "w")
         pipe:write(text)
         pipe:close()
     elseif device == "windows" then
@@ -85,7 +87,7 @@ end
 local function get_clipboard()
     local clipboard
     if device == "linux" then
-        clipboard = os.capture("xclip -selection clipboard -o")
+        clipboard = os.capture(options.linux_paste_command)
 		return clipboard
     elseif device == "windows" then
         local args = {
