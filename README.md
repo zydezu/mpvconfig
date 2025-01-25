@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-01-25
+
+- FIX: sponsorblock segments not rendering properly in modernX
+
 ### 2025-01-21
 
 - FIX: fix some subtitles not showing up on YouTube videos

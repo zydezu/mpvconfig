@@ -464,7 +464,6 @@ local state = {
     osd = mp.create_osd_overlay('ass-events'),
     new_file_flag = false,                  -- flag to detect new file starts
     chapter_list = {},                      -- sorted by time
-    chapter_list_pre_sponsorblock = {},
     mute = false,
     looping = false,
     sliderpos = 0,
@@ -2064,6 +2063,7 @@ end
 
 local function make_sponsorblock_segments()
     if not user_opts.show_sponsorblock_segments then return end
+    if not state.is_URL then return end
 
     local sponsor_types = user_opts.sponsor_types
 
@@ -2072,14 +2072,21 @@ local function make_sponsorblock_segments()
     local is_start_added = false
     local current_category = ""
 
+    local temp_chapters = mp.get_property_native("chapter-list")
     local duration = mp.get_property_number('duration', nil)
 
     if duration then
-        for _, chapter in ipairs(state.chapter_list_pre_sponsorblock) do
+        for _, chapter in ipairs(temp_chapters) do
+            
+            print(chapter.title)
+            
             if chapter.title then
+
+
                 for _, value in ipairs(sponsor_types) do
                     if string.find(string.lower(chapter.title), value) then
                         current_category = value
+
                         if not temp_segment[current_category] then
                             temp_segment[current_category] = {}
                         end
@@ -2114,14 +2121,17 @@ local function make_sponsorblock_segments()
     if not user_opts.add_sponsorblock_chapters then
         -- remove [SponsorBlock] chapters
         local updated_chapters = {}
-        for _, chapter in ipairs(state.chapter_list_pre_sponsorblock) do
+        for _, chapter in ipairs(temp_chapters) do
             if not string.find(chapter.title, "%[SponsorBlock%]") then
                 table.insert(updated_chapters, chapter)
             end
         end
         -- updated chapter list
         state.chapter_list = updated_chapters
-        mp.set_property_native("chapter-list", updated_chapters)
+
+        if #updated_chapters > 0 then
+            mp.set_property_native("chapter-list", updated_chapters)
+        end
     end
 
     print("Added SponsorBlock segments")
@@ -4364,7 +4374,6 @@ mp.observe_property('playlist', nil, request_init)
 mp.observe_property("chapter-list", "native", function(_, list) -- chapter list changes
     list = list or {}  -- safety, shouldn't return nil
     table.sort(list, function(a, b) return a.time < b.time end)
-    state.chapter_list_pre_sponsorblock = list
     state.chapter_list = list
     -- make_sponsorblock_segments()
     request_init()
