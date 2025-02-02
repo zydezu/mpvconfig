@@ -41,7 +41,6 @@ local function process_vid_stats() end
 local function process_dislikes() end
 local function add_commas_to_number() end
 local function addLikeCountToTitle() end
-local function format_file_size(file_size) end
 local function get_playlist() end
 local function get_chapterlist() end
 local function show_message(text, duration) end
