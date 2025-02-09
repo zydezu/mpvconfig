@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-02-09
+
+- FEAT: set subtitles to a non-forced sub track as defined by --slang, in `detectdualsubs.lua`
+
 ### 2025-01-25
 
 - FIX: sponsorblock segments not rendering properly in modernX

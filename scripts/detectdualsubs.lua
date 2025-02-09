@@ -89,7 +89,7 @@ local function check_for_dual_subs()
 
                 if ext == sub_ext then
                     if filename_noext ~= sub_filename_noext then
-                        for j, lang in ipairs(original and options.translated_sub or options.original_sub) do                            
+                        for j, lang in ipairs(original and options.translated_sub or options.original_sub) do
                             local pattern = lang:gsub("[%[%]]", "%%%1") -- Escape [ and ]
                             if string.find(sub_filename_noext, pattern) then
                                 if original then
@@ -129,11 +129,27 @@ local function osd_msg(message)
     mp.osd_message(message)
 end
 
+local function auto_check_for_dual_subs()
+    local result = check_for_dual_subs()
+    if not result then
+        local track_list = mp.get_property_native('track-list')
+        for index, value in ipairs(mp.get_property_native('slang')) do
+            for i = 1, #track_list do
+                if track_list[i].type == "sub" and track_list[i].lang == value and track_list[i].forced == false then
+                    mp.set_property("sid", track_list[i].id)
+                    print("Setting non-forced sub "..track_list[i].id)
+                    return
+                end
+            end
+        end
+    end
+end
+
 local function key_bind_check_for_dual_subs()
     osd_msg("Checking for dual subs...")
     local result = check_for_dual_subs()
     osd_msg(result and "Applied dual subs" or "Couldn't find dual subs")
 end
 
-mp.register_event("file-loaded", check_for_dual_subs)
+mp.register_event("file-loaded", auto_check_for_dual_subs)
 mp.add_key_binding("ctrl+b", "key_bind_check_for_dual_subs", key_bind_check_for_dual_subs)
