@@ -17,6 +17,10 @@
     "01. Beautiful World [ja].lrc" and "01. Beautiful World [en].lrc"
     the script detects if a sub has "[ja]" or "[en]" in it's filename to
     determine whether to show them bot has primary and secondary subtitles
+
+    options.auto_set_non_forced_subs if true, set subtitles to a 
+    non-forced sub track as defined by the options --slang, as sometimes 
+    videos may force unneeded tracks
 --]]
 
 mp.utils = require("mp.utils")
@@ -24,6 +28,7 @@ mp.utils = require("mp.utils")
 local options = {
     original_sub = {"[ja]"},
     translated_sub = {"[en]"},
+    auto_set_non_forced_subs = true
 }
 (require "mp.options").read_options(options)
 
@@ -129,19 +134,25 @@ local function osd_msg(message)
     mp.osd_message(message)
 end
 
-local function auto_check_for_dual_subs()
-    local result = check_for_dual_subs()
-    if not result then
-        local track_list = mp.get_property_native('track-list')
-        for index, value in ipairs(mp.get_property_native('slang')) do
-            for i = 1, #track_list do
-                if track_list[i].type == "sub" and track_list[i].lang == value and track_list[i].forced == false then
-                    mp.set_property("sid", track_list[i].id)
-                    print("Setting non-forced sub "..track_list[i].id)
-                    return
-                end
+local function set_non_forced_subs()
+    local track_list = mp.get_property_native("track-list")
+    local slang_list = mp.get_property_native("slang")
+
+    for _, value in ipairs(slang_list) do
+        for i = 1, #track_list do
+            if track_list[i].type == "sub" and track_list[i].lang == value and track_list[i].forced == false then
+                mp.set_property("sid", track_list[i].id)
+                print("Setting non-forced sub "..track_list[i].id)
+                return
             end
         end
+    end
+end
+
+local function auto_check_for_dual_subs()
+    local result = check_for_dual_subs()
+    if not result and options.auto_set_non_forced_subs then
+        set_non_forced_subs()
     end
 end
 
