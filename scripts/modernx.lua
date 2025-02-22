@@ -1501,7 +1501,7 @@ function checktitle()
     print(dumptable(mp.get_property_native("metadata")))
     if mp.get_property_native('metadata') then
         state.ytdescription = mp.get_property_native('metadata').ytdl_description or description or ""
-        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%%%")
+        state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%")
     else
         print("Failed to load metadata")
     end
@@ -1922,7 +1922,7 @@ function process_vid_stats(success, result, error)
         state.ytdescription
 
     if (state.dislikes == "") then
-        state.localDescriptionClick = state.localDescriptionClick .. string.gsub(string.gsub(result.stdout, '\r', '\\N'), '\n', '\\N')
+        state.localDescriptionClick = state.localDescriptionClick .. string.gsub(result.stdout, '\r', '\\N'):gsub("\n", "\\N")
         state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
     end
     addLikeCountToTitle()
