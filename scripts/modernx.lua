@@ -757,7 +757,7 @@ end
 -- Tracklist Management
 --
 
-local nicetypes = {video = texts.video, audio = texts.audio, sub = texts.subtitle}
+local valid_types = {video = texts.video, audio = texts.audio, sub = texts.subtitle}
 local tracks_osc, tracks_mpv
 
 -- updates the OSC internal playlists, should be run each time the track-layout changes
@@ -787,7 +787,7 @@ end
 
 -- return a nice list of tracks of the given type (video, audio, sub)
 function get_tracklist(type)
-    local message = nicetypes[type] .. texts.track
+    local message = valid_types[type] .. texts.track
     if not tracks_osc or #tracks_osc[type] == 0 then
         message = texts.none
     else
@@ -4341,7 +4341,6 @@ function tick()
             state.showhide_enabled = false
         end
 
-
     elseif (state.fullscreen and user_opts.show_fullscreen)
         or (not state.fullscreen and user_opts.show_windowed) then
 
@@ -4392,7 +4391,7 @@ mp.observe_property('seeking', nil, function()
 end)
 
 if user_opts.key_bindings then
-    local function changeChapter(number)
+    local function change_chapter(number)
         mp.commandv("add", "chapter", number)
         reset_timeout()
         show_message(get_chapterlist())
@@ -4408,10 +4407,10 @@ if user_opts.key_bindings then
         destroyscrollingkeys()
     end);
     mp.add_key_binding("shift+left", "prevchapter", function()
-        changeChapter(-1)
+        change_chapter(-1)
     end);
     mp.add_key_binding("shift+right", "nextchapter", function()
-        changeChapter(1)
+        change_chapter(1)
     end);
 
     -- extra key bindings
