@@ -495,6 +495,7 @@ local state = {
     commentsPage = 0,
     maxCommentPages = 0,
     commentsAdditionalText = "",
+    is_live = false,
 
     sponsor_segments = {},
 
@@ -1498,10 +1499,13 @@ function checktitle()
     state.ytdescription = ""
     state.youtubeuploader = artist
 
-    print(dumptable(mp.get_property_native("metadata")))
-    if mp.get_property_native('metadata') then
-        state.ytdescription = mp.get_property_native('metadata').ytdl_description or description or ""
+    local metadata = mp.get_property_native('metadata')
+    print(dumptable(metadata))
+    if metadata then
+        state.ytdescription = metadata.ytdl_description or description or ""
         state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%")
+
+        state.is_live = metadata.ytdl_is_live
     else
         print("Failed to load metadata")
     end
@@ -1515,7 +1519,6 @@ function checktitle()
 
                 if #utf8split ~= #state.ytdescription then
                     local tmp = utf8split:gsub("[,%.%s]+$", "")
-
                     utf8split = tmp .. "..."
                 end
                 utf8split = utf8split:match("^(.-)%s*$")
@@ -3896,7 +3899,7 @@ local function osc_init()
         local prefix = state.tc_right_rem and
             (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
 
-        return prefix .. format_time(time_to_display)
+        return prefix .. format_time(time_to_display) .. (state.is_live and " • LIVE" or "")
     end
     ne.eventresponder["mbtn_left_up"] = function()
         state.tc_right_rem = not state.tc_right_rem
