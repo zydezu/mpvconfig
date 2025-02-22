@@ -59,6 +59,9 @@ local function check_for_dual_subs()
 
         local _, filename = mp.utils.split_path(mp.get_property("current-tracks/sub/external-filename"))
         local ext = filename:match("^.+(%..+)$")
+        if not ext then
+            return
+        end
         local filename_noext = filename:gsub(ext, "")
 
         local original = true
