@@ -10,7 +10,7 @@
 mp.utils = require("mp.utils")
 
 local options = {
-    musixmatch_token = "220215b052d6aeaa3e9a410986f6c3ae7ea9f5238731cb918d05ea",
+    musixmatch_token = "2501192ac605cc2e16b6b2c04fe43d1011a38d919fe802976084e7",
     download_for_all = false,                                       -- try to get subtitles for music without metadata
     load_for_youtube = true,                                        -- try to load lyrics on youtube videos
     store_lyrics_seperate = true,                                   -- store lyrics in ~~desktop/mpv/lrcdownloads/
@@ -420,7 +420,7 @@ local function netease_download()
         "https://music.xianqiao.wang/neteaseapiv2/lyric?id=" .. song.id,
     })
 
-    if response then
+    if response and response.lrc then
         save_lyrics(response.lrc.lyric)
     end
 end
