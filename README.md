@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-03-11
 
 - FIX: audio/tracklist indicator not showing selected track correctly in `modernX.lua`
+- FIX: changes to Japanese lyric detection in `autolyrics.lua`
 
 ### 2025-02-09
 

@@ -106,7 +106,7 @@ end
 local function is_japanese(lyrics)
     -- http://lua-users.org/wiki/LuaUnicode Lua patterns don't support Unicode
     -- ranges, and you can't even iterate over \u{XXX} sequences in Lua 5.1 and
-    -- 5.2, so just search for some Hiragana characters.
+    -- 5.2, so just search for some hiragana and katakana characters.
 
     for _, kana in pairs({
         'あ', 'い', 'う', 'え', 'お',
@@ -119,11 +119,26 @@ local function is_japanese(lyrics)
         'や',       'ゆ',       'よ',
         'ら', 'り', 'る', 'れ', 'ろ',
         'わ',                   'を',
+        'ア', 'イ', 'ウ', 'エ', 'オ',
+        'カ', 'キ', 'ク', 'ケ', 'コ',
+        'サ', 'シ', 'ス', 'セ', 'ソ',
+        'タ', 'チ', 'ツ', 'テ', 'ト',
+        'ナ', 'ニ', 'ヌ', 'ネ', 'ノ',
+        'ハ', 'ヒ', 'フ', 'ヘ', 'ホ',
+        'マ', 'ミ', 'ム', 'メ', 'モ',
+        'ヤ',       'ユ',       'ヨ',
+        'ラ', 'リ', 'ル', 'レ', 'ロ',
+        'ワ',                   'ヲ',
+        'ン', 'ガ', 'ギ', 'グ', 'ゲ', 'ゴ',
+        'ザ', 'ジ', 'ズ', 'ゼ', 'ゾ',
+        'ダ', 'ヂ', 'ヅ', 'デ', 'ド',
+        'バ', 'ビ', 'ブ', 'ベ', 'ボ',
     }) do
         if lyrics:find(kana) then
             return true
         end
     end
+    return false
 end
 
 local function chinese_to_kanji(lyrics)
