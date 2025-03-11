@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-03-11
+
+- FIX: audio/tracklist indicator not showing selected track correctly in `modernX.lua`
+
 ### 2025-02-09
 
 - FEAT: set subtitles to a non-forced sub track as defined by --slang, in `detectdualsubs.lua`

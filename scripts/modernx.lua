@@ -787,6 +787,8 @@ end
 
 -- return a nice list of tracks of the given type (video, audio, sub)
 function get_tracklist(type)
+    update_tracklist()
+
     local message = valid_types[type] .. texts.track
     if not tracks_osc or #tracks_osc[type] == 0 then
         message = texts.none
@@ -3417,7 +3419,7 @@ local function osc_init()
         function ()
             mp.set_property_number("secondary-sid", 0)
             set_track('sub', 1)
-            show_message(get_tracklist('sub'))
+            show_message(get_tracklist("sub"))
         end
     ne.eventresponder['enter'] =
         function ()
@@ -3439,8 +3441,6 @@ local function osc_init()
     end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
-
-
 
     -- vol_ctrl
     ne = new_element("vol_ctrl", "button")
@@ -3594,7 +3594,6 @@ local function osc_init()
             if (state.initialborder == 'yes') then
                 if (mp.get_property('ontop') == 'yes') then
                     mp.commandv('set', 'border', "no")
-
                 else
                     mp.commandv('set', 'border', "yes")
                 end
