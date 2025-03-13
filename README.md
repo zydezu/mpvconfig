@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-03-13
+
+- FEAT: add keybinding for shuffling playlist in input.conf
+
 ### 2025-03-11
 
 - FIX: audio/tracklist indicator not showing selected track correctly in `modernX.lua`
