@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-04-08
 
 - FEAT: added short_saved_message as an option in `screenshotfolder.lua`
+- FIX: add `sub-use-margins`
 
 ### 2025-03-13
 
