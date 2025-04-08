@@ -8,7 +8,8 @@
 local options = {
     save_as_time_stamp = true,
     file_ext = "jpg",
-    include_YouTube_ID = true
+    include_YouTube_ID = true,
+    short_saved_message = true
 }
 (require "mp.options").read_options(options)
 
@@ -57,8 +58,12 @@ local function screenshot_done()
     mp.commandv("set", "sub-pos", 100)
     mp.commandv("screenshot");
     mp.commandv("set", "sub-pos", temp_sub_pos)
-    mp.osd_message("Screenshot saved to: " ..
-        mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/"))
+    if options.short_saved_message then
+        mp.osd_message("Screenshot saved")
+    else
+        mp.osd_message("Screenshot saved to: " ..
+            mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/"))
+    end
     count = count + 1
     if options.save_as_time_stamp then
         mp.set_property("screenshot-template", "%tY-%tm-%td_%tH-%tM-%tS" .. "(" .. count .. ")")

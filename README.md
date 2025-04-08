@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-04-08
+
+- FEAT: added short_saved_message as an option in `screenshotfolder.lua`
+
 ### 2025-03-13
 
 - FEAT: add keybinding for shuffling playlist in input.conf
