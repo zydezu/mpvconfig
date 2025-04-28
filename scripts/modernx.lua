@@ -3868,8 +3868,8 @@ local function osc_init()
     ne = new_element("chapter_title", "button")
     ne.visible = true
     ne.content = function()
-        if state.buffering then
-            return "Buffering..." .. " " .. mp.get_property("cache-buffering-state") .. "%"
+        if state.buffering ~= nil and state.buffering then
+            return "Buffering..." .. " " .. (mp.get_property("cache-buffering-state") or "0") .. "%"
         else
             if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then
                 request_init()
