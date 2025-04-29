@@ -76,7 +76,7 @@ local function get_metadata()
                 title = mp.get_property("media-title")
                 title = title:gsub("%b[]", "") .. " "
             end
-            artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
+            artist = mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
             if options.download_for_all and not artist then
                 artist = " "
             end
@@ -95,10 +95,6 @@ local function get_metadata()
         show_error("This song has no artist metadata")
         return false
     end
-
-    print(title)
-    print(artist)
-    print(album)
     
     return title, artist, album
 end
