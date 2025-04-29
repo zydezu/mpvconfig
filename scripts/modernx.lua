@@ -1489,7 +1489,7 @@ function checktitle()
     state.localDescriptionClick = nil
     local title = mp.get_property("media-title")
     local artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
-    local tempartistclicktext = "Contributing artists: " .. artist
+    local tempartistclicktext = "Contributing artists: " .. ("" or artist)
     if (mp.get_property("filtered-metadata/by-key/Album_Artist") and mp.get_property("filtered-metadata/by-key/Artist")) then
         if (mp.get_property("filtered-metadata/by-key/Album_Artist") ~= mp.get_property("filtered-metadata/by-key/Artist")) then
             artist = mp.get_property("filtered-metadata/by-key/Artist") .. ", " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
