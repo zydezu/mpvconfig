@@ -35,7 +35,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-04-29
 
-- FIX: crash when changing video with no internet  in `modernX.lua`
+- FIX: crash when changing video with no internet in `modernX.lua`
+- FIX: re-order artists in `autolyrics.lua` and `modernX.lua`
+- FIX: improve metadata description in `modernX.lua`
+
 ### 2025-04-08
 
 - FEAT: added short_saved_message as an option in `screenshotfolder.lua`
