@@ -7,6 +7,8 @@
 
 mp.utils = require("mp.utils")
 
+local display_protocol = os.getenv("XDG_SESSION_TYPE")
+
 local options = {
     copy_keybind = [[
 	["ctrl+c", "ctrl+C", "meta+c", "meta+C"]
@@ -15,9 +17,15 @@ local options = {
     ["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
     ]],
     open_keybind = "o",
-    linux_copy_command = "xclip -silent -selection clipboard -in",
-    linux_paste_command = "xclip -selection clipboard -o",
+    linux_copy_command = { "xclip", "-silent", "-selection", "clipboard", "-in" },
+    linux_paste_command = { "xclip", "-selection", "clipboard", "-o" },
 }
+
+if display_protocol == "wayland" then
+	options.linux_copy_command = { "wl-copy" }
+	options.linux_paste_command = { 'wl-paste' }
+end
+
 (require "mp.options").read_options(options)
 
 -- File/URL pasting
@@ -63,7 +71,8 @@ end
 local function set_clipboard(text)
     local pipe
     if device == "linux" then
-		pipe = io.popen(options.linux_copy_command, "w")
+		local command = table.concat(options.linux_copy_command, " ")
+		pipe = io.popen(command, "w")
         pipe:write(text)
         pipe:close()
     elseif device == "windows" then
@@ -87,8 +96,8 @@ end
 local function get_clipboard()
     local clipboard
     if device == "linux" then
-        clipboard = os.capture(options.linux_paste_command)
-		return clipboard
+        local args = options.linux_paste_command
+		return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     elseif device == "windows" then
         local args = {
             "powershell", "-NoProfile", "-Command", [[& {
@@ -106,8 +115,8 @@ local function get_clipboard()
         }
         return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     elseif device == "mac" then
-		clipboard = os.capture("pbpaste")
-		return clipboard
+		local args = { "pbpaste" }
+		return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     end
     return ""
 end
