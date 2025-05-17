@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-05-17
+
+- FIX: don't run netease automatically when Alt+m is pressed in `autolyrics.lua` as it seems to be unreliable
+
 ### 2025-05-14
 
 - FIX: artist not showing in description in `modernx.lua`

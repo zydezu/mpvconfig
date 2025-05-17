@@ -80,7 +80,7 @@ local function get_metadata()
             if options.download_for_all and not artist then
                 artist = " "
             end
-            album = metadata.album or metadata.ALBUM or metadata.Album
+            album = metadata.album or metadata.ALBUM or metadata.Album or ""
         end
     else
         mp.msg.info("Couldn't load metadata!")
@@ -300,7 +300,7 @@ local function save_lyrics(lyrics)
 end
 
 local function musixmatch_download()
-    local title, artist = get_metadata()
+    local title, artist, album = get_metadata()
 
     if not title then
         return
@@ -310,12 +310,8 @@ local function musixmatch_download()
     if manual_run then
         mp.osd_message("Fetching lyrics (musixmatch)")
     end
+    mp.msg.info("Requesting: " .. title .. " - " .. artist)
 
-    if artist then
-        mp.msg.info("Requesting: " .. title .. " - " .. artist)
-    else
-        mp.msg.info("Requesting: " .. title)
-    end
     local response = curl({
         "curl",
         "--silent",
@@ -453,13 +449,13 @@ end
 
 local function get_subtitle_count()
     local track_list = mp.get_property_native("track-list", {})
-    local subtitle_count = 0
+    local sub_count = 0
     for _, track in ipairs(track_list) do
         if track["type"] == "sub" then
-            subtitle_count = subtitle_count + 1
+            sub_count = sub_count + 1
         end
     end
-    return subtitle_count
+    return sub_count
 end
 
 local function check_downloaded_subs()
@@ -490,7 +486,7 @@ end)
 
 mp.add_key_binding("alt+m", "musixmatch-download", function() 
     manual_run = true
-    auto_download()
+    musixmatch_download()
 end)
 
 mp.add_key_binding("alt+o", "offset-sub", function()
