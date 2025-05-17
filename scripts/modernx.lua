@@ -4195,7 +4195,8 @@ local function render()
     if state.osc_visible then
         render_elements(ass)
     end
-    if user_opts.persistent_progress_default or state.persistent_progresstoggle then
+
+    if state.persistent_progresstoggle then
         render_persistent_progressbar(ass)
     end
 
