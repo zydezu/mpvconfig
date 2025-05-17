@@ -8,6 +8,7 @@
 --]]
 
 mp.utils = require("mp.utils")
+mp.input = require("mp.input")
 
 local options = {
     musixmatch_token = "2501192ac605cc2e16b6b2c04fe43d1011a38d919fe802976084e7",
@@ -341,12 +342,14 @@ local function musixmatch_download()
     local body = response.message.body.macro_calls
     local lyrics = ""
     if body["matcher.track.get"].message.header.status_code == 200 then
-        downloading_name = body["matcher.track.get"].message.body.track.track_name
-        if body["matcher.track.get"].message.body.track.has_subtitles == 1 then
+        local track = body["matcher.track.get"].message.body.track
+        downloading_name = track.artist_name .. " - " .. track.track_name
+
+        if track.has_subtitles == 1 then
             lyrics = body["track.subtitles.get"].message.body.subtitle_list[1].subtitle.subtitle_body
-        elseif body["matcher.track.get"].message.body.track.has_lyrics == 1 then -- lyrics without timestamps
+        elseif track.has_lyrics == 1 then -- lyrics without timestamps
             lyrics = body["track.lyrics.get"].message.body.lyrics.lyrics_body
-        elseif body["matcher.track.get"].message.body.track.instrumental == 1 then
+        elseif track.instrumental == 1 then
             show_error("This is an instrumental track")
             return
         end
@@ -355,43 +358,110 @@ local function musixmatch_download()
     save_lyrics(lyrics)
 end
 
-local function netease_download()
-    local title, artist, album = get_metadata()
+local netease_songs
 
-    if not title then
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+
+local function select_netease_lyrics()
+    local items = {}
+    for _, song in ipairs(netease_songs) do
+        items[#items+1] = song.artists[1].name .. ' - ' ..
+                          song.name .. ' (' ..
+                          song.album.name .. ')'
+    end
+
+    mp.input.select({
+        prompt = 'Select a song:',
+        items = items,
+        submit = function(i)
+            local selected_song = netease_songs[i]
+            local response = curl({
+                'curl',
+                '--silent',
+                'https://music.xianqiao.wang/neteaseapiv2/lyric?id=' .. netease_songs[i].id,
+            })
+
+            if response then
+                downloading_name = selected_song.name .. " - " .. selected_song.artists[1].name
+                save_lyrics(response.lrc.lyric)
+            end
+        end
+    })
+end
+
+local function netease_download()
+    if netease_songs and mp.input then
+        select_netease_lyrics()
         return
     end
 
-    mp.msg.info("Fetching lyrics (netease)")
-    if manual_run then
-        mp.osd_message("Fetching lyrics (netease)")
+    local title, artist, album = get_metadata()
+    local keywords
+    if title then
+        keywords = title .. " " .. artist
+    else
+        keywords = mp.get_property('media-title')
+        if not keywords then
+            show_error("No metadata or media-title found")
+            return
+        end
     end
 
-    if artist then
-        mp.msg.info("Requesting: " .. title .. " - " .. artist)
-    else 
-        mp.msg.info("Requesting: " .. title)
-    end
+    mp.osd_message('Downloading lyrics')
+
     local response = curl({
         "curl",
         "--silent",
         "--get",
         "https://music.xianqiao.wang/neteaseapiv2/search?limit=9",
-        "--data-urlencode", "keywords=" .. title .. " " .. artist,
+        "--data-urlencode", "keywords=" .. keywords,
     })
 
     if not response then
         return
     end
 
-    local songs = response.result.songs
-
-    if songs == nil or #songs == 0 then
+    if not response.result then
         show_error("Lyrics not found")
         return
     end
 
-    for _, song in ipairs(songs) do
+    netease_songs = response.result.songs
+
+    if netease_songs == nil or #netease_songs == 0 then
+        show_error("Lyrics not found")
+        return
+    end
+
+    if mp.input then
+        if #netease_songs == 1 then
+            response = curl({
+                "curl",
+                "--silent",
+                "https://music.xianqiao.wang/neteaseapiv2/lyric?id=" .. netease_songs[1].id,
+            })
+            if response then
+                save_lyrics(response.lrc.lyric)
+            end
+            return
+        end
+        select_netease_lyrics()
+        return
+    end
+
+    for _, song in ipairs(netease_songs) do
         mp.msg.trace(
             "Found lyrics for the song with id " .. song.id ..
             ", name " .. song.name ..
@@ -401,11 +471,11 @@ local function netease_download()
         )
     end
 
-    local song = songs[1]
+    local song = netease_songs[1]
     if album then
         album = album:lower()
 
-        for _, loop_song in ipairs(songs) do
+        for _, loop_song in ipairs(netease_songs) do
             if loop_song.album.name:lower() == album then
                 song = loop_song
                 break
@@ -419,7 +489,6 @@ local function netease_download()
         ", artist " .. song.artists[1].name ..
         ", album " .. song.album.name
     )
-    downloading_name = song.name .. " - " .. song.artists[1].name
 
     response = curl({
         "curl",
@@ -479,14 +548,14 @@ local function check_downloaded_subs()
     end
 end
 
-mp.add_key_binding("alt+n", "netease-download", function() 
-    manual_run = true
-    netease_download()
-end)
-
 mp.add_key_binding("alt+m", "musixmatch-download", function() 
     manual_run = true
     musixmatch_download()
+end)
+
+mp.add_key_binding("alt+n", "netease-download", function() 
+    manual_run = true
+    netease_download()
 end)
 
 mp.add_key_binding("alt+o", "offset-sub", function()

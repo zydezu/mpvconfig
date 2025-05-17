@@ -1,7 +1,7 @@
 import requests
 from urllib.parse import quote
 
-def get_lyrics(title, artist, album, token):
+def get_lyrics(title, artist, token):
     base_url = "https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get"
     
     params = {
@@ -9,7 +9,6 @@ def get_lyrics(title, artist, album, token):
         "usertoken": token,
         "q_track": title,
         "q_artist": artist,
-        "q_album": album
     }
     
     headers = {
@@ -32,15 +31,13 @@ if __name__ == "__main__":
     while True:
         artist = input("Enter artist name: ").strip()            
         title = input("Enter song title: ").strip()
-        album = input("Enter album: ").strip()
         
-        result = get_lyrics(title, artist, album, TOKEN)
+        result = get_lyrics(title, artist, TOKEN)
         
         print("\nResults:")
         print("--------")
         print(f"Artist: {artist}")
         print(f"Title: {title}")
-        print(f"Album: {album}")
         
         # Check if lyrics were found
         if result.get('message', {}).get('body', {}).get('macro_calls', {}).get('track.lyrics.get', {}).get('message', {}).get('header', {}).get('status_code') == 200:

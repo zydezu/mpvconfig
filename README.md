@@ -36,6 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-05-17
 
 - FIX: don't run netease automatically when Alt+m is pressed in `autolyrics.lua` as it seems to be unreliable
+- FIX: use `mp.input` in `autolyrics.lua` and fix filenames
 
 ### 2025-05-14
 
