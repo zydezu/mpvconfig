@@ -128,7 +128,6 @@ local user_opts = {
     -- Title bar settings
     window_title = true,                    -- show window title in borderless/fullscreen mode
     window_controls = true,                 -- show window controls (close, minimize, maximize) in borderless/fullscreen
-    title_bar_box = false,                  -- show title bar as a box instead of a black fade
     window_controls_title = "${media-title}", -- same as title but for window_controls
 
     -- Subtitle display settings
@@ -190,9 +189,10 @@ local user_opts = {
 
     fade_alpha = 100,                       -- alpha of the title bar background box
     fade_blur_strength = 75,                -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
-    title_bar_fade_alpha = 150,             -- alpha of the OSC background box
-    title_bar_fade_blur_strength = 100,     -- blur strength for the title bar alpha fade
-    window_fade_alpha = 75,                 -- alpha of the window title bar
+    fade_transparency_strength = 0,         -- use with "fade_blur_strength = 0" to create a transparency box
+    window_fade_alpha = 100,                -- alpha of the window title bar
+    window_fade_blur_strength = 75,          -- blur strength for the window title bar. caution: high values can take a lot of CPU time to render
+    window_fade_transparency_strength = 0,  -- use with "window_fade_blur_strength = 0" to create a transparency box
     thumbnail_border = 3,                   -- width of the thumbnail border (for thumbfast)
     thumbnail_border_radius = 3,            -- rounded corner radius for thumbnail border (0 to disable)
 
@@ -407,9 +407,8 @@ local playpause_size = user_opts.playpause_size or 30
 local midbuttons_size = user_opts.midbuttons_size or 24
 local sidebuttons_size = user_opts.sidebuttons_size or 24
 local osc_styles = {
-    background_bar = "{\\1c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
-    box_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
-    title_bar_box_bg = "{\\blur" .. user_opts.title_bar_fade_blur_strength .. "\\bord" .. user_opts.title_bar_fade_alpha .. "\\1c&H000000&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
+    osc_fade_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H0&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",    
+    window_fade_bg = "{\\blur" .. user_opts.window_fade_blur_strength .. "\\bord" .. user_opts.window_fade_alpha .. "\\1c&H0&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     chapter_title = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.chapter_title_color) .. "&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     control_1 = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.playpause_color) .. "&\\3c&HFFFFFF&\\fs" .. playpause_size .. "\\fn" .. iconfont .. "}",
     control_2 = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.middle_buttons_color) .. "&\\3c&HFFFFFF&\\fs" .. midbuttons_size .. "\\fn" .. iconfont .. "}",
@@ -425,8 +424,8 @@ local osc_styles = {
     tooltip = "{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     volumebar_bg = "{\\blur0\\bord0\\1c&H999999&}",
     volumebar_fg = "{\\blur1\\bord1\\1c&H" .. osc_color_convert(user_opts.side_buttons_color) .. "&}",
-    window_control = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_controls_color) .. "&\\3c&H0&\\fs20\\fnmpv-osd-symbols}",
-    window_title = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_title_color) .. "&\\3c&H0&\\fs20\\q2\\fn" .. user_opts.font .. "}",
+    window_control = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_controls_color) .. "&\\3c&H0&\\fs18\\fnmpv-osd-symbols}",
+    window_title = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_title_color) .. "&\\3c&H0&\\fs19\\q2\\fn" .. user_opts.font .. "}",
     description = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs'.. user_opts.description_font_size ..'\\q2\\fn' .. user_opts.font .. '}',
 }
 
@@ -2458,16 +2457,6 @@ function window_controls()
 
     local lo, ne
 
-    -- Background Bar
-    if user_opts.title_bar_box then
-        new_element("wcbar", "box")
-        lo = add_layout("wcbar")
-        lo.geometry = wc_geo
-        lo.layer = 10
-        lo.style = osc_styles.background_bar
-        lo.alpha[1] = user_opts.window_fade_alpha
-    end
-
     local button_y = wc_geo.y - (wc_geo.h / 2)
     local first_geo =
         {x = controlbox_left + 30, y = button_y, an = 5, w = 40, h = wc_geo.h}
@@ -2537,10 +2526,7 @@ function window_controls()
         end
         lo = add_layout('window_title')
 
-        local geo = {x = 20, y = button_y + 14, an = 1, w = osc_param.playresx - 150, h = wc_geo.h}
-        if user_opts.title_bar_box then
-            geo = {x = 10, y = button_y + 10, an = 1, w = osc_param.playresx - 150, h = wc_geo.h}
-        end
+        local geo = {x = 12, y = button_y + 9, an = 1, w = osc_param.playresx - 150, h = wc_geo.h}
 
         lo.geometry = geo
         lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.window_title,
@@ -2581,22 +2567,22 @@ layouts["original"] = function ()
     -- Controller Background
     local lo, geo
 
-    new_element('box_bg', 'box')
-    lo = add_layout('box_bg')
+    new_element('osc_fade_bg', 'box')
+    lo = add_layout('osc_fade_bg')
     lo.geometry = {x = posX, y = posY, an = 7, w = osc_w, h = 1}
-    lo.style = osc_styles.box_bg
+    lo.style = osc_styles.osc_fade_bg
     lo.layer = 10
-    lo.alpha[3] = 0
+    lo.alpha[3] = user_opts.fade_transparency_strength
 
     local top_titlebar = window_controls_enabled() and (user_opts.window_title or user_opts.window_controls)
 
-    if not user_opts.title_bar_box and (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
-        new_element("title_alpha_bg", "box")
-        lo = add_layout("title_alpha_bg")
-        lo.geometry = {x = posX, y = -100, an = 7, w = osc_w, h = -1}
-        lo.style = osc_styles.title_bar_box_bg
+    if (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
+        new_element("window_bar_alpha_bg", "box")
+        lo = add_layout("window_bar_alpha_bg")
+        lo.geometry = {x = posX, y = -70, an = 7, w = osc_w, h = -1}
+        lo.style = osc_styles.window_fade_bg
         lo.layer = 10
-        lo.alpha[3] = 0
+        lo.alpha[3] = user_opts.window_fade_transparency_strength
     end
 
     -- Alignment
@@ -2836,22 +2822,22 @@ layouts["reduced"] = function ()
     -- Controller Background
     local lo, geo
 
-    new_element('box_bg', 'box')
-    lo = add_layout('box_bg')
+    new_element('osc_fade_bg', 'box')
+    lo = add_layout('osc_fade_bg')
     lo.geometry = {x = posX, y = posY, an = 7, w = osc_w, h = 1}
-    lo.style = osc_styles.box_bg
+    lo.style = osc_styles.osc_fade_bg
     lo.layer = 10
-    lo.alpha[3] = 0
+    lo.alpha[3] = user_opts.fade_transparency_strength
 
     local top_titlebar = window_controls_enabled() and (user_opts.window_title or user_opts.window_controls)
 
-    if not user_opts.title_bar_box and (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
-        new_element("title_alpha_bg", "box")
-        lo = add_layout("title_alpha_bg")
-        lo.geometry = {x = posX, y = -100, an = 7, w = osc_w, h = -1}
-        lo.style = osc_styles.box_bg
+    if (user_opts.window_top_bar == "yes" or (not state.border) or (not state.title_bar) or state.fullscreen) and top_titlebar then
+        new_element("window_bar_alpha_bg", "box")
+        lo = add_layout("window_bar_alpha_bg")
+        lo.geometry = {x = posX, y = -70, an = 7, w = osc_w, h = -1}
+        lo.style = osc_styles.window_fade_bg
         lo.layer = 10
-        lo.alpha[3] = 0
+        lo.alpha[3] = user_opts.window_fade_transparency_strength
     end
 
     -- Alignment
