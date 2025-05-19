@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-05-19
+
+- FIX: implement https://github.com/zydezu/mpvconfig/issues/18, adding `save_location`, `time_stamp_format` and `save_based_on_chapter_name` as options in `screenshotfolder.lua`
+
 ### 2025-05-17
 
 - FIX: don't run netease automatically when Alt+m is pressed in `autolyrics.lua` as it seems to be unreliable

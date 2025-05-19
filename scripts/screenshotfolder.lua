@@ -6,23 +6,53 @@
 --]]
 
 local options = {
-    save_as_time_stamp = true,
+    screenshot_key = 's',
     file_ext = "jpg",
-    include_YouTube_ID = true,
-    short_saved_message = true
+    save_location = "~~desktop/mpv/screenshots/",
+    time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
+    save_as_time_stamp = true,
+    save_based_on_chapter_name = false,
+    short_saved_message = true,
+    include_YouTube_ID = true
 }
 (require "mp.options").read_options(options)
 
 local title = "default"
+local chaptername = ""
 local count = 0
 
-local function set_file_dir()
-    count = 0
-    mp.set_property("screenshot-directory", "~~desktop/mpv/screenshots/" .. title .. "/")
-    if options.save_as_time_stamp then
-        mp.set_property("screenshot-template", "%tX")
+local function set_screenshot_template()
+    local function safe_chaptername(name)
+        return name:gsub('[\\/:*?"<>|]', '')
     end
+
+    local function set_screenshot_template_no_chapter()
+        mp.set_property("screenshot-directory", options.save_location .. title .. "/")
+        if options.save_as_time_stamp then
+            mp.set_property("screenshot-template", options.time_stamp_format .. ((count > 0) and ("(" .. count .. ")") or ""))
+        end
+    end
+
+    local function set_screenshot_template_with_chapter()
+        local safe_chapter = safe_chaptername(chaptername)
+        if safe_chapter ~= "" then
+            mp.set_property("screenshot-template", safe_chapter .. " (" .. options.time_stamp_format .. ")" .. ((count > 0) and ("(" .. count .. ")") or ""))
+        else
+            set_screenshot_template_no_chapter()
+        end
+    end
+
     mp.set_property("screenshot-format", options.file_ext)
+    if options.save_based_on_chapter_name then
+        set_screenshot_template_with_chapter()
+    else
+        set_screenshot_template_no_chapter()
+    end
+end
+
+local function reset_count()
+    count = 0
+    set_screenshot_template()
 end
 
 local function init()
@@ -50,7 +80,7 @@ local function init()
     end
     title = filename:gsub('[\\/:*?"<>|]', "")
 
-    set_file_dir()
+    set_screenshot_template()
 end
 
 local function screenshot_done()
@@ -65,12 +95,15 @@ local function screenshot_done()
             mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/"))
     end
     count = count + 1
-    if options.save_as_time_stamp then
-        mp.set_property("screenshot-template", "%tY-%tm-%td_%tH-%tM-%tS" .. "(" .. count .. ")")
-    end
+    set_screenshot_template()
 end
+
+mp.observe_property("chapter-metadata/title", "string", function(_, value)
+    chaptername = value or ""
+    set_screenshot_template()
+end)
 
 mp.register_event("start-file", init)
 mp.register_event("file-loaded", init)
-mp.add_periodic_timer(1, set_file_dir)
-mp.add_key_binding("s", "screenshot_done", screenshot_done);
+mp.add_periodic_timer(1, reset_count)
+mp.add_key_binding(options.screenshot_key, "screenshot_done", screenshot_done);
