@@ -1,5 +1,4 @@
 import requests
-from urllib.parse import quote
 
 def get_lyrics(title, artist, token):
     base_url = "https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get"
