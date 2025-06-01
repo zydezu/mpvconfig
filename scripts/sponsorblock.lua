@@ -23,6 +23,9 @@ local options = {
     -- If true, sponsored segments will only be skipped once
     skip_once = true,
 
+    -- If true, UUIDs (the brackets) will be removed from chapter titles
+    removeuuid = true,
+
     -- Note that sponsored segments may ocasionally be inaccurate if this is turned off
     -- see https://blog.ajay.app/voting-and-pseudo-randomness-or-sponsorblock-or-youtube-sponsorship-segment-blocker
     local_database = false,
@@ -207,8 +210,13 @@ local function process(uuid, t, new_ranges)
     if true and not chapter_cache[uuid] then
         chapter_cache[uuid] = true
         local category_title = (category:gsub("^%l", string.upper):gsub("_", " "))
-        create_chapter(category_title .. " segment start (" .. string.sub(uuid, 1, 6) .. ")", start_time, true)
-        create_chapter(category_title .. " segment end (" .. string.sub(uuid, 1, 6) .. ")", end_time, false)
+        if options.removeuuid then
+            create_chapter(category_title .. " start", start_time, true)
+            create_chapter(category_title .. " end", end_time, false)
+        else
+            create_chapter(category_title .. " start (" .. string.sub(uuid, 1, 6) .. ")", start_time, true)
+            create_chapter(category_title .. " end (" .. string.sub(uuid, 1, 6) .. ")", end_time, false)
+        end
     end
 end
 

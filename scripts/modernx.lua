@@ -226,10 +226,10 @@ local user_opts = {
     add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
     sponsorblock_seek_range_alpha = 75,     -- transparency of sponsorblock segments
     sponsor_types = {                       -- what categories to show in the progress bar
-        "sponsor",                          -- all categories: 
-        "intro",                            --      sponsor, intro, outro, 
-        "outro",                            --      interaction, selfpromo, preview, 
-        "interaction",                      --      music_offtopic, filler
+        "sponsor",                          -- all categories: sponsor, intro, outro, 
+        "intro",                            -- interaction, selfpromo, preview, music_offtopic, filler     
+        "outro",
+        "interaction",
         "selfpromo",
         "preview",
         "music_offtopic",
