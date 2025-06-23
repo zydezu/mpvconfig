@@ -33,6 +33,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-06-24
+
+- FIX: you can now left click the screen to pause
+- FIX: remove whitespace in `modernx.lua`
+
 ### 2025-05-19
 
 - FIX: implement https://github.com/zydezu/mpvconfig/issues/18, adding `save_location`, `time_stamp_format` and `save_based_on_chapter_name` as options in `screenshotfolder.lua`
@@ -53,9 +58,9 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-04-29
 
-- FIX: crash when changing video with no internet in `modernX.lua`
-- FIX: re-order artists in `autolyrics.lua` and `modernX.lua`
-- FIX: improve metadata description in `modernX.lua`
+- FIX: crash when changing video with no internet in `modernx.lua`
+- FIX: re-order artists in `autolyrics.lua` and `modernx.lua`
+- FIX: improve metadata description in `modernx.lua`
 
 ### 2025-04-08
 
