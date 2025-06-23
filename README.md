@@ -39,6 +39,7 @@ Please note that many of these scripts have been slightly modified from their in
 - FIX: remove whitespace in `modernx.lua`
 - FIX: implement https://github.com/zydezu/ModernX/pull/68
 - FIX: implement https://github.com/zydezu/ModernX/pull/69, adding `osc_keep_with_cursor`, `seekbar_between_timers` and `seekbar_height` as options in `modernx.lua`
+- FIX: fix https://github.com/zydezu/ModernX/issues/67
 
 ### 2025-05-19
 
