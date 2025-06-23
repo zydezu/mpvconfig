@@ -3116,7 +3116,6 @@ local function osc_init()
 
     elements = {}
 
-    -- some often needed stuff
     local pl_count = mp.get_property_number("playlist-count", 0)
     local have_pl = pl_count > 1
     local pl_pos = mp.get_property_number("playlist-pos", 0) + 1
@@ -3332,7 +3331,7 @@ local function osc_init()
         ne.eventresponder['mbtn_left_down'] =
             function () mp.commandv('seek', -jump_amount, jump_mode) end
         ne.eventresponder['mbtn_right_down'] =
-            function () mp.commandv('seek', -60, jump_mode) end
+            function () mp.commandv('seek', -jump_more_amount, jump_mode) end
         ne.eventresponder['shift+mbtn_left_down'] =
             function () mp.commandv('frame-back-step') end
 
@@ -3345,7 +3344,7 @@ local function osc_init()
         ne.eventresponder['mbtn_left_down'] =
             function () mp.commandv('seek', jump_amount, jump_mode) end
         ne.eventresponder['mbtn_right_down'] =
-            function () mp.commandv('seek', 60, jump_mode) end
+            function () mp.commandv('seek', jump_more_amount, jump_mode) end
         ne.eventresponder['shift+mbtn_left_down'] =
             function () mp.commandv('frame-step') end
     end
