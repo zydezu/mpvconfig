@@ -57,7 +57,7 @@ local function update_options(list) end
 local function show_osc() end
 local function hide_osc() end
 local function osc_visible(visible) end
-local function adjustSubtitles(visible) end
+local function adjust_subtitles(visible) end
 local function pause_state() end
 local function cache_state() end
 local function process_event() end
@@ -83,7 +83,7 @@ local user_opts = {
     show_fullscreen = true,                 -- show OSC when fullscreen
     show_on_pause = true,                   -- show OSC when paused
     keep_on_pause = false,                  -- disable OSC hide timeout when paused
-    green_and_grumpy = false,               -- disable Santa hat in December
+    green_and_grumpy = false,               -- disable the Santa hat in December
     visibility = "auto",                    -- only used at init to set visibility_mode(...)
 
     -- OSC behaviour and scaling
@@ -94,6 +94,7 @@ local user_opts = {
     bottom_hover = true,                    -- show OSC only when hovering at the bottom
     bottom_hover_zone = 200,                -- height of hover zone for bottom_hover (in pixels)
     osc_on_seek = false,                    -- show OSC when seeking
+    osc_keep_with_cursor = false,           -- keep OSC visible if mouse cursor is within OSC boundaries
     mouse_seek_pause = true,                -- pause video while seeking with mouse move (on button hold)
 
     vid_scale = false,                      -- scale osc with the video
@@ -132,7 +133,7 @@ local user_opts = {
 
     -- Subtitle display settings
     raise_subtitles = true,                 -- whether to raise subtitles above the osc when it's shown
-    raise_subtitle_amount = 175,            -- how much subtitles rise when the osc is shown
+    raise_subtitle_amount = 160,            -- how much subtitles rise when the osc is shown
 
     -- Buttons display and functionality
     compact_mode = true,                    -- replace the jump buttons with the seek/chapter buttons
@@ -191,7 +192,7 @@ local user_opts = {
     fade_blur_strength = 75,                -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
     fade_transparency_strength = 0,         -- use with "fade_blur_strength = 0" to create a transparency box
     window_fade_alpha = 100,                -- alpha of the window title bar
-    window_fade_blur_strength = 75,          -- blur strength for the window title bar. caution: high values can take a lot of CPU time to render
+    window_fade_blur_strength = 75,         -- blur strength for the window title bar. caution: high values can take a lot of CPU time to render
     window_fade_transparency_strength = 0,  -- use with "window_fade_blur_strength = 0" to create a transparency box
     thumbnail_border = 3,                   -- width of the thumbnail border (for thumbfast)
     thumbnail_border_radius = 3,            -- rounded corner radius for thumbnail border (0 to disable)
@@ -204,6 +205,8 @@ local user_opts = {
 
     -- Progress bar settings
     seek_handle_size = 0.8,                 -- size ratio of the seekbar handle (range: 0 ~ 1)
+    seekbar_between_timers = false,         -- moves the seekbar and progress bar between the timers
+    seekbar_height = 2,                     -- height of the seekbar
     progress_bar_height = 16,               -- height of the progress bar
     seek_range = true,                      -- show seek range overlay
     seek_range_alpha = 175,                 -- transparency of the seek range
@@ -2596,14 +2599,22 @@ layouts["original"] = function ()
     -- Seekbar
     new_element('seekbarbg', 'box')
     lo = add_layout('seekbarbg')
-    lo.geometry = {x = refX , y = refY - 100, an = 5, w = osc_geo.w - 50, h = 2}
+    if user_opts.seekbar_between_timers then
+        lo.geometry = {x = refX , y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.seekbar_height}
+    else
+        lo.geometry = {x = refX , y = refY - 100, an = 5, w = osc_geo.w - 50, h = user_opts.seekbar_height}
+    end
     lo.layer = 13
     lo.style = osc_styles.seekbar_bg
     lo.alpha[1] = 128
     lo.alpha[3] = 128
 
     lo = add_layout('seekbar')
-    lo.geometry = {x = refX, y = refY - 100, an = 5, w = osc_geo.w - 50, h = user_opts.progress_bar_height}
+    if user_opts.seekbar_between_timers then
+        lo.geometry = {x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.progress_bar_height}
+    else
+        lo.geometry = {x = refX, y = refY - 100, an = 5, w = osc_geo.w - 50, h = user_opts.progress_bar_height}
+    end
     lo.style = osc_styles.seekbar_fg
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
@@ -2635,7 +2646,7 @@ layouts["original"] = function ()
     local outeroffset = (chapter_skip_buttons and 0 or 100) + (jump_buttons and 0 or 100)
 
     -- Title
-    geo = {x = 25, y = refY - 117 + (((state.localDescription ~= nil or state.is_URL) and user_opts.show_description) and -20 or 0), an = 1, w = osc_geo.w - 50, h = 35}
+    geo = {x = 25, y = refY - 117 + (((state.localDescription ~= nil or state.is_URL) and user_opts.show_description) and -20 or 0) + (user_opts.seekbar_between_timers and 25 or 0), an = 1, w = osc_geo.w - 50, h = 35}
     lo = add_layout("title")
     lo.geometry = geo
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
@@ -2645,7 +2656,7 @@ layouts["original"] = function ()
 
     -- Description
     if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
-        geo = {x = 25, y = refY - 117, an = 1, w = osc_geo.w - 50, h = 19}
+        geo = {x = 25, y = refY - 117 + (user_opts.seekbar_between_timers and 25 or 0), an = 1, w = osc_geo.w - 50, h = 19}
         lo = add_layout("description")
         lo.geometry = geo
 
@@ -2866,7 +2877,7 @@ layouts["reduced"] = function ()
 
     if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
         lo = add_layout('persistentseekbar')
-        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progressheight}
+        lo.geometry = {x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progress_height}
         lo.style = osc_styles.seekbar_fg
         lo.slider.gap = 7
         lo.slider.tooltip_an = 0
@@ -3934,7 +3945,7 @@ function hide_osc()
         -- typically hide happens at render() from tick(), but now tick() is
         -- no-op and won't render again to remove the osc, so do that manually.
         state.osc_visible = false
-        adjustSubtitles(false)
+        adjust_subtitles(false)
         render_wipe()
     elseif (user_opts.fade_duration > 0) then
         if not(state.osc_visible == false) then
@@ -3952,16 +3963,16 @@ end
 function osc_visible(visible)
     if state.osc_visible ~= visible then
         state.osc_visible = visible
-        adjustSubtitles(true)    -- raise subtitles
+        adjust_subtitles(true)  -- raise subtitles
     end
     request_tick()
 end
 
-function adjustSubtitles(visible)
+function adjust_subtitles(visible)
     if visible and user_opts.raise_subtitles and state.osc_visible == true and (state.fullscreen == false or user_opts.show_fullscreen) then
         local _, h = mp.get_osd_size()
         if h > 0 then
-            local subpos = math.floor((osc_param.playresy - user_opts.raise_subtitle_amount)/osc_param.playresy*100)
+            local subpos = math.floor((osc_param.playresy - (user_opts.raise_subtitle_amount - (user_opts.seekbar_between_timers and 25 or 0)))/osc_param.playresy*100)
             if subpos < 0 then
                 subpos = 100 -- out of screen, default to original position
             end
@@ -4095,11 +4106,11 @@ local function render()
     end
 
     -- mouse show/hide area
-    for k,cords in pairs(osc_param.areas['showhide']) do
+    for _,cords in pairs(osc_param.areas['showhide']) do
         set_virt_mouse_area(cords.x1, cords.y1, cords.x2, cords.y2, 'showhide')
     end
     if osc_param.areas['showhide_wc'] then
-        for k,cords in pairs(osc_param.areas['showhide_wc']) do
+        for _,cords in pairs(osc_param.areas['showhide_wc']) do
             set_virt_mouse_area(cords.x1, cords.y1, cords.x2, cords.y2, 'showhide_wc')
         end
     else
@@ -4123,7 +4134,7 @@ local function render()
             state.input_enabled = state.osc_visible
         end
 
-        if (mouse_hit_coords(cords.x1, cords.y1, cords.x2, cords.y2)) then
+        if (mouse_hit_coords(cords.x1, cords.y1, cords.x2, cords.y2) and user_opts.osc_keep_with_cursor) then
             mouse_over_osc = true
         end
     end
@@ -4137,15 +4148,7 @@ local function render()
                 mp.disable_key_bindings('window-controls')
             end
 
-            if (mouse_hit_coords(cords.x1, cords.y1, cords.x2, cords.y2)) then
-                mouse_over_osc = true
-            end
-        end
-    end
-
-    if osc_param.areas['window-controls-title'] then
-        for _,cords in ipairs(osc_param.areas['window-controls-title']) do
-            if (mouse_hit_coords(cords.x1, cords.y1, cords.x2, cords.y2)) then
+            if (mouse_hit_coords(cords.x1, cords.y1, cords.x2, cords.y2) and user_opts.osc_keep_with_cursor) then
                 mouse_over_osc = true
             end
         end
