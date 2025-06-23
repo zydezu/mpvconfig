@@ -1746,10 +1746,19 @@ function check_comments()
         end
 
         local filename = ""
-        if (mp.get_property("filename")) then
+        local file_prop = mp.get_property("filename")
+        local comments_path = user_opts.comments_download_path or ""
+
+        if file_prop then            
             mp.msg.info("[WEB] Downloaded comments")
-            filename = mp.command_native({"expand-path", user_opts.comments_download_path .. '/'}) .. mp.get_property("filename"):gsub("watch%?v=", ""):match("^[^%?&]+") .. ".info.json"
-        else
+
+            -- clean file name
+            local clean_name = file_prop:gsub("watch%?v=", "")
+            clean_name = clean_name:match("^[^%?&]+") or clean_name
+
+            -- create the file path
+            local base_path = mp.command_native({"expand-path", comments_path .. '/'}) or ""
+            filename = base_path .. clean_name .. ".info.json"        else
             mp.msg.info("[WEB] Comments failed to download...")
             return
         end
