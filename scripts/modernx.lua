@@ -2,7 +2,7 @@
     ModernX by zydezu
     (https://github.com/zydezu/ModernX)
 
-    This script is a result of the original mpv-osc-modern by maoiscat 
+    This script is a result of the original mpv-osc-modern by maoiscat
     and it's subsequent forks:
     * cyl0/ModernX
     * dexeonify/ModernX
@@ -153,7 +153,7 @@ local user_opts = {
     info_button = false,                    -- show info button
     ontop_button = true,                    -- show window on top button
     screenshot_button = false,              -- show screenshot button
-    screenshot_flag = "subtitles",          -- flag for screenshot button: "subtitles", "video", "window", "each-frame" 
+    screenshot_flag = "subtitles",          -- flag for screenshot button: "subtitles", "video", "window", "each-frame"
                                             -- https://mpv.io/manual/master/#command-interface-screenshot-%3Cflags%3E
 
     download_button = true,                 -- show download button on web videos (requires yt-dlp and ffmpeg)
@@ -226,8 +226,8 @@ local user_opts = {
     add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
     sponsorblock_seek_range_alpha = 75,     -- transparency of sponsorblock segments
     sponsor_types = {                       -- what categories to show in the progress bar
-        "sponsor",                          -- all categories: sponsor, intro, outro, 
-        "intro",                            -- interaction, selfpromo, preview, music_offtopic, filler     
+        "sponsor",                          -- all categories: sponsor, intro, outro,
+        "intro",                            -- interaction, selfpromo, preview, music_offtopic, filler
         "outro",
         "interaction",
         "selfpromo",
@@ -293,7 +293,7 @@ local icons = {
         [5] = {"\238\171\186", "\238\171\187"},
         [10] = {"\238\171\188", "\238\172\129"},
         [30] = {"\238\172\133", "\238\172\134"},
-        default = {"\238\172\138", "\238\172\138"}, -- second icon is mirrored in layout() 
+        default = {"\238\172\138", "\238\172\138"}, -- second icon is mirrored in layout()
     },
 
     emoticon = {
@@ -407,7 +407,7 @@ local playpause_size = user_opts.playpause_size or 30
 local midbuttons_size = user_opts.midbuttons_size or 24
 local sidebuttons_size = user_opts.sidebuttons_size or 24
 local osc_styles = {
-    osc_fade_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H0&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",    
+    osc_fade_bg = "{\\blur" .. user_opts.fade_blur_strength .. "\\bord" .. user_opts.fade_alpha .. "\\1c&H0&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     window_fade_bg = "{\\blur" .. user_opts.window_fade_blur_strength .. "\\bord" .. user_opts.window_fade_alpha .. "\\1c&H0&\\3c&H" .. osc_color_convert(user_opts.osc_color) .. "&}",
     chapter_title = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.chapter_title_color) .. "&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     control_1 = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.playpause_color) .. "&\\3c&HFFFFFF&\\fs" .. playpause_size .. "\\fn" .. iconfont .. "}",
@@ -1036,7 +1036,7 @@ local function draw_seekbar_progress(element, elem_ass)
     elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
 end
 
--- Draws seekbar ranges according to user_opts 
+-- Draws seekbar ranges according to user_opts
 local function draw_seekbar_ranges(element, elem_ass, xp, rh, override_alpha)
     local handle = xp and rh
     xp = xp or 0
@@ -1506,7 +1506,7 @@ function checktitle()
 
     local metadata = mp.get_property_native('metadata')
     print(dumptable(metadata))
-    
+
     if metadata then
         state.ytdescription = metadata.ytdl_description or description or ""
         state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%")
@@ -1961,7 +1961,7 @@ function process_vid_stats(success, result, error)
     if not state.ytdescription then
         if mp.get_property_number("estimated-vf-fps") then
             state.videoDescription = mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
-            (math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "") -- can't get a normal description, display something else    
+            (math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "") -- can't get a normal description, display something else
         end
     end
 
@@ -2085,12 +2085,8 @@ local function make_sponsorblock_segments()
 
     if duration then
         for _, chapter in ipairs(temp_chapters) do
-            
             print(chapter.title)
-            
             if chapter.title then
-
-
                 for _, value in ipairs(sponsor_types) do
                     if string.find(string.lower(chapter.title), value) then
                         current_category = value
@@ -2103,7 +2099,6 @@ local function make_sponsorblock_segments()
                         end
                     end
                 end
-
                 if string.find(chapter.title, ("start"):gsub("[%[%]]", "%%%1")) then
                     if not is_start_added then
                         temp_segment[current_category]["start"] = chapter.time / duration * 100
@@ -2134,9 +2129,9 @@ local function make_sponsorblock_segments()
                 table.insert(updated_chapters, chapter)
             end
         end
+
         -- updated chapter list
         state.chapter_list = updated_chapters
-
         if #updated_chapters > 0 then
             mp.set_property_native("chapter-list", updated_chapters)
         end
@@ -3292,7 +3287,7 @@ local function osc_init()
             if compact_mode then
                 mp.commandv("add", "chapter", 1)
                 show_message(get_chapterlist())
-                show_message(get_chapterlist()) -- run twice as it might show the wrong chapter without another function    
+                show_message(get_chapterlist()) -- run twice as it might show the wrong chapter without another function
             else
                 show_message(get_chapterlist())
             end
