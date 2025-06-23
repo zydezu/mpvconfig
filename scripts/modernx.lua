@@ -3874,7 +3874,6 @@ local function osc_init()
         return "" -- fallback
     end
     ne.eventresponder["mbtn_left_up"] = function() show_message(get_chapterlist()) end
-    ne.eventresponder["mbtn_right_up"] = nil
 
     -- Total/remaining time display
     ne = new_element("tc_right", "button")
@@ -4532,7 +4531,6 @@ mp.set_key_bindings({
                             function(e) process_event("shift+mbtn_right", "down")  end},
     {"mbtn_right",          function(e) process_event("mbtn_right", "up") end,
                             function(e) process_event("mbtn_right", "down")  end},
-    -- alias to shift_mbtn_left for single-handed mouse use
     {"mbtn_mid",            function(e) process_event("shift+mbtn_left", "up") end,
                             function(e) process_event("shift+mbtn_left", "down")  end},
     {"wheel_up",            function(e) process_event("wheel_up", "press") end},
