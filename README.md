@@ -37,6 +37,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - FIX: you can now left click the screen to pause
 - FIX: remove whitespace in `modernx.lua`
+- FIX: implement https://github.com/zydezu/ModernX/pull/68
 
 ### 2025-05-19
 
