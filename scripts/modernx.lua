@@ -392,11 +392,11 @@ local sponsorblock_color_map = {
     filler = user_opts.sponsorblock_filler_color
 }
 
-local tick_delay = 1 / 60 -- 60FPS
+local tick_delay = 1 / 60 -- Fallback
 local audio_track_count = 0 -- TODO: implement
 local sub_track_count = 0 -- TODO: implement
 local window_control_box_width = 138
-local max_descsize = 125
+local max_descsize = 200
 local comments_per_page = 25
 local is_december = os.date("*t").month == 12
 local UNICODE_MINUS = string.char(0xe2, 0x88, 0x92)  -- UTF-8 for U+2212 MINUS SIGN
@@ -1525,15 +1525,18 @@ function checktitle()
                 state.localDescriptionClick = title .. "\\N────────────────────\\N" .. state.ytdescription .. "\\N────────────────────\\N"
 
                 local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize)
+                print(state.ytdescription)
+                print(utf8split)
+                print(lastchar)
 
                 if #utf8split ~= #state.ytdescription then
                     local tmp = utf8split:gsub("[,%.%s]+$", "")
                     utf8split = tmp .. "..."
                 end
                 utf8split = utf8split:match("^(.-)%s*$")
-                local artisttext = state.is_URL and "By: " or "Uploader: "
+                local artisttext = state.is_URL and "By: " or "Uploaded by: "
                 if artist then
-                    utf8split = utf8split .. " | " .. artisttext .. artist
+                    utf8split = artisttext .. artist .. " | " .. utf8split
                     state.localDescriptionClick = state.localDescriptionClick ..  artisttext .. artist
                 end
                 state.descriptionLoaded = true
@@ -1893,37 +1896,49 @@ function splitUTF8(str, maxLength)
     local result = {}
     local currentIndex = 1
     local length = #str
-    local lastchar = 0
+    local byteCount = 0
+    local charCount = 0
+
     while currentIndex <= length do
-        lastchar = lastchar + 1
+        -- Check if the next characters are a \N escape sequence
+        local nextTwo = string.sub(str, currentIndex, currentIndex + 1)
+        if nextTwo == "\\N" then
+            table.insert(result, nextTwo)
+            currentIndex = currentIndex + 2
+            -- \N does NOT count toward byte length
+            goto continue
+        end
+
         local byte = string.byte(str, currentIndex)
         local charLength
+
         if byte >= 0 and byte <= 127 then
             charLength = 1
         elseif byte >= 192 and byte <= 223 then
             charLength = 2
         elseif byte >= 224 and byte <= 239 then
             charLength = 3
-            -- CJK
         elseif byte >= 240 and byte <= 247 then
             charLength = 4
         else
-            -- Unsupported UTF-8 sequence, handle as needed
-            print("Unsupported UTF-8 sequence detected.")
+            break -- invalid byte
+        end
+
+        local currentChar = string.sub(str, currentIndex, currentIndex + charLength - 1)
+
+        if byteCount + charLength > maxLength then
             break
         end
-        local currentPart = string.sub(str, currentIndex, currentIndex + charLength - 1)
-        if #result > 0 and #result[#result] + #currentPart <= maxLength then
-            result[#result] = result[#result] .. currentPart
-        else
-            result[#result + 1] = currentPart
-        end
+
+        table.insert(result, currentChar)
+        byteCount = byteCount + charLength
         currentIndex = currentIndex + charLength
-        if #result > 0 and #result[#result] >= maxLength then
-            break
-        end
+        charCount = charCount + 1
+
+        ::continue::
     end
-    return result[1], lastchar
+
+    return table.concat(result), charCount
 end
 
 function process_vid_stats(success, result, error)
@@ -1958,7 +1973,7 @@ function process_vid_stats(success, result, error)
         state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Comments: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Comments: (%d+)')))
     end
 
-    state.localDescriptionClick = state.localDescriptionClick:gsub("Uploader: NA\\N", "")
+    state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
     state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded: NA\\N", "")
     state.localDescriptionClick = state.localDescriptionClick:gsub("Views: NA\\N", "")
     state.localDescriptionClick = state.localDescriptionClick:gsub("Comments: NA\\N", "")
