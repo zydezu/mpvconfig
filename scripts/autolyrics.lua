@@ -360,20 +360,6 @@ end
 
 local netease_songs
 
-function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
-end
-
-
 local function select_netease_lyrics()
     local items = {}
     for _, song in ipairs(netease_songs) do

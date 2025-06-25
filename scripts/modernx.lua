@@ -1525,9 +1525,6 @@ function checktitle()
                 state.localDescriptionClick = title .. "\\N────────────────────\\N" .. state.ytdescription .. "\\N────────────────────\\N"
 
                 local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize)
-                print(state.ytdescription)
-                print(utf8split)
-                print(lastchar)
 
                 if #utf8split ~= #state.ytdescription then
                     local tmp = utf8split:gsub("[,%.%s]+$", "")
