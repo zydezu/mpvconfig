@@ -1508,7 +1508,6 @@ function checktitle()
     state.youtubeuploader = artist
 
     local metadata = mp.get_property_native('metadata')
-    print(dumptable(metadata))
 
     if metadata then
         state.ytdescription = metadata.ytdl_description or description or ""
@@ -1845,7 +1844,6 @@ function loadSetOfComments(startIndex)
         else
             commentconstruction = commentconstruction ..  '\\N' .. replyPad ..  "0 likes"
         end
-        -- print(commentconstruction)
         state.youtubecomments[i] = commentconstruction
         state.commentDescription = state.commentDescription .. commentconstruction
     end
