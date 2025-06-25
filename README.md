@@ -36,7 +36,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-06-25
 
 - FIX: fix splitUTF8 in `modernX.lua`, splitting CJK characters in the clickable description properly
-- FEAT: autosubfontchange.lua
+- FEAT: create autosubfontchange.lua, which changes the subtitle font depending on the language detected in the subtitles
 
 ### 2025-06-24
 
