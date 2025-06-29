@@ -339,19 +339,53 @@ local function musixmatch_download()
         return
     end
 
-    local body = response.message.body.macro_calls
     local lyrics = ""
-    if body["matcher.track.get"].message.header.status_code == 200 then
-        local track = body["matcher.track.get"].message.body.track
+    local body = response and response.message and response.message.body and response.message.body.macro_calls
+    
+    if not body then
+        show_error("Invalid response structure: macro_calls not found")
+        return
+    end
+    local matcher = body["matcher.track.get"]
+    if not matcher or not matcher.message or not matcher.message.header then
+        show_error("Invalid matcher.track.get structure")
+        return
+    end
+
+    if matcher.message.header.status_code == 200 then
+        local track = matcher.message.body and matcher.message.body.track
+        if not track or not track.artist_name or not track.track_name then
+            show_error("Track data missing")
+            return
+        end
         downloading_name = track.artist_name .. " - " .. track.track_name
 
         if track.has_subtitles == 1 then
-            lyrics = body["track.subtitles.get"].message.body.subtitle_list[1].subtitle.subtitle_body
-        elseif track.has_lyrics == 1 then -- lyrics without timestamps
-            lyrics = body["track.lyrics.get"].message.body.lyrics.lyrics_body
+            local subtitles = body["track.subtitles.get"]
+            if subtitles and subtitles.message and subtitles.message.body then
+                local subtitle_list = subtitles.message.body.subtitle_list
+                if subtitle_list and subtitle_list[1] and subtitle_list[1].subtitle then
+                    lyrics = subtitle_list[1].subtitle.subtitle_body or ""
+                else
+                    show_error("Subtitles data is malformed")
+                end
+            else
+                show_error("Subtitle data missing")
+            end
+
+        elseif track.has_lyrics == 1 then
+            local lyrics_data = body["track.lyrics.get"]
+            if lyrics_data and lyrics_data.message and lyrics_data.message.body and lyrics_data.message.body.lyrics then
+                lyrics = lyrics_data.message.body.lyrics.lyrics_body or ""
+            else
+                show_error("Lyrics data is missing or malformed")
+            end
+
         elseif track.instrumental == 1 then
             show_error("This is an instrumental track")
             return
+        else
+            show_error("No lyrics or subtitles found")
         end
     end
 
