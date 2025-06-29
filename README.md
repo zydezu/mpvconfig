@@ -33,6 +33,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-06-29
+
+- Optimised code
+
 ### 2025-06-25
 
 - FIX: fix splitUTF8 in `modernX.lua`, splitting CJK characters in the clickable description properly
