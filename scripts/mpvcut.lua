@@ -129,25 +129,23 @@ local function next_table_key(t, current)
 	return keys[1]
 end
 
-local function check_if_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
-local is_windows = check_if_windows()
-
 local function create_folder(path)
-    local args
-    if package.config:sub(1,1) == '\\' then
-        -- Windows
-        args = { "cmd", "/c", "mkdir", path }
-    else
-        -- Unix/macOS/Linux
-        args = { "mkdir", "-p", path }
-    end
+	local args
+	if package.config:sub(1,1) == '\\' then
+		-- Windows: normalize slashes and use 'mkdir' with '/S' for nested folders
+		local win_path = path:gsub("/", "\\")
+		args = { "cmd", "/c", "mkdir", win_path }
+	else
+		-- Unix/macOS/Linux
+		args = { "mkdir", "-p", path }
+	end
 
-    local res = mp.utils.subprocess({ args = args })
-    if res.status == 0 then
-        mp.msg.info("Successfully created folder: " .. path)
-    else
-        mp.msg.error("Failed to create folder: " .. path)
-    end
+	local res = mp.utils.subprocess({ args = args })
+	if res.status == 0 then
+		mp.msg.info("Successfully created folder: " .. path)
+	else
+		mp.msg.error("Failed to create folder: " .. path)
+	end
 end
 
 local function check_paths(d, suffix, web_path_save)
