@@ -132,25 +132,28 @@ end
 local function check_if_windows() local a=os.getenv("windir")if a~=nil then return true else return false end end
 local is_windows = check_if_windows()
 
-local function create_directory(directory_path)
-	local args = {"mkdir", directory_path}
-	if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
-	local res = mp.utils.subprocess({ args = args, cancellable = false })
-	if res.status ~= 0 then
-		mp.msg.error("Failed to create directory: " .. directory_path)
-	else
-		mp.msg.info("Directory created successfully: " .. directory_path)
-	end
+local function create_folder(path)
+    local args
+    if package.config:sub(1,1) == '\\' then
+        -- Windows
+        args = { "cmd", "/c", "mkdir", path }
+    else
+        -- Unix/macOS/Linux
+        args = { "mkdir", "-p", path }
+    end
+
+    local res = mp.utils.subprocess({ args = args })
+    if res.status == 0 then
+        mp.msg.info("Successfully created folder: " .. path)
+    else
+        mp.msg.error("Failed to create folder: " .. path)
+    end
 end
 
 local function check_paths(d, suffix, web_path_save)
 	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. d.ext)
 	if (mp.utils.readdir(full_path) == nil) then
-		if not is_windows then
-			local sub_full_path = mp.utils.split_path(full_path)
-			create_directory(sub_full_path) -- required for linux as it cannot create mpv/clips/
-		end
-		create_directory(full_path)
+		create_folder(full_path)
 	end
 	if web_path_save then return web_path_save .. " " .. suffix .. web_ext end
 	return result_path

@@ -157,6 +157,24 @@ local function strip_artists(lyrics)
     return lyrics
 end
 
+local function create_folder(path)
+    local args
+    if package.config:sub(1,1) == '\\' then
+        -- Windows
+        args = { "cmd", "/c", "mkdir", path }
+    else
+        -- Unix/macOS/Linux
+        args = { "mkdir", "-p", path }
+    end
+
+    local res = mp.utils.subprocess({ args = args })
+    if res.status == 0 then
+        mp.msg.info("Successfully created folder: " .. path)
+    else
+        mp.msg.error("Failed to create folder: " .. path)
+    end
+end
+
 local function save_lyrics(lyrics)
     if lyrics == "" or #lyrics < 100 then
         show_error("Lyrics not found")
@@ -199,17 +217,6 @@ local function save_lyrics(lyrics)
 
     local is_windows = check_if_windows()
 
-    local function create_directory(directory_path)
-        local args = {"mkdir", directory_path}
-        if is_windows then args = {"powershell", "-NoProfile", "-Command", "mkdir", directory_path} end
-        local res = mp.utils.subprocess({ args = args, cancellable = false })
-        if res.status ~= 0 then
-            mp.msg.error("Failed to create directory: " .. directory_path)
-        else
-            mp.msg.info("Directory created successfully: " .. directory_path)
-        end
-    end
-
     downloading_name = downloading_name:gsub("\\", " "):gsub("/", " ")
 
     local path = mp.get_property("path")
@@ -237,11 +244,7 @@ local function save_lyrics(lyrics)
     end
 
     if mp.utils.readdir(dir_path) == nil and options.store_lyrics_seperate then
-        if not is_windows then
-            local subdir_path = mp.utils.split_path(dir_path)
-            create_directory(subdir_path) -- required for linux as it cannot create mpv/lrcdownloads/
-        end
-        create_directory(dir_path)
+        create_folder(dir_path)
     end
 
     local lrc = io.open(lrc_path, "w")
