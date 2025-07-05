@@ -29,7 +29,8 @@ local function render_elements() end
 local function render_persistent_progressbar() end
 local function limited_list() end
 local function checktitle() end
-local function normaliseDate(date) end
+local function shuffle_playlist() end
+local function normalize_date(date) end
 local function exec_async() end
 local function is_url() end
 local function check_path_url() end
@@ -41,7 +42,7 @@ local function process_vid_stats() end
 local function process_dislikes() end
 local function add_commas_to_number() end
 local function addLikeCountToTitle() end
-local function get_playlist() end
+local function get_playlist(shuffled) end
 local function get_chapterlist() end
 local function show_message(text, duration) end
 local function bind_keys() end
@@ -323,13 +324,14 @@ local language = {
         noaudio = 'No audio tracks available',
         track = ' tracks:',
         playlist = 'Playlist',
+        playlistshuffled = 'Shuffled playlist',
         nolist = 'Playlist is empty',
         chapter = 'Chapter',
         nochapter = 'No chapters available',
         ontop = 'Pin window',
         ontopdisable = 'Unpin window',
-        loopenable = 'Enable loop',
-        loopdisable = 'Disable loop',
+        loopenable = 'Looping enabled',
+        loopdisable = 'Looping disabled',
         screenshot = "Screenshot",
         statsinfo = "Information",
         download = "Download",
@@ -1565,7 +1567,7 @@ function checktitle()
             end
         end
         if (date ~= nil) then
-            local datenormal = normaliseDate(date)
+            local datenormal = normalize_date(date)
             local datetext = "Year"
             if (#datenormal > 4) then datetext = "Date" end
             if (state.localDescription == nil) then -- only metadata
@@ -1602,7 +1604,12 @@ function checktitle()
     end
 end
 
-function normaliseDate(date)
+function shuffle_playlist()
+    mp.commandv("playlist-shuffle")
+    show_message(get_playlist(true))
+end
+
+function normalize_date(date)
     date = string.gsub(date:gsub("/", ""), "-", "")
     local date_table
     if string.find(date:sub(1,8), ":") then
@@ -2051,14 +2058,15 @@ function addLikeCountToTitle()
 end
 
 -- playlist and chapters --
-function get_playlist()
+function get_playlist(shuffled)
     local pos = mp.get_property_number('playlist-pos', 0) + 1
     local count, limlist = limited_list('playlist', pos)
     if count == 0 then
         return texts.nolist
     end
 
-    local message = string.format(texts.playlist .. ' [%d/%d]:\n', pos, count)
+    local playlist_label = shuffled and (texts.playlistshuffled or texts.playlist .. " (shuffled)") or texts.playlist
+    local message = string.format(playlist_label .. ' [%d/%d]\n', pos, count)
     for i, v in ipairs(limlist) do
         local title = v.title
         local _, filename = mp.utils.split_path(v.filename)
@@ -3204,12 +3212,12 @@ local function osc_init()
         function ()
             mp.commandv('playlist-prev', 'weak')
             destroyscrollingkeys()
-            show_message(get_playlist())
+            show_message(get_playlist(false))
         end
     ne.eventresponder['mbtn_right_up'] =
-        function () show_message(get_playlist()) end
+        function () show_message(get_playlist(false)) end
     ne.eventresponder['shift+mbtn_left_down'] =
-        function () show_message(get_playlist()) end
+        function () show_message(get_playlist(false)) end
 
     --next
     ne = new_element('pl_next', 'button')
@@ -3225,12 +3233,12 @@ local function osc_init()
         function ()
             mp.commandv('playlist-next', 'weak')
             destroyscrollingkeys()
-            show_message(get_playlist())
+            show_message(get_playlist(false))
         end
     ne.eventresponder['mbtn_right_up'] =
-        function () show_message(get_playlist()) end
+        function () show_message(get_playlist(false)) end
     ne.eventresponder['shift+mbtn_left_down'] =
-        function () show_message(get_playlist()) end
+        function () show_message(get_playlist(false)) end
 
     --play control buttons
     --playpause
@@ -3252,12 +3260,15 @@ local function osc_init()
             mp.commandv("cycle", "pause")
         end
     end
-    ne.eventresponder["mbtn_right_down"] = function ()
+    ne.eventresponder["shift+mbtn_left_down"] = function ()
         if user_opts.loop_in_pause then
-            mp.command("show-text '" .. (state.looping and texts.loopdisable or texts.loopenable) .. "'")
+            show_message((state.looping and texts.loopdisable or texts.loopenable))
             state.looping = not state.looping
             mp.set_property_native("loop-file", state.looping)
         end
+    end
+    ne.eventresponder["mbtn_right_down"] = function ()
+        shuffle_playlist()
     end
 
     --skipback
@@ -4459,6 +4470,8 @@ if user_opts.key_bindings then
             end
         end
     end);
+
+    mp.add_key_binding("ctrl+s", "shuffle_playlist", shuffle_playlist);
 
     mp.add_key_binding(nil, 'show_osc', function() show_osc() end)
 end

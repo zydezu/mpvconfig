@@ -27,7 +27,7 @@ Please note that many of these scripts have been slightly modified from their in
 | [autolyrics](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) tries to download lyrics and display them for said file | **Alt+m** - Request lyrics from musixmatch then netease if that fails<br>**Alt+n** - Request lyrics only from netease<br>**Alt+o** - Set lyrics start point to the current timestamp (if lyrics need to be synced) |
 | [copypaste](https://github.com/zydezu/mpvconfig/blob/main/scripts/copypaste.lua) Copy and paste file paths, URLs and timestamps | **Ctrl+c** - Copy file path or URL to clipboard<br>**Ctrl+v** - Paste file path or URL and play it<br>**o** - Open file location or URL in browser |
 | [detectdualsubs](https://github.com/zydezu/mpvconfig/blob/main/scripts/detectdualsubs.lua) Detects if there are two existing subtitles, one being an original script and the other being a translation (eg: English and Japanese subtitles) and displays them both on screen | **Ctrl+b** - Check for dual subs again (useful if subtitle tracks were changed) |
-| [modernx](https://github.com/zydezu/modernx) a modern OSC for mpv with many additional features | **x** - Cycle through audio tracks <br>**c** - Cycle through subtitle tracks <br>**p** - Pin or unpin the window <br>**Tab** - Show chapter list <br> For more: [See repository](https://github.com/zydezu/modernx#buttons) |
+| [modernx](https://github.com/zydezu/modernx) a modern OSC for mpv with many additional features | **x** - Cycle through audio tracks <br>**c** - Cycle through subtitle tracks <br>**p** - Pin or unpin the window <br>**Tab** - Show chapter list <br>**Ctrl+s** - Shuffle the current playlist <br>For more: [See repository](https://github.com/zydezu/modernx#buttons) |
 | [mpvcut](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) allows clipping a segment of a video | **z** - Mark start segment <br> **z (again)** - Clip the video <br> **Shift+z** - Cancel the clip <br> **a** - Change mode (copy, encode, compress) |
 | [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) saves screenshots to a designated folder | **s** - Take a screenshot |
 | [selectformat](https://github.com/koonix/mpv-selectformat) allows you to change the quality of internet videos on the fly | **Ctrl+f** - Open format menu <br> Use up and down to choose a resolution, and fold and unfold selections with the arrow keys to see more codec options |
@@ -36,6 +36,10 @@ Please note that many of these scripts have been slightly modified from their in
 | [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
 
 ## Updates
+
+### 2025-07-05
+
+- FIX: Refine shuffling playlist in `modernX.lua`
 
 ### 2025-06-29
 
