@@ -5,7 +5,7 @@
 My personal [mpv](https://mpv.io/) config.
 
 > [!NOTE]
-> Releases of the [modernX](https://github.com/zydezu/modernX) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
+> Releases of the [modernx](https://github.com/zydezu/modernx) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
 
 ## Usage
 
@@ -39,7 +39,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-07-05
 
-- FIX: Refine shuffling playlist in `modernX.lua`
+- FIX: Refine shuffling playlist in `modernx.lua`
 
 ### 2025-06-29
 
@@ -47,7 +47,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-06-25
 
-- FIX: fix splitUTF8 in `modernX.lua`, splitting CJK characters in the clickable description properly
+- FIX: fix splitUTF8 in `modernx.lua`, splitting CJK characters in the clickable description properly
 - FEAT: create autosubfontchange.lua, which changes the subtitle font depending on the language detected in the subtitles
 
 ### 2025-06-24
@@ -61,7 +61,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-05-19
 
 - FIX: implement https://github.com/zydezu/mpvconfig/issues/18, adding `save_location`, `time_stamp_format` and `save_based_on_chapter_name` as options in `screenshotfolder.lua`
-- FIX: implement https://github.com/zydezu/ModernX/issues/66, adding `fade_transparency_strength` and `window_fade_transparency_strength` as options to `modernX`, this also removes the option `titlebarbox`
+- FIX: implement https://github.com/zydezu/ModernX/issues/66, adding `fade_transparency_strength` and `window_fade_transparency_strength` as options to `modernx`, this also removes the option `titlebarbox`
 
 ### 2025-06-01
 
@@ -93,7 +93,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-03-11
 
-- FIX: audio/tracklist indicator not showing selected track correctly in `modernX.lua`
+- FIX: audio/tracklist indicator not showing selected track correctly in `modernx.lua`
 - FIX: changes to Japanese lyric detection in `autolyrics.lua`
 
 ### 2025-02-09
@@ -102,7 +102,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-01-25
 
-- FIX: sponsorblock segments not rendering properly in modernX
+- FIX: sponsorblock segments not rendering properly in modernx
 
 ### 2025-01-21
 
@@ -113,12 +113,12 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-01-17
 
-- FEATURE: added coloured segments on the progress bar, like on Youtube with SponsorBlock to `modernX.lua` - NOTE: requires a custom version of sponsorblock.lua [https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua)
+- FEATURE: added coloured segments on the progress bar, like on Youtube with SponsorBlock to `modernx.lua` - NOTE: requires a custom version of sponsorblock.lua [https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua](https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua)
 - This adds the following options: `show_sponsorblock_segments`, `add_sponsorblock_chapters`, `sponsorblock_sponsor_color`, `sponsorblock_intro_color`, `sponsorblock_outro_color`, `sponsorblock_interaction_color`, `sponsorblock_selfpromo_color` and `sponsorblock_filler_color`
-- Fix `seekbar_cache_color` to `modernX.lua`
-- Added `progress_bar_height` to `modernX.lua`
+- Fix `seekbar_cache_color` to `modernx.lua`
+- Added `progress_bar_height` to `modernx.lua`
 - FIX: fix thumbnail border clipping through text weird
-- FEAT: `modernX.lua` now sets the tick rate to the monitors refresh rate
+- FEAT: `modernx.lua` now sets the tick rate to the monitors refresh rate
 - FIX: fix state.title_bar not being respected after pinning
 ![image](https://github.com/user-attachments/assets/a7dd23bb-f59e-4f0a-bbcb-b9c5c759e802)
 
@@ -172,8 +172,8 @@ Please note that many of these scripts have been slightly modified from their in
 - Set `mpvcut.lua` default compress size target to 9.00MB (THANKS DISCORD >~<0)
 - Added `AOTFShinGoProMedium.otf` to the fonts folder as it is used in `mpv.conf`
 - Improved descriptions
-- Add fallback for chapters with no names in `modernX.lua` to prevent a crash
-- Add buffer indicator on `modernX.lua`
+- Add fallback for chapters with no names in `modernx.lua` to prevent a crash
+- Add buffer indicator on `modernx.lua`
   
 ![58-038 jpeg](https://github.com/user-attachments/assets/12d948aa-c623-4e45-8363-b2d520af4b4c)<br>
 ![tartarus](https://github.com/user-attachments/assets/835f5585-63a4-4605-8b6b-e075e3cc7600)<br>
@@ -207,7 +207,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Implement [https://github.com/zydezu/ModernX/pull/58](https://github.com/zydezu/ModernX/pull/58)
 - Implement [https://github.com/zydezu/ModernX/pull/59](https://github.com/zydezu/ModernX/pull/59)
-- Add `dynamictimeformat` option to `modernX.lua`
+- Add `dynamictimeformat` option to `modernx.lua`
 
 ### 2024-10-17
 
@@ -232,9 +232,9 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2024-08-13
 
 - Changed some configs
-- Added an option for a screenshot button to `modernX.lua` [https://github.com/zydezu/ModernX/pull/40](https://github.com/zydezu/ModernX/pull/40)
+- Added an option for a screenshot button to `modernx.lua` [https://github.com/zydezu/ModernX/pull/40](https://github.com/zydezu/ModernX/pull/40)
 - Update `screenshotfolder.lua` to not include file extensions in folder directories
-- Improved YouTube comment parsing and viewing in `modernX.lua`
+- Improved YouTube comment parsing and viewing in `modernx.lua`
 
 ### 2024-08-02
 
@@ -253,7 +253,7 @@ Please note that many of these scripts have been slightly modified from their in
 - [`mpvcut.lua`](https://github.com/zydezu/mpvconfig/blob/main/scripts/mpvcut.lua) now stops overwriting previously cut files
 - Fixed `autoloop` not staying disabled over a playlist of files
 - Implement [https://github.com/dexeonify/mpv-config/commit/583faf0](https://github.com/dexeonify/mpv-config/commit/583faf0)
-- In modernX, `shift+left click` on the seekbar now scrubs to the exact position, whilst `left click` now scrubs to the keyframe position (faster)
+- In modernx, `shift+left click` on the seekbar now scrubs to the exact position, whilst `left click` now scrubs to the keyframe position (faster)
 
 ### 2024-07-05
 
@@ -324,8 +324,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-04-28
 
-- Added `descriptionfontsize` to modernX
-- Changed default font size in modernX
+- Added `descriptionfontsize` to modernx
+- Changed default font size in modernx
 - Enable thumbfast on YouTube videos (enabling the `network` option)
 
 #### Default font changes on windows
@@ -338,7 +338,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - Update default font settings
 - Tweaked `dynamictitle` in ModernX to be cleaner
-- Added `automatickeyframemode` and `automatickeyframelimit` to modernX, resolving [https://github.com/zydezu/ModernX/issues/23](https://github.com/zydezu/ModernX/issues/23)
+- Added `automatickeyframemode` and `automatickeyframelimit` to modernx, resolving [https://github.com/zydezu/ModernX/issues/23](https://github.com/zydezu/ModernX/issues/23)
 
 ### 2024-04-24
 
@@ -375,17 +375,17 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-03-20
 
-- Fix yt descriptions with % crashing modernX
-- Fix command message placement in modernX
+- Fix yt descriptions with % crashing modernx
+- Fix command message placement in modernx
 - Made description splitting consistent between online and local videos
 - Added the ability to toggle the persistent progress bar, with the `b` key, if `persistentprogresstoggle` is enabled
 
 ### 2024-02-24
 
-- Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10), fixing some formatting in `modernX`
-- Merged [https://github.com/zydezu/ModernX/pull/11](https://github.com/zydezu/ModernX/pull/11), updaing the audio/subtitle icons in `modernX`
+- Merged [https://github.com/zydezu/ModernX/pull/10](https://github.com/zydezu/ModernX/pull/10), fixing some formatting in `modernx`
+- Merged [https://github.com/zydezu/ModernX/pull/11](https://github.com/zydezu/ModernX/pull/11), updaing the audio/subtitle icons in `modernx`
 - Fix reply icon
-- Merged [https://github.com/zydezu/ModernX/pull/12](https://github.com/zydezu/ModernX/pull/12), adding the option `keybindings` to `modernX`
+- Merged [https://github.com/zydezu/ModernX/pull/12](https://github.com/zydezu/ModernX/pull/12), adding the option `keybindings` to `modernx`
 
 ### 2024-02-15
 
@@ -400,18 +400,18 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2024-01-25
 
-- Made switching between web videos in playlists in `modernX` more seamless, instantly clearing the description
-- Improved the description string splitting functions in `modernX`
+- Made switching between web videos in playlists in `modernx` more seamless, instantly clearing the description
+- Improved the description string splitting functions in `modernx`
 
 ### 2024-01-23
 
-- Added `downloadpath` in `modernX`, fixing [https://github.com/zydezu/ModernX/issues/4](https://github.com/zydezu/ModernX/issues/4)
+- Added `downloadpath` in `modernx`, fixing [https://github.com/zydezu/ModernX/issues/4](https://github.com/zydezu/ModernX/issues/4)
 - Fixed CJK characters in video description and uploader name, fixing [https://github.com/zydezu/mpvconfig/issues/12]
 - Added an experimental toggle to view comments of a video (very unstable)
 
 ### 2024-01-15
 
-- Fixed fetching dislikes via the YouTube Dislike API in `modernX` and screenshotting in `screenshotfolder.lua` when viewing YouTube short 'share' links, along with the `dynamictitle` option
+- Fixed fetching dislikes via the YouTube Dislike API in `modernx` and screenshotting in `screenshotfolder.lua` when viewing YouTube short 'share' links, along with the `dynamictitle` option
 - Updated dislike formatting and error checking
 
 ### 2024-01-14
@@ -567,7 +567,7 @@ end
 
 ### 2023-08-07
 
-- Fixed m3u files crashing `modernX.lua`
+- Fixed m3u files crashing `modernx.lua`
 
 ### 2023-08-06
 
