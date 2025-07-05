@@ -216,8 +216,6 @@ local function save_lyrics(lyrics)
         local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
-    local is_windows = check_if_windows()
-
     downloading_name = downloading_name:gsub("\\", " "):gsub("/", " ")
 
     local path = mp.get_property("path")
@@ -239,10 +237,6 @@ local function save_lyrics(lyrics)
 
     local lrc_path = (path:gsub("?", "") .. (add_ja and ".ja" or "") .. ".lrc")
     local dir_path = lrc_path:match("(.+[\\/])")
-    if is_windows then
-        lrc_path = lrc_path:gsub("/", "\\")
-        dir_path = dir_path:gsub("/", "\\")
-    end
 
     if mp.utils.readdir(dir_path) == nil and options.store_lyrics_seperate then
         create_folder(dir_path)
