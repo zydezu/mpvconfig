@@ -13,6 +13,10 @@ Use `git clone https://github.com/zydezu/mpvconfig mpv`, and place it in the rel
 
 See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for more information.
 
+## Note about Audio
+![2025-07-05_15-15-16_411_ApplicationFrameHost](https://github.com/user-attachments/assets/6e457e40-d1ca-4e9e-bce6-a309d09ce091)
+For videos with 5.1 or 7.1 surround sound, you may need to set 'Audio enhancements' to Off in windows settings to hear all the audio channels properly.
+
 ## Scripts and Associated Keybinds
 
 Please note that many of these scripts have been slightly modified from their initial repositories. Compare the scripts to find the modifications.
