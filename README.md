@@ -37,6 +37,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-07-06
+
+- FIX: change default screenshot format to `png` in `screenshotfolder.lua`
+
 ### 2025-07-05
 
 - FIX: Refine shuffling playlist in `modernx.lua`, you can now shuffle a playlist with `Ctrl+s` or by right-clicking the play/pause button

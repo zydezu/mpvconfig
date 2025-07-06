@@ -7,7 +7,7 @@
 
 local options = {
     screenshot_key = 's',
-    file_ext = "jpg",
+    file_ext = "png",
     save_location = "~~desktop/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
     save_as_time_stamp = true,
