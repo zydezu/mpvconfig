@@ -20,6 +20,7 @@ local options = {
 local title = "default"
 local chaptername = ""
 local count = 0
+local current_format = options.file_ext
 
 local function set_screenshot_template()
     local function safe_chaptername(name)
@@ -42,7 +43,7 @@ local function set_screenshot_template()
         end
     end
 
-    mp.set_property("screenshot-format", options.file_ext)
+    mp.set_property("screenshot-format", current_format)
     if options.save_based_on_chapter_name then
         set_screenshot_template_with_chapter()
     else
@@ -101,6 +102,12 @@ end
 mp.observe_property("chapter-metadata/title", "string", function(_, value)
     chaptername = value or ""
     set_screenshot_template()
+end)
+
+mp.observe_property("screenshot-format", "string", function(_, value)
+    if value then
+        current_format = value
+    end
 end)
 
 mp.register_event("start-file", init)
