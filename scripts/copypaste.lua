@@ -19,6 +19,7 @@ local options = {
     open_keybind = "o",
     linux_copy_command = { "xclip", "-silent", "-selection", "clipboard", "-in" },
     linux_paste_command = { "xclip", "-selection", "clipboard", "-o" },
+    copy_youtube_timestamp = true,
 }
 
 if display_protocol == "wayland" then
@@ -94,7 +95,6 @@ local function set_clipboard(text)
 end
 
 local function get_clipboard()
-    local clipboard
     if device == "linux" then
         local args = options.linux_paste_command
 		return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
@@ -175,6 +175,37 @@ end
 
 local function copy()
     local path = mp.get_property("path")
+
+    local function remove_timestamp_from_url(inputpath)
+        if type(inputpath) == "string" then
+            local new_path = inputpath:gsub("([&?])t=%d+", function(sep)
+                return sep == "?" and "?" or ""
+            end)
+            new_path = new_path:gsub("[?&]$", "")
+            if new_path ~= inputpath then
+                inputpath = new_path
+            end
+        end
+        return inputpath
+    end
+
+    local function add_timestamp_to_url(url, seconds)
+        if type(url) ~= "string" or type(seconds) ~= "number" then
+            return url
+        end
+        url = remove_timestamp_from_url(url)
+        local sep = url:find("?") and "&" or "?"
+        return url .. sep .. "t=" .. tostring(seconds)
+    end
+
+    if options.copy_youtube_timestamp and is_url(path) then
+        path = remove_timestamp_from_url(path)
+        local time_pos = mp.get_property_number("time-pos", 0)
+        if time_pos > 0 then
+            path = add_timestamp_to_url(path, math.floor(time_pos))
+        end
+    end
+
     set_clipboard(path)
     if is_url(path) then
         mp.osd_message("Copied URL to clipboard")

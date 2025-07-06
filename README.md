@@ -39,7 +39,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-07-06
 
-- FIX: change default screenshot format to `png` in `screenshotfolder.lua`
+- FEAT: add `copy_youtube_timestamp` as an option to `copypaste.lua`, that copies YouTube links with the current timestamp to be pasted
 
 ### 2025-07-05
 

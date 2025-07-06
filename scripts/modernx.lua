@@ -28,26 +28,26 @@ local function get_chapter() end
 local function render_elements() end
 local function render_persistent_progressbar() end
 local function limited_list() end
-local function checktitle() end
+local function check_title() end
 local function shuffle_playlist() end
 local function normalize_date(date) end
 local function exec_async() end
 local function is_url() end
 local function check_path_url() end
 local function check_comments() end
-local function loadSetOfComments() end
+local function load_set_of_comments() end
 local function process_filesize() end
-local function splitUTF8(str, maxLength) end
+local function split_utf8_strings(str, maxLength) end
 local function process_vid_stats() end
 local function process_dislikes() end
 local function add_commas_to_number() end
-local function addLikeCountToTitle() end
+local function add_like_count_to_title() end
 local function get_playlist(shuffled) end
 local function get_chapterlist() end
 local function show_message(text, duration) end
 local function bind_keys() end
 local function unbind_keys() end
-local function destroyscrollingkeys() end
+local function destroy_scrolling_keys() end
 local function check_description() end
 local function show_description(text) end
 local function reset_desc_timer() end
@@ -1463,7 +1463,7 @@ local function startupevents()
     state.videoDescription = "Loading description..."
     state.file_size_normalized = "Approximating size..."
     check_path_url()
-    checktitle()
+    check_title()
     if user_opts.automatic_keyframe_mode then
         if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
             user_opts.seekbar_keyframes = true
@@ -1471,7 +1471,7 @@ local function startupevents()
             user_opts.seekbar_keyframes = false
         end
      end
-    destroyscrollingkeys() -- close description
+    destroy_scrolling_keys() -- close description
 
     if user_opts.FORCE_fix_not_ontop and state.is_URL then
         mp.commandv("cycle", "ontop")
@@ -1480,7 +1480,7 @@ local function startupevents()
     end
 end
 
-function checktitle()
+function check_title()
     local mediatitle = mp.get_property("media-title")
     mp.set_property("title", mediatitle)
 
@@ -1525,7 +1525,7 @@ function checktitle()
             if (#state.ytdescription > 1) then
                 state.localDescriptionClick = title .. "\\N────────────────────\\N" .. state.ytdescription .. "\\N────────────────────\\N"
 
-                local utf8split, lastchar = splitUTF8(state.ytdescription, max_descsize)
+                local utf8split, lastchar = split_utf8_strings(state.ytdescription, max_descsize)
 
                 if #utf8split ~= #state.ytdescription then
                     local tmp = utf8split:gsub("[,%.%s]+$", "")
@@ -1793,7 +1793,7 @@ function check_comments()
     end )
 end
 
-function loadSetOfComments(startIndex)
+function load_set_of_comments(startIndex)
     if (#state.jsoncomments < 1) then
         return
     end
@@ -1875,7 +1875,7 @@ function process_filesize(success, result, error)
             mp.msg.info(fs_prop)
         else
             state.file_size_normalized = "Unknown"
-            mp.msg.info("Unable to retrieve file size.")
+            mp.msg.info("[WEB] Unable to retrieve file size")
         end
     end
 
@@ -1894,7 +1894,7 @@ local function download_done(success, result, error)
     state.downloading = false
 end
 
-function splitUTF8(str, maxLength)
+function split_utf8_strings(str, maxLength)
     local result = {}
     local currentIndex = 1
     local length = #str
@@ -1963,7 +1963,7 @@ function process_vid_stats(success, result, error)
         state.localDescriptionClick = state.localDescriptionClick .. string.gsub(result.stdout, '\r', '\\N'):gsub("\n", "\\N")
         state.localDescriptionClick = state.localDescriptionClick:sub(1, #state.localDescriptionClick - 2)
     end
-    addLikeCountToTitle()
+    add_like_count_to_title()
 
     if (state.localDescriptionClick:match('Views: (%d+)')) then
         state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Views: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)')))
@@ -2025,7 +2025,7 @@ function process_dislikes(success, result, error)
             state.localDescriptionClick = state.dislikes
         end
     else
-        addLikeCountToTitle()
+        add_like_count_to_title()
     end
 end
 
@@ -2040,7 +2040,7 @@ function add_commas_to_number(number)
        :sub(1) -- a little hack to get rid of the second return value
  end
 
-function addLikeCountToTitle()
+function add_like_count_to_title()
     if (user_opts.show_description and user_opts.title_youtube_stats) then
         state.viewcount = add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)'))
         state.likecount = add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)'))
@@ -2172,7 +2172,7 @@ end
 
 function show_message(text, duration)
     if state.showingDescription then
-        destroyscrollingkeys()
+        destroy_scrolling_keys()
     end
     if duration == nil then
         duration = tonumber(mp.get_property('options/osd-duration')) / 1000
@@ -2224,7 +2224,7 @@ function unbind_keys(keys, name)
     end
 end
 
-function destroyscrollingkeys()
+function destroy_scrolling_keys()
     state.showingDescription = false
     state.scrolledlines = 25
     show_message("", 0.01) -- clear text
@@ -2241,7 +2241,7 @@ function check_description()
     if state.descriptionLoaded or state.localDescriptionIsClickable then
         if state.showingDescription then
             state.showingDescription = false
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
         else
             state.showingDescription = true
             if state.is_URL then
@@ -2286,7 +2286,7 @@ function show_description(text)
         reset_desc_timer()
         request_tick()
     end, { repeatable = true })
-    bind_keys("ENTER", "select", destroyscrollingkeys)
+    bind_keys("ENTER", "select", destroy_scrolling_keys)
     bind_keys("ESC", "close", function()
         if (state.commentsPage > 0) then
             state.commentsPage = 0
@@ -2295,7 +2295,7 @@ function show_description(text)
             request_tick()
             state.scrolledlines = 25
         else
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
         end
     end) -- close menu using ESC
 
@@ -2306,7 +2306,7 @@ function show_description(text)
         if lastCommentCount > totalCommentCount then
             lastCommentCount = totalCommentCount
         end
-        loadSetOfComments(firstCommentCount)
+        load_set_of_comments(firstCommentCount)
         return 'Comments\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. firstCommentCount .. '/' .. #state.jsoncomments .. ')\\N────────────────────\\N' .. state.commentDescription:gsub('\n', '\\N') ..  '\\N────────────────────\\NEnd of page\\NPage ' .. state.commentsPage .. '/' .. state.maxCommentPages .. ' (' .. lastCommentCount .. '/' .. totalCommentCount .. ')'
     end
 
@@ -2395,7 +2395,7 @@ function render_message(ass)
         end
     else
         state.message_text = nil
-        if state.showingDescription then destroyscrollingkeys() end
+        if state.showingDescription then destroy_scrolling_keys() end
     end
 end
 
@@ -3206,12 +3206,12 @@ local function osc_init()
     ne.eventresponder['mbtn_left_up'] =
         function ()
             mp.commandv('playlist-prev', 'weak')
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
         end
     ne.eventresponder['enter'] =
         function ()
             mp.commandv('playlist-prev', 'weak')
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
             show_message(get_playlist(false))
         end
     ne.eventresponder['mbtn_right_up'] =
@@ -3227,12 +3227,12 @@ local function osc_init()
     ne.eventresponder['mbtn_left_up'] =
         function ()
             mp.commandv('playlist-next', 'weak')
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
         end
     ne.eventresponder['enter'] =
         function ()
             mp.commandv('playlist-next', 'weak')
-            destroyscrollingkeys()
+            destroy_scrolling_keys()
             show_message(get_playlist(false))
         end
     ne.eventresponder['mbtn_right_up'] =
@@ -4417,11 +4417,11 @@ if user_opts.key_bindings then
     -- chapter scrubbing
     mp.add_key_binding("ctrl+left", "prevfile", function()
         mp.commandv('playlist-prev', 'weak')
-        destroyscrollingkeys()
+        destroy_scrolling_keys()
     end);
     mp.add_key_binding("ctrl+right", "nextfile", function()
         mp.commandv('playlist-next', 'weak')
-        destroyscrollingkeys()
+        destroy_scrolling_keys()
     end);
     mp.add_key_binding("shift+left", "prevchapter", function()
         change_chapter(-1)
