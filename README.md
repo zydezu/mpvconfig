@@ -7,15 +7,25 @@ My personal [mpv](https://mpv.io/) config.
 > [!NOTE]
 > Releases of the [modernx](https://github.com/zydezu/modernx) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
 
-## Usage
+## How to Use
 
 Use `git clone https://github.com/zydezu/mpvconfig mpv`, and place it in the relevant directory. This will be typically located at `\%APPDATA%\mpv\` on Windows and `~/.config/mpv/` on Linux/MacOS.
+
+### Flatpak Instructions (from https://github.com/zydezu/mpvconfig/issues/21)
+
+Use `mkdir -p ~/.var/app/io.mpv.Mpv/config` to make the mpv configuration directory for the first time
+
+`cd ~/.var/app/io.mpv.Mpv/config`
+
+`git clone https://github.com/zydezu/mpvconfig mpv` to clone the config files as `mpv/`
+
+`flatpak override --user io.mpv.Mpv --filesystem=host`, needed for mpv flatpak to access host filesystem, so screenshots and lyric downloads can be saved
 
 See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for more information.
 
 ## Note about Audio
 ![2025-07-05_15-15-16_411_ApplicationFrameHost](https://github.com/user-attachments/assets/6e457e40-d1ca-4e9e-bce6-a309d09ce091)
-For videos with 5.1 or 7.1 surround sound, you may need to set 'Audio enhancements' to Off in the windows sound settings to hear all the audio channels properly.
+For files with 5.1 or 7.1 surround sound, you may need to set `Audio enhancements` to `Off` in the windows sound settings to hear all the audio channels properly.
 
 ## Scripts and Associated Keybinds
 
