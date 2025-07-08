@@ -32,6 +32,9 @@ local options = {
 }
 (require "mp.options").read_options(options)
 
+local dual_subs_enabled = false
+local tag_to_use, primary_track_id, secondary_track_id
+
 local subtitle_filenames = {}
 local subtitle_ids = {}
 
@@ -65,7 +68,6 @@ local function check_for_dual_subs()
         local filename_noext = filename:gsub(ext, "")
 
         local original = true
-        local tag_to_use, primary_track_id, secondary_track_id
 
         -- check if sub is original
         for i, lang in ipairs(options.original_sub) do
@@ -122,7 +124,7 @@ local function check_for_dual_subs()
 
                 return true
             else
-                -- no dual subtitles detected
+                return false -- no dual subtitles detected
             end
         else
             return false -- nothing detected
@@ -154,16 +156,25 @@ end
 
 local function auto_check_for_dual_subs()
     local result = check_for_dual_subs()
+    dual_subs_enabled = result
     if not result and options.auto_set_non_forced_subs then
         set_non_forced_subs()
     end
 end
 
-local function key_bind_check_for_dual_subs()
-    osd_msg("Checking for dual subs...")
-    local result = check_for_dual_subs()
-    osd_msg(result and "Applied dual subs" or "Couldn't find dual subs")
+local function toggle_dual_subs()
+    if not dual_subs_enabled then
+        dual_subs_enabled = true
+        local result = check_for_dual_subs()
+        osd_msg(result and "Applied dual subs" or "Couldn't find dual subs")
+    else
+        dual_subs_enabled = false
+        mp.set_property("secondary-sid", "no")
+        mp.set_property_number("sid", secondary_track_id)
+        osd_msg("Dual subtitles disabled")
+        return
+    end
 end
 
 mp.register_event("file-loaded", auto_check_for_dual_subs)
-mp.add_key_binding("ctrl+b", "key_bind_check_for_dual_subs", key_bind_check_for_dual_subs)
+mp.add_key_binding("ctrl+b", "key_bind_check_for_dual_subs", toggle_dual_subs)

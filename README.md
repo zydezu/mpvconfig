@@ -47,6 +47,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-07-08
+
+- FIX: `Ctrl+s` now toggles dual subtitles in `detectdualsubs.lua` instead of only forcing them on
+
 ### 2025-07-06
 
 - FEAT: add `copy_youtube_timestamp` as an option to `copypaste.lua`, that copies YouTube links with the current timestamp to be pasted
