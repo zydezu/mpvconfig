@@ -177,4 +177,4 @@ local function toggle_dual_subs()
 end
 
 mp.register_event("file-loaded", auto_check_for_dual_subs)
-mp.add_key_binding("ctrl+b", "key_bind_check_for_dual_subs", toggle_dual_subs)
+mp.add_key_binding("ctrl+x", "toggle_dual_subs", toggle_dual_subs)

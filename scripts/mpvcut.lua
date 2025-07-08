@@ -16,9 +16,9 @@ local options = {
 	save_directory = "~~desktop/mpv/clips", -- required for web videos
 
 	-- Key config
-	key_cut = "z",
-	key_cancel_cut = "Z",
-	key_cycle_action = "a",
+	key_cut = "a",
+	key_cancel_cut = "shift+a",
+	key_cycle_action = "A",
 
 	-- The default action
 	action = "COPY",

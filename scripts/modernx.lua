@@ -1,5 +1,5 @@
 --[[
-    ModernX by zydezu
+    modernx.lua by zydezu
     (https://github.com/zydezu/ModernX)
 
     This script is a result of the original mpv-osc-modern by maoiscat
@@ -4431,13 +4431,13 @@ if user_opts.key_bindings then
     end);
 
     -- extra key bindings
-    mp.add_key_binding("x", "cycleaudiotracks", function()
+    mp.add_key_binding("z", "cycleaudiotracks", function()
         mp.set_property_number("secondary-sid", 0)
         set_track("audio", 1)
         show_message(get_tracklist("audio"))
     end);
 
-    mp.add_key_binding("c", "cyclecaptions", function()
+    mp.add_key_binding("x", "cyclecaptions", function()
         mp.set_property_number("secondary-sid", 0)
         set_track("sub", 1)
         show_message(get_tracklist("sub"))
