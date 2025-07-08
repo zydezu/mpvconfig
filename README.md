@@ -53,6 +53,7 @@ Please note that many of these scripts have been slightly modified from their in
 - FIX: `Ctrl+x` now toggles dual subtitles in `detectdualsubs.lua` instead of only forcing them on
 - FIX: `mpvcut.lua` now uses `a` to select cuts, `Shift+a` to cycle cut modes and `Ctrl+a` to cancel
 - FIX: `modernx.lua` now uses `z` and `x` to cycle through audio and subtitle tracks respectively
+- FEAT: added `loadaudiotracks.lua` to allow multiple audio tracks to be played at the same time
 
 ### 2025-07-06
 

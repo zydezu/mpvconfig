@@ -3411,7 +3411,7 @@ local function osc_init()
     ne.eventresponder['mbtn_right_up'] =
         function () mp.set_property("lavfi-complex", "") set_track('audio', -1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_left_down'] =
-    function () mp.set_property("lavfi-complex", "") set_track('audio', 1) end
+        function () mp.commandv("script-binding", "loadaudiotracks/ask_for_audio_track") end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('audio')) end
 

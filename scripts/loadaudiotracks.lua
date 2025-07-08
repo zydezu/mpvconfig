@@ -1,7 +1,7 @@
 --[[
     loadaudiotracks.lua
     
-    * script based on 
+    * Based on 
     https://github.com/mpv-player/mpv/issues/10554#issuecomment-2360602290 
     by https://github.com/guidocella
     * Modified by zydezu
