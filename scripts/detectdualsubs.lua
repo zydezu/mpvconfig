@@ -164,14 +164,16 @@ end
 
 local function toggle_dual_subs()
     if not dual_subs_enabled then
-        dual_subs_enabled = true
         local result = check_for_dual_subs()
+        dual_subs_enabled = result
         osd_msg(result and "Applied dual subs" or "Couldn't find dual subs")
     else
         dual_subs_enabled = false
         mp.set_property("secondary-sid", "no")
-        mp.set_property_number("sid", secondary_track_id)
-        osd_msg("Dual subtitles disabled")
+        if secondary_track_id then
+            mp.set_property_number("sid", secondary_track_id)
+            osd_msg("Dual subtitles disabled")
+        end
         return
     end
 end
