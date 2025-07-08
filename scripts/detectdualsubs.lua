@@ -28,7 +28,8 @@ mp.utils = require("mp.utils")
 local options = {
     original_sub = {"[ja]"},
     translated_sub = {"[en]"},
-    auto_set_non_forced_subs = true
+    auto_set_non_forced_subs = true,
+    avoid_signs_songs_as_default = true,
 }
 (require "mp.options").read_options(options)
 
@@ -145,14 +146,26 @@ local function set_non_forced_subs()
 
     for _, value in ipairs(slang_list) do
         for i = 1, #track_list do
-            if track_list[i].type == "sub" and track_list[i].lang == value and track_list[i].forced == false then
-                mp.set_property("sid", track_list[i].id)
-                print("Setting non-forced sub "..track_list[i].id)
+            local track = track_list[i]
+            if track.type == "sub" and track.lang == value and not track.forced then
+                if options.avoid_signs_songs_as_default then
+                    local title = track.title or ""
+                    local title_lower = title:lower()
+                    if title_lower:find("sings") or title_lower:find("songs") then
+                        -- Skip this subtitle track
+                        goto continue
+                    end
+                end
+
+                mp.set_property("sid", track.id)
+                print("Setting non-forced sub " .. track.id)
                 return
             end
+            ::continue::
         end
     end
 end
+
 
 local function auto_check_for_dual_subs()
     local result = check_for_dual_subs()
