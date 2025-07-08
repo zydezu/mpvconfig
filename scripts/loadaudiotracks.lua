@@ -43,13 +43,16 @@ local function format_track(track)
 end
 
 local function ask_for_audio_track()
+    local tracks = mp.get_property_native("track-list")
     local items = {}
     local selected_tracks = {}
+    local track_ids = {}
     local selected_count = 0
 
-    for _, track in ipairs(mp.get_property_native("track-list")) do
+    for _, track in ipairs(tracks) do
         if track.type == "audio" then
             items[#items + 1] = format_track(track)
+            track_ids[#track_ids + 1] = track.id
             if track.selected then
                 selected_tracks[track.id] = true
                 selected_count = selected_count + 1
@@ -57,47 +60,84 @@ local function ask_for_audio_track()
         end
     end
 
-    if #items == 0 then
-        show_error("No available audio tracks.")
+    if #track_ids == 0 then
+        show_error("No available audio tracks")
         return
     end
 
+    if #track_ids <= 1 then
+        show_error("Less than 2 tracks available, skipping audio track selection")
+        return
+    end
+
+    -- Insert visual separator and special options
+    local separator_index = #items + 1
+    local play_all_index = #items + 2
+    local clear_all_index = #items + 3
+
+    items[separator_index] = ""
+    items[play_all_index] = "🔊Play all available tracks together"
+    items[clear_all_index] = "🚫Clear all audio tracks"
+
     mp.input.select({
-        prompt = "Toggle another audio track:",
+        prompt = "Toggle an audio track:",
         items = items,
         submit = function (id)
-            if selected_count == 0 then
-                mp.set_property("aid", id)
+            if id == separator_index then
+                return -- Ignore separator
+            elseif id == play_all_index then
+                local graph = ""
+                for _, tid in ipairs(track_ids) do
+                    graph = graph .. "[aid" .. tid .. "]"
+                end
+
+                local input_count = #track_ids
+                graph = graph .. "amix=inputs=" .. input_count .. "[ao]"
+
+                mp.set_property("lavfi-complex", graph)
+                mp.set_property("aid", "no")
+                return
+            elseif id == clear_all_index then
+                mp.set_property("lavfi-complex", "")
+                mp.set_property("aid", "no")
                 return
             end
 
-            if selected_tracks[id] then
-                -- if selected_count == 1 then
-                --     show_error("This track is already selected.")
-                --     return
-                -- end
+            local track_id = track_ids[id]
+            if not track_id then return end
 
-                selected_tracks[id] = nil
-                selected_count = selected_count - 1
-
+            if selected_tracks[track_id] then
                 if selected_count == 1 then
-                    mp.set_property("lavfi-complex", "")
-                    -- This doesn't always work.
-                    mp.set_property("aid", next(selected_tracks))
+                    show_error("This is the only track currently selected")
                     return
                 end
+
+                selected_tracks[track_id] = nil
+                selected_count = selected_count - 1
             else
-                selected_tracks[id] = true
+                selected_tracks[track_id] = true
                 selected_count = selected_count + 1
             end
 
-            local graph = ''
-            for selected_id in pairs(selected_tracks) do
-                graph = graph .. "[aid" .. selected_id .. "]"
+            if selected_count == 1 then
+                mp.set_property("lavfi-complex", "")
+                for tid in pairs(selected_tracks) do
+                    mp.set_property("aid", tid)
+                    break
+                end
+                return
             end
 
-            mp.set_property("lavfi-complex",
-                            graph .. "amix=inputs=" .. selected_count .. "[ao]")
+            local graph = ""
+            for _, tid in ipairs(track_ids) do
+                if selected_tracks[tid] then
+                    graph = graph .. "[aid" .. tid .. "]"
+                end
+            end
+
+            graph = graph .. "amix=inputs=" .. selected_count .. "[ao]"
+            mp.set_property("lavfi-complex", graph)
+            mp.set_property("aid", "no")
         end,
     })
 end

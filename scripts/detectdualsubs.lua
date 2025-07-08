@@ -32,7 +32,7 @@ local options = {
 }
 (require "mp.options").read_options(options)
 
-local dual_subs_enabled = false
+local dual_subs_enabled
 local tag_to_use, primary_track_id, secondary_track_id
 
 local subtitle_filenames = {}
@@ -178,5 +178,6 @@ local function toggle_dual_subs()
     end
 end
 
+dual_subs_enabled = false
 mp.register_event("file-loaded", auto_check_for_dual_subs)
 mp.add_key_binding("ctrl+x", "toggle_dual_subs", toggle_dual_subs)

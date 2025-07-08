@@ -3381,37 +3381,37 @@ local function osc_init()
     ne.content = icons.audio
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
+        local track_id = get_track("audio")
         local message = texts.off
-        if not (get_track('audio') == 0) then
-            message = (texts.audio .. ' [' .. get_track('audio') .. ' ∕ ' .. #tracks_osc.audio .. ']')
-            local prop = mp.get_property('current-tracks/audio/title')
-            if not prop then
-                prop = mp.get_property('current-tracks/audio/lang')
-                if not prop then
-                    prop = texts.na
-                else
-                    message = message .. ' [' .. prop .. ']'
-                end
+        if track_id ~= 0 then
+            local total = #tracks_osc.audio
+            message = string.format("%s [%d ∕ %d]", texts.audio, track_id, total)
+            local prop = mp.get_property("current-tracks/audio/title")
+                or mp.get_property("current-tracks/audio/lang")
+
+            if prop and prop ~= texts.na then
+                message = string.format("%s [%s]", message, prop)
             end
-            return message
-        end
-        if not ne.enabled then
-            message = "No audio tracks"
+        else
+            if not ne.enabled then
+                message = "No audio tracks"
+            end
         end
         return message
     end
     ne.nothingavailable = texts.noaudio
     ne.eventresponder['mbtn_left_up'] =
-    function () set_track('audio', 1) show_message(get_tracklist('audio')) end
+    function () mp.set_property("lavfi-complex", "") set_track('audio', 1) show_message(get_tracklist('audio')) end
     ne.eventresponder['enter'] =
         function ()
+            mp.set_property("lavfi-complex", "")
             set_track('audio', 1)
             show_message(get_tracklist('audio'))
         end
     ne.eventresponder['mbtn_right_up'] =
-        function () set_track('audio', -1) show_message(get_tracklist('audio')) end
+        function () mp.set_property("lavfi-complex", "") set_track('audio', -1) show_message(get_tracklist('audio')) end
     ne.eventresponder['shift+mbtn_left_down'] =
-    function () set_track('audio', 1) show_message(get_tracklist('audio')) end
+    function () mp.set_property("lavfi-complex", "") set_track('audio', 1) end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('audio')) end
 
@@ -3423,20 +3423,20 @@ local function osc_init()
     ne.content = icons.subtitle
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function ()
+        local sub_id = get_track("sub")
         local message = texts.off
-        if not (get_track('sub') == 0) then
-            message = (texts.subtitle .. ' [' .. get_track('sub') .. ' ∕ ' .. #tracks_osc.sub .. ']')
-            local prop = mp.get_property('current-tracks/sub/lang')
-            if not prop then
-                prop = texts.na
-            else
-                message = message .. ' [' .. prop .. ']'
+        if sub_id ~= 0 then
+            message = string.format("%s [%d ∕ %d]", texts.subtitle, sub_id, #tracks_osc.sub)
+            local lang = mp.get_property("current-tracks/sub/lang")
+            local title = mp.get_property("current-tracks/sub/title")
+
+            if lang and lang ~= texts.na then
+                message = string.format("%s [%s]", message, lang)
             end
-            prop = mp.get_property('current-tracks/sub/title')
-            if prop then
-                message = message .. ' ' .. prop
+
+            if title then
+                message = message .. " " .. title
             end
-            return message
         end
         return message
     end
@@ -3463,7 +3463,6 @@ local function osc_init()
     function ()
         mp.set_property_number("secondary-sid", 0)
         set_track('sub', 1)
-        show_message(get_tracklist('sub'))
     end
     ne.eventresponder['shift+mbtn_right_down'] =
         function () show_message(get_tracklist('sub')) end
@@ -4437,7 +4436,7 @@ if user_opts.key_bindings then
         show_message(get_tracklist("audio"))
     end);
 
-    mp.add_key_binding("x", "cyclecaptions", function()
+    mp.add_key_binding("c", "cyclecaptions", function()
         mp.set_property_number("secondary-sid", 0)
         set_track("sub", 1)
         show_message(get_tracklist("sub"))
