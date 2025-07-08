@@ -26,6 +26,7 @@ local options = {
 (require "mp.options").read_options(options)
 
 local checked = false
+local current_lang = nil
 
 local function contains_japanese(text)
     -- Match any character in Hiragana, Katakana, or common Kanji Unicode ranges
@@ -73,12 +74,17 @@ local function check_subtitles(_, subtext)
 
     if #subtext < 1 then return end
     if contains_japanese(subtext) then
-        mp.set_property("sub-font", options.japanese_font)
-        print("Switched to " .. options.japanese_font .. " - (Japanese)")
-        checked = true
+        if current_lang ~= "Japanese" then
+            current_lang = "Japanese"
+            mp.set_property("sub-font", options.japanese_font)
+            print("Switched to " .. options.japanese_font .. " (Japanese)")
+        end
     else
-        mp.set_property("sub-font", options.english_font)
-        print("Switched to " .. options.english_font .. " - (English)")
+        if current_lang ~= "English" then
+            current_lang = "English"
+            mp.set_property("sub-font", options.english_font)
+            print("Switched to " .. options.english_font .. " (English)")
+        end
     end
 end
 
