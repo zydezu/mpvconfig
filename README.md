@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-07-12
+
+- Added `encoding_type` as an option to `mpvcut.lua`, the supported options are `h264`, `h265` and `av1`. `h265` is the default.
+
 ### 2025-07-08
 
 - FIX: `Ctrl+x` now toggles dual subtitles in `detectdualsubs.lua` instead of only forcing them on
