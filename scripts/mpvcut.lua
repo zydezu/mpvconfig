@@ -76,11 +76,20 @@ local function init()
 		if (options.use_cache_for_web_videos and is_url(mp.get_property("path"))) then
 			local video = mp.get_property("video-format", "none")
 			local audio = mp.get_property("audio-codec-name", "none")
-			local webm = {vp8=true, vp9=true, av1=true, opus=true, vorbis=true, none=true}
-			local mp4 = {h264=true, hevc=true, av1=true, mp3=true, flac=true, aac=true, none=true}
-			if webm[video] and webm[audio] then
+
+			local webm_codecs = { vp8=true, vp9=true }
+			local webm_audio  = { opus=true, vorbis=true }
+
+			local mp4_video   = { h264=true, hevc=true, av1=true }
+			local mp4_audio   = { opus=true, mp3=true, flac=true, aac=true }
+
+			local function contains(tbl, val)
+				return tbl[val] or false
+			end
+
+			if contains(webm_codecs, video) and contains(webm_audio, audio) then
 				web_ext = ".webm"
-			elseif mp4[video] and mp4[audio] then
+			elseif contains(mp4_video, video) and contains(mp4_audio, audio) then
 				web_ext = ".mp4"
 			else
 				web_ext = ".mkv"
@@ -151,7 +160,7 @@ local function create_folder(path)
 end
 
 local function check_paths(d, suffix, web_path_save)
-	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. d.ext)
+	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. ".mp4")
 	if (mp.utils.readdir(full_path) == nil) then
 		create_folder(full_path)
 	end
