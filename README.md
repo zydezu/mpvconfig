@@ -50,7 +50,8 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-07-12
 
-- Added `encoding_type` as an option to `mpvcut.lua`, the supported options are `h264`, `h265` and `av1`. `h265` is the default.
+- FEAT: Added `encoding_type` as an option to `mpvcut.lua`, the supported options are `h264`, `h265` and `av1`. `h265` is the default
+- FIX: force `mpvcut.lua` to encode/compress files as `.mp4`
 
 ### 2025-07-08
 
