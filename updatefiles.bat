@@ -9,6 +9,14 @@ set "ZIP_PATH=%SCRIPT_DIR%%REPO_NAME%.zip"
 set "EXTRACT_DIR=%SCRIPT_DIR%repo_extracted"
 set "DOWNLOAD_URL=https://github.com/zydezu/%REPO_NAME%/archive/refs/heads/%BRANCH%.zip"
 
+REM Delete all files and folders except this script
+for /d %%D in ("%SCRIPT_DIR%*") do (
+    if /i not "%%~nxD"=="%~nx0" rd /s /q "%%D"
+)
+for %%F in ("%SCRIPT_DIR%*") do (
+    if /i not "%%~nxF"=="%~nx0" del /f /q "%%F"
+)
+
 echo [INFO] Downloading latest files to %ZIP_PATH%...
 curl -L -o "%ZIP_PATH%" "%DOWNLOAD_URL%"
 if not exist "%ZIP_PATH%" (
