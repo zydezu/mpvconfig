@@ -48,13 +48,17 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-03
+
+- FIX: fix HDR tonemapping on `thumbfast.lua` looking weird
+
 ### 2025-07-14
 
 - FEAT: added `updatechecker.lua`, you can disable it by changing the `update_checker` option
 
 ### 2025-07-13
 
-- FEAT: Added `encoding_type` as an option to `mpvcut.lua`, the supported options are `h264`, `h265` and `av1`. `h265` is the default
+- FEAT: added `encoding_type` as an option to `mpvcut.lua`, the supported options are `h264`, `h265` and `av1`. `h265` is the default
 - FIX: force `mpvcut.lua` to encode/compress files as `.mp4`
 
 ### 2025-07-08
@@ -70,7 +74,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ### 2025-07-05
 
-- FIX: Refine shuffling playlist in `modernx.lua`, you can now shuffle a playlist with `Ctrl+s` or by right-clicking the play/pause button
+- FIX: refine shuffling playlist in `modernx.lua`, you can now shuffle a playlist with `Ctrl+s` or by right-clicking the play/pause button
 - FIX: `autolyrics.lua` and `mpvcut.lua` failing to create directories on linux
 
 ### 2025-06-29
