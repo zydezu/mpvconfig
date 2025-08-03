@@ -51,6 +51,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-08-03
 
 - FIX: fix HDR tonemapping on `thumbfast.lua` looking weird
+- FIX: update `thumbfast.lua` to upstream
 
 ### 2025-07-14
 
