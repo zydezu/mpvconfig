@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-07
+
+- FEAT: Add `livechat.lua`
+
 ### 2025-08-03
 
 - FIX: fix HDR tonemapping on `thumbfast.lua` looking weird

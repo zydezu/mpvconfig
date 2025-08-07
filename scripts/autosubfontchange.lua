@@ -25,6 +25,8 @@ local options = {
 }
 (require "mp.options").read_options(options)
 
+if not options.english_font then options.english_font = mp.get_property_native('osd-font') end
+
 local checked = false
 local current_lang = nil
 
