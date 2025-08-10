@@ -111,7 +111,9 @@ local user_opts = {
 
     show_chapter_title = true,              -- show chapter title alongside timestamp (below seekbar)
     chapter_fmt = "%s",                     -- format for chapter display on seekbar hover (set to "no" to disable)
-    show_chapter_markers = false,           -- show chapter markers on the seekbar
+    show_chapter_markers = true,            -- show chapter markers on the seekbar
+    show_top_mark = true,                   -- show the top part of the chapter marker
+    show_bottom_mark = false,               -- show the bottom part of the chapter marker
 
     time_total = true,                      -- show total time instead of remaining time
     time_ms = false,                        -- show timecodes with milliseconds
@@ -2443,8 +2445,8 @@ local function add_layout(name)
             elements[name].layout.slider = {
                 border = 1,
                 gap = 1,
-                nibbles_top = true,
-                nibbles_bottom = true,
+                nibbles_top = user_opts.show_top_mark,
+                nibbles_bottom = user_opts.show_bottom_mark,
                 adjust_tooltip = true,
                 tooltip_style = "",
                 tooltip_an = 2,
