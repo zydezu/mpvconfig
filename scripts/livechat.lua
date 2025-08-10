@@ -438,10 +438,8 @@ local function load_live_chat(filename, interactive)
             )
 
             if not file_exists(filename) then
-                generating_overlay.data = 'Checking for live chat on remote...'
                 generating_overlay:update()
                 if live_chat_exists_remote(path) then
-                    generating_overlay.data = 'Downloading live chat...'
                     generating_overlay:update()
 
                     download_live_chat(path, filename)
