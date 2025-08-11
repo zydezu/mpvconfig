@@ -39,7 +39,7 @@ local options = {
     quit_after_inactivity = 0,
 
     -- Enable on network playback
-    network = true,
+    network = false,
 
     -- Enable on audio playback
     audio = false,
