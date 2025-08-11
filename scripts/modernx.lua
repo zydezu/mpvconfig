@@ -1467,14 +1467,9 @@ local function startupevents()
     check_path_url()
     check_title()
     if user_opts.automatic_keyframe_mode then
-
-        print(mp.get_property_number("duration", 0))
-
         if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
-            print("seekbar keyframes on")
             user_opts.seekbar_keyframes = true
         else
-            print("seekbar keyframes off")
             user_opts.seekbar_keyframes = false
         end
      end
