@@ -78,7 +78,7 @@ local function istable(v) end
 -- ====================
 
 local opts = {
-	prioritize_proto = true,
+	prioritize_proto = false,
 	prefix_header = "  ", -- a non-breaking space followed by a space
 	prefix_norm = "  ", -- a non-breaking space followed by a space
 	prefix_cursor = "● ",

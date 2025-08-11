@@ -1467,9 +1467,14 @@ local function startupevents()
     check_path_url()
     check_title()
     if user_opts.automatic_keyframe_mode then
+
+        print(mp.get_property_number("duration", 0))
+
         if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
+            print("seekbar keyframes on")
             user_opts.seekbar_keyframes = true
         else
+            print("seekbar keyframes off")
             user_opts.seekbar_keyframes = false
         end
      end
@@ -3716,15 +3721,23 @@ local function osc_init()
             end
 
         end
-    ne.eventresponder['mbtn_left_down'] = --exact seeks on left click
+    ne.eventresponder['mbtn_left_down'] = -- exact seeks on left click
         function (element)
             element.state.mbtnleft = true
-            mp.commandv("seek", get_slider_value(element), "absolute-percent", "exact")
+            if user_opts.seekbar_keyframes then
+                mp.commandv("seek", get_slider_value(element), "absolute-percent")
+            else
+                mp.commandv("seek", get_slider_value(element), "absolute-percent", "exact")
+            end
         end
-    ne.eventresponder["shift+mbtn_left_down"] = --keyframe seeks on shift+left click
+    ne.eventresponder["shift+mbtn_left_down"] = -- keyframe seeks on shift+left click
         function (element)
             element.state.mbtnleft = true
-            mp.commandv("seek", get_slider_value(element), "absolute-percent")
+            if user_opts.seekbar_keyframes then
+                mp.commandv("seek", get_slider_value(element), "absolute-percent", "exact")
+            else
+                mp.commandv("seek", get_slider_value(element), "absolute-percent")
+            end        
         end
     ne.eventresponder["mbtn_left_up"] =
         function (element)

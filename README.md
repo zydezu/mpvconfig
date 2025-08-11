@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-11
+
+- FIX: make seeking faster for longer videos
+
 ### 2025-08-10
 
 - FEAT: add the options `show_top_mark` and `show_bottom_mark` to `modernx.lua`
