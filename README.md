@@ -48,6 +48,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-19
+
+- FIX: add back `sponsorblock.lua`
+- FIX: remove millisecond workaround in `autolyrics.lua`
+
 ### 2025-08-15
 
 - FIX: stop `thumbfast.lua` throwing errors
