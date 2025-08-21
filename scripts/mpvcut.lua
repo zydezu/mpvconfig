@@ -293,18 +293,50 @@ ACTIONS.ENCODE = function(d)
 	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
 	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
 	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
+	-- Start with common args
 	local args = {
-		"ffmpeg",
-		"-nostdin", "-y",
-		"-loglevel", "error",
+		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
 		"-ss", d.start_time,
 		"-t", d.duration,
-		"-i", d.inpath,
-		"-pix_fmt", "yuv420p",
-		"-crf", "16",
-		"-preset", "superfast",
-		result_path
+		"-i", d.inpath
 	}
+
+	if options.encoding_type == "av1" then
+		-- AV1 using libsvtav1
+		table.insert(args, "-c:v")
+		table.insert(args, "libsvtav1")
+		table.insert(args, "-svtav1-params")
+		table.insert(args, "rc=1")
+		table.insert(args, "-preset")
+		table.insert(args, tostring(options.av1_preset or 6)) -- default preset 6
+		table.insert(args, "-c:a")
+		table.insert(args, "libopus")
+		table.insert(args, "-b:a")
+		table.insert(args, "128k")
+	elseif options.encoding_type == "h265" then
+		-- H.265 using libx265
+		table.insert(args, "-c:v")
+		table.insert(args, "libx265")
+		table.insert(args, "-vtag")
+		table.insert(args, "hvc1")
+		table.insert(args, "-pix_fmt")
+		table.insert(args, "yuv420p")
+		table.insert(args, "-c:a")
+		table.insert(args, "aac")
+		table.insert(args, "-b:a")
+		table.insert(args, "128k")
+	else
+		-- Default to x264
+		table.insert(args, "-pix_fmt")
+		table.insert(args, "yuv420p")
+		table.insert(args, "-c:v")
+		table.insert(args, "libx264")
+		table.insert(args, "-c:a")
+		table.insert(args, "copy")
+	end
+
+	-- Output path
+	table.insert(args, result_path)
 	print("Saving clip...")
 	mp.command_native_async({
 		name = "subprocess",

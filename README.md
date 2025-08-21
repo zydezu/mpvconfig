@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-21
+
+- FIX: fix `mpvcut.lua` not respecting the `encoding_type` option when encoding a clip
+
 ### 2025-08-19
 
 - FIX: add back `sponsorblock.lua`
