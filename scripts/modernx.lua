@@ -1480,6 +1480,8 @@ local function startupevents()
         mp.commandv("cycle", "ontop")
         mp.set_property("geometry", "75%:75%")
     end
+
+    mp.set_property_bool("auto-window-resize", false)
 end
 
 function check_title()
