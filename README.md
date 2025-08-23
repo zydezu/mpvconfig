@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-23
+
+- FIX: improve cutting in `mpvcut.lua`
+
 ### 2025-08-22
 
 - FIX: fixed window positions shifting when advancing through a playlist
