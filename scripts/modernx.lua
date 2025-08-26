@@ -1478,7 +1478,6 @@ local function startupevents()
     if user_opts.FORCE_fix_not_ontop and state.is_URL then
         mp.commandv("cycle", "ontop")
         mp.commandv("cycle", "ontop")
-        mp.set_property("geometry", "75%:75%")
     end
 
     mp.set_property_bool("auto-window-resize", false)
