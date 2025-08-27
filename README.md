@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-27
+
+- FIX: optimise `screenshotfolder.lua`
+
 ### 2025-08-26
 
 - FIX: fix performance issues

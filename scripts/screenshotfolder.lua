@@ -7,7 +7,7 @@
 
 local options = {
     screenshot_key = 's',
-    file_ext = "jpg",
+    file_ext = "png",
     save_location = "~~desktop/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
     save_as_time_stamp = true,
@@ -19,82 +19,71 @@ local options = {
 
 local title = "default"
 local chaptername = ""
+local last_timestamp = ""
 local count = 0
 local current_format = options.file_ext
 
-local function set_screenshot_template()
-    local function safe_chaptername(name)
-        return name:gsub('[\\/:*?"<>|]', '')
-    end
-
-    local function set_screenshot_template_no_chapter()
-        mp.set_property("screenshot-directory", options.save_location .. title .. "/")
-        if options.save_as_time_stamp then
-            mp.set_property("screenshot-template", options.time_stamp_format .. ((count > 0) and ("(" .. count .. ")") or ""))
-        end
-    end
-
-    local function set_screenshot_template_with_chapter()
-        local safe_chapter = safe_chaptername(chaptername)
-        if safe_chapter ~= "" then
-            mp.set_property("screenshot-template", safe_chapter .. " (" .. options.time_stamp_format .. ")" .. ((count > 0) and ("(" .. count .. ")") or ""))
-        else
-            set_screenshot_template_no_chapter()
-        end
-    end
-
-    mp.set_property("screenshot-format", current_format)
-    if options.save_based_on_chapter_name then
-        set_screenshot_template_with_chapter()
-    else
-        set_screenshot_template_no_chapter()
-    end
+local function sanitize_filename(name)
+    return name and name:gsub('[\\/:*?"<>|]', '') or ""
 end
 
-local function reset_count()
+local function extract_youtube_id(filename)
+    if not options.include_YouTube_ID then return "" end
+    return filename:match("[?&]v=([^&]+)") 
+        or filename:match("([%w_-]+)%?si=") 
+        or ""
+end
+
+local function set_screenshot_template()
+    mp.set_property("screenshot-format", current_format)
+    mp.set_property("screenshot-directory", options.save_location .. title .. "/")
+
+    local timestamp = mp.command_native({"expand-text", options.time_stamp_format})
+
+    if timestamp ~= last_timestamp then
+        count = 0
+        last_timestamp = timestamp
+    end
+
+    local suffix = (count > 0) and ("(" .. (count+1) .. ")") or ""
+
+    local template
+    if options.save_based_on_chapter_name and chaptername ~= "" then
+        template = sanitize_filename(chaptername) .. " (" .. timestamp .. ")" .. suffix
+    else
+        template = timestamp .. suffix
+    end
+
+    mp.set_property("screenshot-template", template)
+end
+
+local function init()
+    local media = mp.get_property("media-title")
+    local filename = mp.get_property("filename/no-ext")
+    local path = mp.get_property("path")
+
+    if path:match("^[%w]+://") then
+        local youtube_id = extract_youtube_id(mp.get_property("filename"))
+        filename = media:sub(1, 100):gsub("^%s*(.-)%s*$", "%1") .. (youtube_id ~= "" and (" [" .. youtube_id .. "]") or "")
+    end
+
+    title = sanitize_filename(filename)
     count = 0
     set_screenshot_template()
 end
 
-local function init()
-    local function is_url(s)
-        local url_pattern = "^[%w]+://[%w%.%-_]+%.[%a]+[-%w%.%-%_/?&=]*"
-        return string.match(s, url_pattern) ~= nil
-    end
-
-    local filename = mp.get_property("filename/no-ext")
-    local media = mp.get_property("media-title")
-    local path = mp.get_property("path")
-
-    if is_url(path) and path or nil then
-        local youtube_ID = ""
-        local _, _, videoID = string.find(mp.get_property("filename"), "([%w_-]+)%?si=")
-        local videoIDMatch = mp.get_property("filename"):match("[?&]v=([^&]+)")
-        if options.include_YouTube_ID then
-            if (videoIDMatch) then
-                youtube_ID = " [" .. videoIDMatch .. "]"
-            elseif (videoID) then
-                youtube_ID = " [" .. videoID .. "]"
-            end
-        end
-        filename = string.gsub(media:sub(1, 100), "^%s*(.-)%s*$", "%1") .. youtube_ID
-    end
-    title = filename:gsub('[\\/:*?"<>|]', "")
-
-    set_screenshot_template()
-end
-
 local function screenshot_done()
-    local temp_sub_pos = mp.get_property("sub-pos")
-    mp.commandv("set", "sub-pos", 100)
-    mp.commandv("screenshot");
-    mp.commandv("set", "sub-pos", temp_sub_pos)
-    if options.short_saved_message then
-        mp.osd_message("Screenshot saved")
-    else
-        mp.osd_message("Screenshot saved to: " ..
-            mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/"))
-    end
+    local sub_pos = mp.get_property("sub-pos")
+    mp.set_property("sub-pos", 100)
+    mp.command("screenshot")
+    mp.set_property("sub-pos", sub_pos)
+
+    local msg = options.short_saved_message
+        and "Screenshot saved"
+        or "Screenshot saved to: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/")
+
+    mp.osd_message(msg)
+
     count = count + 1
     set_screenshot_template()
 end
@@ -103,14 +92,8 @@ mp.observe_property("chapter-metadata/title", "string", function(_, value)
     chaptername = value or ""
     set_screenshot_template()
 end)
-
 mp.observe_property("screenshot-format", "string", function(_, value)
-    if value then
-        current_format = value
-    end
+    if value then current_format = value end
 end)
-
-mp.register_event("start-file", init)
 mp.register_event("file-loaded", init)
-mp.add_periodic_timer(1, reset_count)
-mp.add_key_binding(options.screenshot_key, "screenshot_done", screenshot_done);
+mp.add_key_binding(options.screenshot_key, "screenshot_done", screenshot_done)
