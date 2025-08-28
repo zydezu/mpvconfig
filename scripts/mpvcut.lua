@@ -25,9 +25,13 @@ local options = {
 
 	-- File size targets
 	compress_size = 9.50,					-- target size for the compress action (in MB)
-	encoding_type = "h265",					-- h264, h265, av1
+	encoding_type = "h265",					-- h264, h265, or av1
+	gif_encoding_type = ".avif",			-- for encoding gifs (or animated avifs), .gif or .avif
 	shrink_resolution = true,				-- whether to shrink the resolution to the target resolution 
 	target_resolution = 1080, 				-- target resolution to compress to (vertical resolution)
+
+	-- encoding options
+	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provided a higher speed
 
 	-- Web videos/cache
 	use_cache_for_web_videos = true,
@@ -159,8 +163,8 @@ local function create_folder(path)
 	end
 end
 
-local function check_paths(d, suffix, web_path_save)
-	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. ".mp4")
+local function check_paths(d, suffix, web_path_save, new_ext)
+	local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. (new_ext or ".mp4"))
 	if (mp.utils.readdir(full_path) == nil) then
 		create_folder(full_path)
 	end
@@ -245,7 +249,7 @@ ACTIONS.COMPRESS = function(d)
 		table.insert(args, "-svtav1-params")
 		table.insert(args, "rc=1")
 		table.insert(args, "-preset")
-		table.insert(args, tostring(options.av1_preset or 6)) -- default preset 6
+		table.insert(args, tostring(options.av1_preset or 6))
 		table.insert(args, "-c:a")
 		table.insert(args, "libopus")
 		table.insert(args, "-b:a")
@@ -305,10 +309,8 @@ ACTIONS.ENCODE = function(d)
 		-- AV1 using libsvtav1
 		table.insert(args, "-c:v")
 		table.insert(args, "libsvtav1")
-		table.insert(args, "-svtav1-params")
-		table.insert(args, "rc=1")
 		table.insert(args, "-preset")
-		table.insert(args, tostring(options.av1_preset or 6)) -- default preset 6
+		table.insert(args, tostring(options.av1_preset or 6))
 		table.insert(args, "-c:a")
 		table.insert(args, "libopus")
 		table.insert(args, "-b:a")
@@ -337,6 +339,44 @@ ACTIONS.ENCODE = function(d)
 
 	-- Output path
 	table.insert(args, result_path)
+	print("Saving clip...")
+	mp.command_native_async({
+		name = "subprocess",
+		args = args,
+		playback_only = false,
+	}, function()
+		print("Saved clip!")
+	end)
+end
+
+ACTIONS.ENCODE_GIF = function(d)
+	local file_extra_suffix =  " (clip)"
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. options.gif_encoding_type)
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, options.gif_encoding_type) end
+
+	-- Start with common args
+	local args = {
+		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
+		"-ss", d.start_time,
+		"-t", d.duration,
+		"-i", d.inpath
+	}
+
+	if options.gif_encoding_type == ".avif" then
+		-- AV1 (avif) using libsvtav1
+		table.insert(args, "-c:v")
+		table.insert(args, "libsvtav1")
+		table.insert(args, "-preset")
+		table.insert(args, tostring(options.av1_preset or 6))
+	else
+		-- Default to gif
+	end
+
+	-- Output path
+	table.insert(args, result_path)
+
+	print(result_path)
+
 	print("Saving clip...")
 	mp.command_native_async({
 		name = "subprocess",

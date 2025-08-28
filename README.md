@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-08-28
+
+- FEAT: added the ability to clip as `.gif` or `.avif` in `mpvcut.lua`, you can choose which with the `gif_encoding_type` option
+
 ### 2025-08-27
 
 - FIX: optimise `screenshotfolder.lua`
