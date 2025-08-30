@@ -1502,7 +1502,7 @@ function check_title()
     if (mp.get_property("filtered-metadata/by-key/Album_Artist") and mp.get_property("filtered-metadata/by-key/Artist")) then
         if (mp.get_property("filtered-metadata/by-key/Album_Artist") ~= mp.get_property("filtered-metadata/by-key/Artist")) then
             artist = mp.get_property("filtered-metadata/by-key/Artist") .. ", " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
-            tempartistclicktext = "Contributing artists: " .. mp.get_property("filtered-metadata/by-key/Artist") .. "\\NAlbum arist: " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
+            tempartistclicktext = "Contributing artists: " .. mp.get_property("filtered-metadata/by-key/Artist") .. "\\NAlbum artist: " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
         end
     end
     local album = mp.get_property("filtered-metadata/by-key/Album")
