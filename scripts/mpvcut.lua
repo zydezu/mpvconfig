@@ -27,8 +27,8 @@ local options = {
 	compress_size = 9.50,					-- target size for the compress action (in MB)
 	encoding_type = "h265",					-- h264, h265, or av1
 	gif_encoding_type = ".avif",			-- for encoding gifs (or animated avifs), .gif or .avif
-	shrink_resolution = true,				-- whether to shrink the resolution to the target resolution 
 	target_resolution = 1080, 				-- target resolution to compress to (vertical resolution)
+	shrink_resolution = true,				-- whether to shrink the resolution to the target resolution 
 
 	-- encoding options
 	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provided a higher speed
