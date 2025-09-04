@@ -48,6 +48,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-09-04
+
+- FIX: change autocreate-playlist to same
+- FIX: https://github.com/zydezu/mpvconfig/issues/23
+
 ### 2025-09-02
 
 - FIX: edit quality parameters
