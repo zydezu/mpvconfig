@@ -53,6 +53,10 @@ Please note that many of these scripts have been slightly modified from their in
 - FIX: change autocreate-playlist to same
 - FIX: https://github.com/zydezu/mpvconfig/issues/23
 
+### 2025-09-08
+
+- FIX: add some basic image viewing options
+
 ### 2025-09-02
 
 - FIX: edit quality parameters
