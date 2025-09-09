@@ -1485,7 +1485,7 @@ end
 
 function check_title()
     local mediatitle = mp.get_property("media-title")
-    mp.set_property("title", mediatitle)
+    mp.set_property("title", mediatitle or "")
 
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamic_title then
         user_opts.title = "${media-title}"
