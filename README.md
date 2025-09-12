@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-09-12
+
+- FIX: fix silly error
+
 ### 2025-09-04
 
 - FIX: change autocreate-playlist to same
