@@ -3927,11 +3927,9 @@ local function osc_init()
         local duration = mp.get_property_number("duration", 0)
         if duration <= 0 then return "--:--" end
 
-        local time_to_display = state.tc_right_rem and
-            mp.get_property_number("playtime-remaining", 0) or duration
-
-        local prefix = state.tc_right_rem and
-            (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
+        local time_to_display = state.tc_right_rem and mp.get_property_number("playtime-remaining", 0) or duration
+        if time_to_display < 0 then time_to_display = 0 end
+        local prefix = state.tc_right_rem and (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
 
         return prefix .. format_time(time_to_display) .. (state.is_live and " • LIVE" or "")
     end
