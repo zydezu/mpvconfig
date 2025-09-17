@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-09-17
+
+- FIX: added https://github.com/zydezu/mpvconfig/pull/26 double click to fullscreen
+
 ### 2025-09-16
 
 - FIX: small text changes
