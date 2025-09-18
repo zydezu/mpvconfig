@@ -30,6 +30,7 @@ local options = {
 	encoding_type = "h265",					-- h264, h265, or av1
 	gif_encoding_type = ".avif",			-- for encoding gifs (or animated avifs), .gif or .avif
 	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provided a higher speed
+	av1_animated_crf = 42,					-- the crf value to use for animated .avif clips, lower numbers are higher quality
 	shrink_resolution = true,				-- whether to shrink the resolution to the target resolution (compression/encode gif only)
 	max_resolution = 1080, 					-- resolution to shrink to if video is above this resolution (compression only)
 	max_gif_resolution = 720, 				-- resolution to shrink to if gif/avif is above this resolution (encode gif only)
@@ -393,7 +394,7 @@ ACTIONS.ENCODE = function(d)
 end
 
 ACTIONS.ENCODE_GIF = function(d)
-	local file_extra_suffix =  " (clip)"
+	local file_extra_suffix =  "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (clip)"
 	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. options.gif_encoding_type)
 	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, options.gif_encoding_type) end
 
@@ -418,7 +419,7 @@ ACTIONS.ENCODE_GIF = function(d)
 		table.insert(args, "-c:v")
 		table.insert(args, "libsvtav1")
 		table.insert(args, "-crf")
-		table.insert(args, "42")
+		table.insert(args, tostring(options.av1_animated_crf or 42))
 		table.insert(args, "-preset")
 		table.insert(args, tostring(options.av1_preset or 6))
 	else
