@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-09-18
+
+- FEAT: add `av1_animated_crf` as an option in `mpvcut.lua` that controls the quality for animated avif clips
+
 ### 2025-09-17
 
 - FIX: added https://github.com/zydezu/mpvconfig/pull/26 double click to fullscreen
