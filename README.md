@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-11-17
+
+- FIX: improve `livechat.lua`
+
 ### 2025-11-08
 
 - FIX: add `unc2url.lua` and make various changes to playing network files

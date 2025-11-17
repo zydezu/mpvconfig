@@ -17,10 +17,10 @@ local options = {
     font = "A-OTF Shin Go Pro M", -- the font to use for chat messages
     font_size = 18, -- the font size of chat messages
     border_size = 2, -- the border size of chat messages
-    message_duration = 1000, -- the duration that each message is shown for in miliseconds
-    max_message_line_length = 50, -- the amount of characters before a message breaks into a new line
-    message_break_anywhere = true, -- whether line breaks in messages can happen anywhere or only after whole words
-    message_gap = 10, -- additional spacing between chat messages, given as a percentage of the font height
+    message_duration = 5000, -- the duration that each message is shown for in miliseconds
+    max_message_line_length = 40, -- the amount of characters before a message breaks into a new line
+    message_break_anywhere = false, -- whether line breaks in messages can happen anywhere or only after whole words
+    message_gap = 0, -- additional spacing between chat messages, given as a percentage of the font height
     anchor = 9, -- where chat displays on the screen in numpad notation (1 is bottom-left, 7 is top-left, 9 is top-right, etc.)
     parse_interval = 0.5
 }
@@ -160,16 +160,20 @@ local function break_message(message, initial_length)
         return message
     end
 
+    local contains_cjk = message:find("[%z\1-\127\194-\244][\226\128\128-\226\255\255]") 
+                       or message:find("[\224\176\128-\233\190\191]")
+
+    local break_anywhere = options.message_break_anywhere or contains_cjk
+
     local current_length = initial_length
     local result = ""
 
-    if options.message_break_anywhere then
+    if break_anywhere then
         local lines = {}
         while #message > 0 do
             local part, count = split_utf8_strings(message, max_line_length)
             table.insert(lines, part)
 
-            -- Move forward by UTF-8 character count, not bytes
             local byte_offset = 0
             for i = 1, count do
                 local b = string.byte(message, byte_offset + 1)
@@ -187,11 +191,11 @@ local function break_message(message, initial_length)
             message = message:sub(byte_offset + 1)
         end
 
-        result = table.concat(lines, "\n")
-        return result
+        return table.concat(lines, "\n")
     end
+
     for _, v in ipairs(split_string(message)) do
-        local _, utf8_char_count = split_utf8_strings(v, math.huge)
+        local _, utf8_char_count = split_utf8_strings(v, 1000)
 
         if current_length + utf8_char_count > max_line_length then
             result = result .. "\n" .. v
@@ -449,25 +453,48 @@ local function update_chat_overlay(time)
     local msec = time * 1000
 
     chat_overlay.data = ''
-    for i=1,#messages do
+
+    local visible_messages = {}
+
+    for i = 1, #messages do
         local message = messages[i]
         if message.time > msec then
             break
         elseif msec <= message.time + options.message_duration then
-            local message_string = format_message(message)
-            if options.anchor <= 3 then
-                chat_overlay.data =    message_string
-                                    .. '\n'
-                                    .. '{\\fscy' .. options.message_gap .. '}{\\fscx0}\\h{\fscy\fscx}'
-                                    .. chat_overlay.data
-            else
-                chat_overlay.data =    chat_overlay.data
-                                    .. '{\\fscy' .. options.message_gap .. '}{\\fscx0}\\h{\fscy\fscx}'
-                                    .. '\n'
-                                    .. message_string
-            end
+            table.insert(visible_messages, message)
         end
     end
+
+    local max_visible = 20
+    local count = #visible_messages
+
+    if count > max_visible then
+        local start_index = count - max_visible + 1
+        local trimmed = {}
+        for i = start_index, count do
+            table.insert(trimmed, visible_messages[i])
+        end
+        visible_messages = trimmed
+    end
+
+    for _, message in ipairs(visible_messages) do
+        local message_string = format_message(message)
+
+        if options.anchor <= 3 then
+            chat_overlay.data =
+                    message_string
+                ..  '\n'
+                ..  '{\\fscy' .. options.message_gap .. '}{\\fscx0}\\h{\fscy\fscx}'
+                ..  chat_overlay.data
+        else
+            chat_overlay.data =
+                    chat_overlay.data
+                ..  '{\\fscy' .. options.message_gap .. '}{\\fscx0}\\h{\fscy\fscx}'
+                ..  '\n'
+                ..  message_string
+        end
+    end
+
     chat_overlay:update()
 end
 
