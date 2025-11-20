@@ -12,7 +12,7 @@ mp.utils = require("mp.utils")
 
 local options = {
 	-- Save location
-	save_to_directory = true, 				-- save to 'save_directory' instead of the current folder
+	save_to_directory = true, 				 -- save to 'save_directory' instead of the current folder of the file
 	save_directory = "~/pictures/mpv/clips", -- required for web videos
 
 	-- Key config
@@ -21,22 +21,27 @@ local options = {
 	key_cycle_action = "A",
 
 	-- The default action
-	action = "COPY",
+	action = "ENCODE",						-- the default action, ENCODE, ENCODE_GIF, COMPRESS or CUT
 
 	-- File size targets
-	compress_size = 9.50,					-- target size for the compress action (in MB)
+	compress_size = 9.50,					-- the target size for the COMPRESS action (in MB)
 
 	-- encoding options
 	encoding_type = "h265",					-- h264, h265, or av1
-	gif_encoding_type = ".avif",			-- for encoding gifs (or animated avifs), .gif or .avif
+	animated_encoding_type = ".avif",		-- for encoding gifs (or animated avifs), .gif or .avif
+
+	cap_resolution = true,				    -- whether to lower the resolution to the target resolution (COMPRESS/ENCODE_GIF only)
+	max_resolution = 1080, 					-- resolution to shrink to if video is above this resolution (COMPRESS only)
+	max_animated_resolution = 720, 			-- resolution to shrink to if gif/avif is above this resolution (ENCODE_GIF only)
+
+	h264_crf = 23,							-- the crf value to use for h264 clips, lower numbers mean higher quality
+	h265_crf = 28,							-- the crf value to use for h265 clips, lower numbers mean higher quality
+	av1_crf = 35,							-- the crf value to use for av1 clips, lower numbers mean higher quality
+	avif_crf = 42,							-- the crf value to use for animated .avif clips, lower numbers mean higher quality
 	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provided a higher speed
-	av1_animated_crf = 42,					-- the crf value to use for animated .avif clips, lower numbers are higher quality
-	shrink_resolution = true,				-- whether to shrink the resolution to the target resolution (compression/encode gif only)
-	max_resolution = 1080, 					-- resolution to shrink to if video is above this resolution (compression only)
-	max_gif_resolution = 720, 				-- resolution to shrink to if gif/avif is above this resolution (encode gif only)
 
 	-- Web videos/cache
-	use_cache_for_web_videos = true,
+	use_cache_for_web_videos = true,		-- whether to cut web videos using the player's cache (experimental)
 }
 require("mp.options").read_options(options)
 
@@ -176,37 +181,129 @@ end
 
 ACTIONS = {}
 
-ACTIONS.COPY = function(d)
-    local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
-    local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
-    if options.save_to_directory then
-        result_path = check_paths(d, file_extra_suffix)
-    end
+ACTIONS.ENCODE = function(d)
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 
-    -- Fast copy with accurate start (may be slightly off if not on keyframe)
-    local args = {
-        "ffmpeg",
-        "-nostdin", "-y",
-        "-loglevel", "error",
-        "-i", d.inpath,
-        "-ss", d.start_time,          -- output seek for better accuracy
-        "-t", d.duration,
-        "-c", "copy",                 -- fast copy
-        "-map", "0:v",                -- video only
-        "-map", "0:a?",               -- audio if exists
-        "-dn",                        -- drop data streams
-        "-avoid_negative_ts", "make_zero",
-        result_path
-    }
+	local selected_audio_id = mp.get_property_number("aid")
+	local ff_audio_index = nil
+	local count = 0
+	for _, track in ipairs(mp.get_property_native("track-list") or {}) do
+		if track.type == "audio" then
+			if track.id == selected_audio_id then
+				ff_audio_index = count
+				break
+			end
+			count = count + 1
+		end
+	end
+	if ff_audio_index == nil then
+		ff_audio_index = 0
+	end
 
-    print("Saving clip...")
-    mp.command_native_async({
-        name = "subprocess",
-        args = args,
-        playback_only = false,
-    }, function() 
-        print("Saved clip!") 
-    end)
+	-- Start with common args
+	local args = {
+		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
+		"-ss", d.start_time,
+		"-t", d.duration,
+		"-i", d.inpath,
+		"-map", "0:v:0",
+        "-map", "0:a:" .. ff_audio_index,
+	}
+
+	if options.encoding_type == "av1" then
+		-- AV1 using libsvtav1
+		table.insert(args, "-c:v")
+		table.insert(args, "libsvtav1")
+		table.insert(args, "-crf")
+		table.insert(args, tostring(options.av1_crf or 35))
+		table.insert(args, "-preset")
+		table.insert(args, tostring(options.av1_preset or 6))
+		table.insert(args, "-c:a")
+		table.insert(args, "copy")
+	elseif options.encoding_type == "h265" then
+		-- H.265 using libx265
+		table.insert(args, "-c:v")
+		table.insert(args, "libx265")
+		table.insert(args, "-vtag")
+		table.insert(args, "hvc1")
+		table.insert(args, "-pix_fmt")
+		table.insert(args, "yuv420p")
+		table.insert(args, "-crf")
+		table.insert(args, tostring(options.h265_crf or 28))
+		table.insert(args, "-c:a")
+		table.insert(args, "copy")
+	else
+		-- Default to x264
+		table.insert(args, "-c:v")
+		table.insert(args, "libx264")
+		table.insert(args, "-pix_fmt")
+		table.insert(args, "yuv420p")
+		table.insert(args, "-crf")
+		table.insert(args, tostring(options.h264_crf or 23))
+		table.insert(args, "-c:a")
+		table.insert(args, "copy")
+	end
+
+	-- Output path
+	table.insert(args, result_path)
+	print("Saving clip...")
+	mp.command_native_async({
+		name = "subprocess",
+		args = args,
+		playback_only = false,
+	}, function()
+		print("Saved clip!")
+	end)
+end
+
+ACTIONS.ENCODE_GIF = function(d)
+	local file_extra_suffix =  "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (clip)"
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. options.animated_encoding_type)
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, options.animated_encoding_type) end
+
+	local video_height = mp.get_property_number("height")
+
+	-- Start with common args
+	local args = {
+		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
+		"-ss", d.start_time,
+		"-t", d.duration,
+		"-i", d.inpath
+	}
+
+	if video_height and options.cap_resolution and video_height > options.max_animated_resolution then
+		local res_line = "scale=trunc(oh*a/2)*2:" .. options.max_animated_resolution
+		table.insert(args, "-vf")
+		table.insert(args, res_line)
+	end
+
+	if options.animated_encoding_type == ".avif" then
+		-- AV1 (avif) using libsvtav1
+		table.insert(args, "-c:v")
+		table.insert(args, "libsvtav1")
+		table.insert(args, "-crf")
+		table.insert(args, tostring(options.avif_crf or 42))
+		table.insert(args, "-preset")
+		table.insert(args, tostring(options.av1_preset or 6))
+	else
+		-- Default to gif
+	end
+
+	-- Output path
+	table.insert(args, result_path)
+
+	print(result_path)
+
+	print("Saving clip...")
+	mp.command_native_async({
+		name = "subprocess",
+		args = args,
+		playback_only = false,
+	}, function()
+		print("Saved clip!")
+	end)
 end
 
 ACTIONS.COMPRESS = function(d)
@@ -261,7 +358,7 @@ ACTIONS.COMPRESS = function(d)
         "-map", "0:a:" .. ff_audio_index,
 	}
 
-	if video_height and options.shrink_resolution and video_height > options.max_resolution then
+	if video_height and options.cap_resolution and video_height > options.max_resolution then
 		local res_line = "scale=trunc(oh*a/2)*2:" .. options.max_resolution
 		table.insert(args, "-vf")
 		table.insert(args, res_line)
@@ -316,129 +413,37 @@ ACTIONS.COMPRESS = function(d)
 	end)
 end
 
-ACTIONS.ENCODE = function(d)
-	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
-	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
-	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
+ACTIONS.COPY = function(d)
+    local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
+    local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
+    if options.save_to_directory then
+        result_path = check_paths(d, file_extra_suffix)
+    end
 
-	local selected_audio_id = mp.get_property_number("aid")
-	local ff_audio_index = nil
-	local count = 0
-	for _, track in ipairs(mp.get_property_native("track-list") or {}) do
-		if track.type == "audio" then
-			if track.id == selected_audio_id then
-				ff_audio_index = count
-				break
-			end
-			count = count + 1
-		end
-	end
-	if ff_audio_index == nil then
-		ff_audio_index = 0
-	end
+    -- Fast copy with accurate start (may be slightly off if not on keyframe)
+    local args = {
+        "ffmpeg",
+        "-nostdin", "-y",
+        "-loglevel", "error",
+        "-i", d.inpath,
+        "-ss", d.start_time,          -- output seek for better accuracy
+        "-t", d.duration,
+        "-c", "copy",                 -- fast copy
+        "-map", "0:v",                -- video only
+        "-map", "0:a?",               -- audio if exists
+        "-dn",                        -- drop data streams
+        "-avoid_negative_ts", "make_zero",
+        result_path
+    }
 
-	-- Start with common args
-	local args = {
-		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
-		"-ss", d.start_time,
-		"-t", d.duration,
-		"-i", d.inpath,
-		"-map", "0:v:0",
-        "-map", "0:a:" .. ff_audio_index,
-	}
-
-	if options.encoding_type == "av1" then
-		-- AV1 using libsvtav1
-		table.insert(args, "-c:v")
-		table.insert(args, "libsvtav1")
-		table.insert(args, "-crf")
-		table.insert(args, "35")
-		table.insert(args, "-preset")
-		table.insert(args, tostring(options.av1_preset or 6))
-		table.insert(args, "-c:a")
-		table.insert(args, "copy")
-	elseif options.encoding_type == "h265" then
-		-- H.265 using libx265
-		table.insert(args, "-c:v")
-		table.insert(args, "libx265")
-		table.insert(args, "-vtag")
-		table.insert(args, "hvc1")
-		table.insert(args, "-pix_fmt")
-		table.insert(args, "yuv420p")
-		table.insert(args, "-crf")
-		table.insert(args, "28")
-		table.insert(args, "-c:a")
-		table.insert(args, "copy")
-	else
-		-- Default to x264
-		table.insert(args, "-pix_fmt")
-		table.insert(args, "yuv420p")
-		table.insert(args, "-c:v")
-		table.insert(args, "libx264")
-		table.insert(args, "-crf")
-		table.insert(args, "23")
-		table.insert(args, "-c:a")
-		table.insert(args, "copy")
-	end
-
-	-- Output path
-	table.insert(args, result_path)
-	print("Saving clip...")
-	mp.command_native_async({
-		name = "subprocess",
-		args = args,
-		playback_only = false,
-	}, function()
-		print("Saved clip!")
-	end)
-end
-
-ACTIONS.ENCODE_GIF = function(d)
-	local file_extra_suffix =  "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (clip)"
-	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. options.gif_encoding_type)
-	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, options.gif_encoding_type) end
-
-	local video_height = mp.get_property_number("height")
-
-	-- Start with common args
-	local args = {
-		"ffmpeg", "-nostdin", "-y", "-loglevel", "error",
-		"-ss", d.start_time,
-		"-t", d.duration,
-		"-i", d.inpath
-	}
-
-	if video_height and options.shrink_resolution and video_height > options.max_gif_resolution then
-		local res_line = "scale=trunc(oh*a/2)*2:" .. options.max_gif_resolution
-		table.insert(args, "-vf")
-		table.insert(args, res_line)
-	end
-
-	if options.gif_encoding_type == ".avif" then
-		-- AV1 (avif) using libsvtav1
-		table.insert(args, "-c:v")
-		table.insert(args, "libsvtav1")
-		table.insert(args, "-crf")
-		table.insert(args, tostring(options.av1_animated_crf or 42))
-		table.insert(args, "-preset")
-		table.insert(args, tostring(options.av1_preset or 6))
-	else
-		-- Default to gif
-	end
-
-	-- Output path
-	table.insert(args, result_path)
-
-	print(result_path)
-
-	print("Saving clip...")
-	mp.command_native_async({
-		name = "subprocess",
-		args = args,
-		playback_only = false,
-	}, function()
-		print("Saved clip!")
-	end)
+    print("Saving clip...")
+    mp.command_native_async({
+        name = "subprocess",
+        args = args,
+        playback_only = false,
+    }, function() 
+        print("Saved clip!") 
+    end)
 end
 
 RUN_WEB_CACHE = function(d)

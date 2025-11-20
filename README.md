@@ -48,6 +48,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-11-20
+
+- FIX: move the mpv folder from `~~desktop` to `~/pictures`
+- FIX: add more crf options to `mpvcut.lua`
+
 ### 2025-11-17
 
 - FIX: improve `livechat.lua`
