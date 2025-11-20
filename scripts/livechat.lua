@@ -7,7 +7,7 @@ local download_finished = false
 
 local options = {
     auto_load = true, -- whether to automatically load live chat when a video loads
-    live_chat_directory = "~~desktop/mpv/livechat/", -- livechat directory
+    live_chat_directory = "~/pictures/mpv/livechat/", -- livechat directory
     yt_dlp_path = "yt-dlp", -- path to yt-dlp executable
     show_author = true, -- show the author's name
     author_color = "random", -- the color of the author's name, can be 'random', 'none' or a hex value

@@ -13,7 +13,7 @@ mp.utils = require("mp.utils")
 local options = {
 	-- Save location
 	save_to_directory = true, 				-- save to 'save_directory' instead of the current folder
-	save_directory = "~~desktop/mpv/clips", -- required for web videos
+	save_directory = "~/pictures/mpv/clips", -- required for web videos
 
 	-- Key config
 	key_cut = "a",
