@@ -18,8 +18,6 @@ local options = {
     lyrics_store = "~/pictures/mpv/lrcdownloads/",                   -- where to store downloaded lyric files if store_lyrics_seperate is true
     cache_loading = true,                                           -- try to load lyrics that were already downloaded
     strip_artists = true,                                           -- remove lines with the names of the artists from NetEase lyrics
-    chinese_to_kanji_path = "~~home/chinese-to-kanji.txt",          -- set to path of file
-    mark_as_ja = false,                                             -- add .ja.lrc extensions to lyrics with Japanese characters
     run_automatically = false                                       -- run this script without pressing Alt+m
 }
 require("mp.options").read_options(options)
@@ -96,58 +94,10 @@ local function get_metadata()
         show_error("This song has no artist metadata")
         return false
     end
+
+    local duration = mp.get_property_number("duration") or 0
     
-    return title, artist, album
-end
-
-local function is_japanese(lyrics)
-    return lyrics:find("[\227-\233]") ~= nil
-end
-
-local function chinese_to_kanji(lyrics)
-    local mappings, error = io.open(
-        mp.command_native({'expand-path', options.chinese_to_kanji_path})
-    )
-
-    if mappings == nil then
-        show_error(error)
-        return lyrics
-    end
-
-    -- -- Save the original lyrics to compare them for testing.
-    -- local original = io.open(mp.command_native({'expand-path', '~~desktop/mpv/lrcdownloads/TESTCOMPARE.lrc'}), 'w')
-    -- if original then
-    --     original:write(lyrics)
-    --     original:close()
-    -- end
-
-    for mapping in mappings:lines() do
-        local num_matches
-
-        -- gsub on Unicode lyrics seems to stop at the first match. I have
-        -- no idea why this works.
-        repeat
-            lyrics, num_matches = lyrics:gsub(
-                mapping:gsub(' .*', ''),
-                mapping:gsub('.* ', '')
-            )
-        until num_matches == 0
-    end
-
-    mappings:close()
-
-    -- Also remove the pointless owari line when present.
-    for _, pattern in pairs({
-        'おわり',
-        '【 おわり 】',
-        ' ?終わり',
-        '終わる',
-        'END',
-    }) do
-        lyrics = lyrics:gsub(']' .. pattern .. '\n', ']\n')
-    end
-
-    return lyrics
+    return title, artist, album, duration
 end
 
 local function strip_artists(lyrics)
@@ -191,16 +141,6 @@ local function save_lyrics(lyrics)
 
     lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters    
 
-    local add_ja = false
-
-    if is_japanese(lyrics) then
-        if options.mark_as_ja then
-            add_ja = true
-        end
-        if options.chinese_to_kanji_path ~= "" then
-            lyrics = chinese_to_kanji(lyrics)
-        end
-    end
     if options.strip_artists then
         lyrics = strip_artists(lyrics)
     end
@@ -208,10 +148,6 @@ local function save_lyrics(lyrics)
     local function is_url(s)
         local url_pattern = "^[%w]+://[%w%.%-_]+%.[%a]+[-%w%.%-%_/?&=]*"
         return string.match(s, url_pattern) ~= nil
-    end
-
-    local function check_if_windows()
-        local a=os.getenv("windir")if a~=nil then return true else return false end
     end
 
     downloading_name = downloading_name:gsub("\\", " "):gsub("/", " ")
@@ -233,7 +169,7 @@ local function save_lyrics(lyrics)
         end
     end
 
-    local lrc_path = (path:gsub("?", "") .. (add_ja and ".ja" or "") .. ".lrc")
+    local lrc_path = (path:gsub("?", "") .. ".lrc")
     local dir_path = lrc_path:match("(.+[\\/])")
 
     if mp.utils.readdir(dir_path) == nil and options.store_lyrics_seperate then
@@ -264,7 +200,7 @@ local function save_lyrics(lyrics)
 end
 
 local function musixmatch_download()
-    local title, artist, album = get_metadata()
+    local title, artist, album, duration = get_metadata()
 
     if not title then
         return
@@ -355,133 +291,37 @@ local function musixmatch_download()
     save_lyrics(lyrics)
 end
 
-local netease_songs
+local function lrclib_download()
+    local title, artist, album, duration = get_metadata()
 
-local function select_netease_lyrics()
-    local items = {}
-    for _, song in ipairs(netease_songs) do
-        items[#items+1] = song.artists[1].name .. ' - ' ..
-                          song.name .. ' (' ..
-                          song.album.name .. ')'
-    end
-
-    mp.input.select({
-        prompt = 'Select a song:',
-        items = items,
-        submit = function(i)
-            local selected_song = netease_songs[i]
-            local response = curl({
-                'curl',
-                '--silent',
-                'https://music.xianqiao.wang/neteaseapiv2/lyric?id=' .. netease_songs[i].id,
-            })
-
-            if response then
-                downloading_name = selected_song.name .. " - " .. selected_song.artists[1].name
-                save_lyrics(response.lrc.lyric)
-            end
-        end
-    })
-end
-
-local function netease_download()
-    if netease_songs and mp.input then
-        select_netease_lyrics()
+    if not title or not artist or not album or not duration then
         return
     end
 
-    local title, artist, album = get_metadata()
-    local keywords
-    if title then
-        keywords = title .. " " .. artist
-    else
-        keywords = mp.get_property('media-title')
-        if not keywords then
-            show_error("No metadata or media-title found")
-            return
-        end
-    end
-
-    mp.osd_message('Downloading lyrics')
+    mp.osd_message('Fetching lyrics (lrclib.net)')
 
     local response = curl({
         "curl",
         "--silent",
         "--get",
-        "https://music.xianqiao.wang/neteaseapiv2/search?limit=9",
-        "--data-urlencode", "keywords=" .. keywords,
+        "https://lrclib.net/api/get",
+        "--data-urlencode", "track_name=" .. title,
+        "--data-urlencode", "artist_name=" .. artist,
+        "--data-urlencode", "album_name=" .. album,
+        "--data-urlencode", "duration=" .. duration,
     })
 
     if not response then
         return
     end
 
-    if not response.result then
-        show_error("Lyrics not found")
+    if response.instrumental == true then
+        show_error("This is an instrumental track")
         return
     end
 
-    netease_songs = response.result.songs
-
-    if netease_songs == nil or #netease_songs == 0 then
-        show_error("Lyrics not found")
-        return
-    end
-
-    if mp.input then
-        if #netease_songs == 1 then
-            response = curl({
-                "curl",
-                "--silent",
-                "https://music.xianqiao.wang/neteaseapiv2/lyric?id=" .. netease_songs[1].id,
-            })
-            if response then
-                save_lyrics(response.lrc.lyric)
-            end
-            return
-        end
-        select_netease_lyrics()
-        return
-    end
-
-    for _, song in ipairs(netease_songs) do
-        mp.msg.trace(
-            "Found lyrics for the song with id " .. song.id ..
-            ", name " .. song.name ..
-            ", artist " .. song.artists[1].name ..
-            ", album " .. song.album.name ..
-            ", url https://music.xianqiao.wang/neteaseapiv2/lyric?id=" .. song.id
-        )
-    end
-
-    local song = netease_songs[1]
-    if album then
-        album = album:lower()
-
-        for _, loop_song in ipairs(netease_songs) do
-            if loop_song.album.name:lower() == album then
-                song = loop_song
-                break
-            end
-        end
-    end
-
-    mp.msg.trace(
-        "Downloading lyrics for the song with id " .. song.id ..
-        ", name " .. song.name ..
-        ", artist " .. song.artists[1].name ..
-        ", album " .. song.album.name
-    )
-
-    response = curl({
-        "curl",
-        "--silent",
-        "https://music.xianqiao.wang/neteaseapiv2/lyric?id=" .. song.id,
-    })
-
-    if response and response.lrc then
-        save_lyrics(response.lrc.lyric)
-    end
+    downloading_name = response.artistName .. " - " .. response.trackName
+    save_lyrics(response.syncedLyrics)
 end
 
 local function auto_download()
@@ -491,7 +331,7 @@ local function auto_download()
         got_lyrics = false
         musixmatch_download()
         if not got_lyrics then
-            netease_download()
+            lrclib_download()
         end
         if without_timestamps then
             mp.osd_message("Lyrics without timestamps downloaded automatically")
@@ -533,12 +373,12 @@ end
 
 mp.add_key_binding("alt+m", "musixmatch-download", function() 
     manual_run = true
-    musixmatch_download()
+    auto_download()
 end)
 
 mp.add_key_binding("alt+n", "netease-download", function() 
     manual_run = true
-    netease_download()
+    lrclib_download()
 end)
 
 mp.add_key_binding("alt+o", "offset-sub", function()

@@ -10,6 +10,7 @@ local options = {
     file_ext = "png",
     save_location = "~/pictures/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
+    show_message = false,
     save_as_time_stamp = true,
     save_based_on_chapter_name = false,
     short_saved_message = true,
@@ -82,7 +83,7 @@ local function screenshot_done()
         and "Screenshot saved"
         or "Screenshot saved to: " .. mp.command_native({"expand-path", mp.get_property("screenshot-directory")}):gsub("\\", "/")
 
-    mp.osd_message(msg)
+    if options.show_message then mp.osd_message(msg) end
 
     count = count + 1
     set_screenshot_template()
