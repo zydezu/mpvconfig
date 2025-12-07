@@ -48,13 +48,17 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-12-07
+
+- FIX: fix pictures directory on linux
+
 ### 2025-11-30
 
 - FIX: improve downloading in `autolyrics.lua` by using lrclib.net
 
 ### 2025-11-20
 
-- FIX: move the mpv folder from `~~desktop` to `~/pictures`
+- FIX: move the mpv folder from `~~desktop` to `~/Pictures`
 - FIX: add more crf options to `mpvcut.lua`
 
 ### 2025-11-17
