@@ -311,7 +311,7 @@ local function lrclib_download()
         "--data-urlencode", "duration=" .. duration,
     })
 
-    if not response then
+    if not response or not response.artistName or not response.trackName then
         return
     end
 

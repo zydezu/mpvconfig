@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-12-10
+
+- FIX: fix `autolyrics.lua` crashing if no lyrics are found
+
 ### 2025-12-07
 
 - FIX: fix pictures directory on linux
