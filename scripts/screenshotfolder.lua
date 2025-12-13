@@ -2,6 +2,8 @@
     screenshotfolder.lua by zydezu
     (https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua)
 
+    * Copying to clipboard code adapted from https://github.com/ObserverOfTime/mpv-scripts/blob/master/clipshot.lua
+
     Place screenshots into folders for each video, along with timestamping them
 --]]
 
@@ -11,10 +13,12 @@ local options = {
     save_location = "~/Pictures/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
     show_message = false,
+    short_saved_message = true,
     save_as_time_stamp = true,
     save_based_on_chapter_name = false,
-    short_saved_message = true,
-    include_YouTube_ID = true
+    include_YouTube_ID = true,
+    copy_to_clipboard = true,
+    clipboard_filename = "mpvscreenshot.png",
 }
 (require "mp.options").read_options(options)
 
@@ -23,6 +27,45 @@ local chaptername = ""
 local last_timestamp = ""
 local count = 0
 local current_format = options.file_ext
+local file, cmd
+
+local platform = mp.get_property_native('platform')
+if platform == 'windows' then
+    file = os.getenv('TEMP')..'\\'..options.clipboard_filename
+    cmd = {
+        'powershell', '-NoProfile', '-Command',
+        'Add-Type -Assembly System.Windows.Forms, System.Drawing;',
+        string.format(
+            "[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile('%s'))",
+            file:gsub("'", "''")
+        )
+    }
+elseif platform == 'darwin' then
+    file = os.getenv('TMPDIR')..'/'..options.clipboard_filename
+    -- png: «class PNGf»
+    local type = options.file_ext ~= '' and options.file_ext or 'PNG picture'
+    cmd = {
+        'osascript', '-e', string.format(
+            'set the clipboard to (read (POSIX file %q) as %s)',
+            file, type
+        )
+    }
+else
+    file = '/tmp/'..options.clipboard_filename
+    if os.getenv('XDG_SESSION_TYPE') == 'wayland' then
+        cmd = {'sh', '-c', ('wl-copy < %q'):format(file)}
+    else
+        local type = options.file_ext ~= '' and options.file_ext or 'image/png'
+        cmd = {'xclip', '-sel', 'c', '-t', type, '-i', file}
+    end
+end
+
+local function clipshot(arg)
+    mp.commandv('screenshot-to-file', file, arg)
+    mp.command_native_async({'run', unpack(cmd)}, function(suc, _, err)
+        print(suc and 'Copied screenshot to clipboard' or err, 1)
+    end)
+end
 
 local function sanitize_filename(name)
     return name and name:gsub('[\\/:*?"<>|]', '') or ""
@@ -76,7 +119,8 @@ end
 local function screenshot_done()
     local sub_pos = mp.get_property("sub-pos")
     mp.set_property("sub-pos", 100)
-    mp.command("screenshot")
+    mp.commandv("screenshot")
+    if options.copy_to_clipboard then clipshot("subtitles") end
     mp.set_property("sub-pos", sub_pos)
 
     local msg = options.short_saved_message
