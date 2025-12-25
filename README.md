@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-12-25
+
+- FIX: add watch-later-options-remove=sub-pos to mpv.conf
+
 ### 2025-12-13
 
 - FEAT: add screenshotting to clipboard, based on code from https://github.com/ObserverOfTime/mpv-scripts/blob/master/clipshot.lua in `screenshotfolder.lua`
