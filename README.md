@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2025-12-26
+
+- FIX: use `table.unpack()` instead of `unpack()` in `screenshotfolder.lua`
+
 ### 2025-12-25
 
 - FIX: add watch-later-options-remove=sub-pos to mpv.conf
