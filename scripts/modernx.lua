@@ -1673,12 +1673,16 @@ function check_path_url()
         state.url_path = path
         mp.msg.info("URL detected.")
 
-        if not (path:match("https?://(www%.youtube%.com/watch%?v=.+)") or path:match("https?://youtu%.be/.+")) then
+        if path:match("https?://[^/]*youtube%.com/") or path:match("https?://youtu%.be/") then
+            if path:match("/watch%?v=") or path:match("/shorts/") then
+                state.is_youtube = true
+            else
+                state.is_youtube = false
+            end
+        else
             user_opts.download_button = false
             user_opts.show_youtube_comments = false
-            user_opts.is_youtube = false
-        else
-            user_opts.is_youtube = true
+            state.is_youtube = false
         end
 
         if user_opts.download_button then
@@ -1694,10 +1698,13 @@ function check_path_url()
         end
 
         if user_opts.show_description then
-            if not user_opts.is_youtube then
+            print(state.is_youtube)
+            if not state.is_youtube then
                 local file_size = mp.get_property_native("file-size")
-                file_size = mp.utils.format_bytes_humanized(file_size)
-                state.videoDescription = "Size: " .. file_size
+                if file_size then
+                    file_size = mp.utils.format_bytes_humanized(file_size)
+                    state.videoDescription = "Size: " .. file_size
+                end
                 state.descriptionLoaded = true
                 return
             end
