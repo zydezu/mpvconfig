@@ -56,7 +56,7 @@ local function process_result(success, result, error)
 
         if remote_date > local_date then
             print("Update available")
-            mp.osd_message("mpvconfig update available (" .. remote_date .. ")", 2)
+            mp.osd_message("mpvconfig update available (" .. remote_date .. ")", 1)
         else
             print("No update available")
         end
