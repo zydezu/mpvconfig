@@ -251,7 +251,7 @@ local user_opts = {
 
     -- Experimental
     show_youtube_comments = false,          -- EXPERIMENTAL - show youtube comments
-    comments_download_path = "~~Pictures/mpv/downloads/comments", -- EXPERIMENTAL - the download path for the comment JSON file
+    comments_download_path = "~/Pictures/mpv/downloads/comments", -- EXPERIMENTAL - the download path for the comment JSON file
     FORCE_fix_not_ontop = true,             -- EXPERIMENTAL - try and mitigate https://github.com/zydezu/ModernX/issues/30, https://github.com/akiirui/mpv-handler/issues/48
 }
 -- read options from config and command-line

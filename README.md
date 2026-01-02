@@ -55,6 +55,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-01-02
 
 - FIX: fixed YouTube shorts breaking `modernx.lua`
+- FIX: fix comments download path in `modernx.lua`
 
 ### 2025-12-25
 
