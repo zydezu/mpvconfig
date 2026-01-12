@@ -23,6 +23,9 @@ local options = {
     -- If true, sponsored segments will only be skipped once
     skip_once = true,
 
+    -- Show a message when a segment is skipped
+    show_skip_message = false,
+
     -- If true, UUIDs (the brackets) will be removed from chapter titles
     removeuuid = true,
 
@@ -307,7 +310,7 @@ local function skip_ads(name, pos)
         if (options.fast_forward == uuid or not options.skip_once or not t.skipped) and t.start_time <= pos and t.end_time > pos then
             if options.fast_forward == uuid then return end
             if options.fast_forward == false then
-                mp.osd_message("[sponsorblock] " .. t.category .. " skipped")
+                if options.show_skip_message then mp.osd_message("[sponsorblock] " .. t.category .. " skipped") end
                 mp.set_property("time-pos", t.end_time)
             else
                 mp.osd_message("[sponsorblock] skipping " .. t.category)

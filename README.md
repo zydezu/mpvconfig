@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-01-12
+
+- FEAT: add a new option: `show_skip_message`, to `sponsorblock.lua`
+
 ### 2026-01-02
 
 - FIX: fixed YouTube shorts breaking `modernx.lua`
