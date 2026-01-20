@@ -1671,7 +1671,7 @@ function check_path_url()
     if is_url(path) and path or nil then
         state.is_URL = true
         state.url_path = path
-        mp.msg.info("URL detected.")
+        print("URL detected.")
 
         if path:match("https?://[^/]*youtube%.com/") or path:match("https?://youtu%.be/") then
             if path:match("/watch%?v=") or path:match("/shorts/") then
@@ -1686,7 +1686,7 @@ function check_path_url()
         end
 
         if user_opts.download_button then
-            mp.msg.info("Fetching file size...")
+            print("Fetching web video file size...")
             local command = {
                 "yt-dlp",
                 "--no-download",
@@ -1698,7 +1698,6 @@ function check_path_url()
         end
 
         if user_opts.show_description then
-            print(state.is_youtube)
             if not state.is_youtube then
                 local file_size = mp.get_property_native("file-size")
                 if file_size then
@@ -1709,7 +1708,7 @@ function check_path_url()
                 return
             end
 
-            mp.msg.info("[WEB] Loading video description...")
+            print("Loading web video description...")
             local command = {
                 "yt-dlp",
                 "--no-download",
@@ -1720,7 +1719,7 @@ function check_path_url()
         end
 
         if user_opts.show_youtube_comments then
-            mp.msg.info("[WEB] Downloading comments...")
+            print("Downloading YouTube comments...")
             check_comments()
         end
     end
@@ -1756,7 +1755,7 @@ function check_comments()
         capture_stderr = true
     }, function(success, result, error)
         if not success then
-            print("[WEB] Couldn't write youtube comments: " .. error)
+            print("Failed to write YouTube comments: " .. error)
             return
         end
 
@@ -1764,8 +1763,8 @@ function check_comments()
         local file_prop = mp.get_property("filename")
         local comments_path = user_opts.comments_download_path or ""
 
-        if file_prop then            
-            mp.msg.info("[WEB] Downloaded comments")
+        if file_prop then
+            print("Downloaded YouTube comments")
 
             -- clean file name
             local clean_name = file_prop:gsub("watch%?v=", "")
@@ -1774,16 +1773,16 @@ function check_comments()
             -- create the file path
             local base_path = mp.command_native({"expand-path", comments_path .. '/'}) or ""
             filename = base_path .. clean_name .. ".info.json"        else
-            mp.msg.info("[WEB] Comments failed to download...")
+            print("YouTube comments failed to download...")
             return
         end
 
         if file_exists(filename) then
-            mp.msg.info("[WEB] Reading comments file...")
+            print("Reading YouTube comments file...")
             local lines = lines_from(filename)
             state.jsoncomments = mp.utils.parse_json(lines[1]).comments
         else
-            mp.msg.info("[WEB] Error opening comments file")
+            print("Error opening YouTube comments file")
             return
         end
         state.maxCommentPages = math.ceil(#state.jsoncomments / comments_per_page)
@@ -1795,7 +1794,7 @@ function check_comments()
         if state.showingDescription then
             show_description(state.localDescriptionClick)
         end
-        mp.msg.info("[WEB] Read and parsed comments")
+        print("Read and parsed YouTube comments")
     end )
 end
 
@@ -1864,7 +1863,7 @@ end
 
 function process_filesize(success, result, error)
     if not success then
-        print("[WEB] Couldn't fetch video filesize: " .. error)
+        print("Couldn't fetch web video filesize: " .. error)
         return
     end
 
@@ -1873,15 +1872,14 @@ function process_filesize(success, result, error)
 
     if state.file_size_bytes then
         state.file_size_normalized = mp.utils.format_bytes_humanized(state.file_size_bytes)
-        mp.msg.info("[WEB] Download size: " .. state.file_size_normalized)
     else
         local fs_prop = mp.get_property_osd("file-size")
         if fs_prop and fs_prop ~= "" then
             state.file_size_normalized = fs_prop
-            mp.msg.info(fs_prop)
+            print(fs_prop)
         else
             state.file_size_normalized = "Unknown"
-            mp.msg.info("[WEB] Unable to retrieve file size")
+            print("Unable to retrieve web video file size")
         end
     end
 
@@ -1890,12 +1888,12 @@ end
 
 local function download_done(success, result, error)
     if success then
-        show_message("{\\an9}[WEB] Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
+        show_message("{\\an9}Download saved to " .. mp.command_native({"expand-path", user_opts.download_path}))
         state.downloaded_once = true
-        mp.msg.info("[WEB] Download completed")
+        print("Web video download completed")
     else
-        show_message("{\\an9}[WEB] Download failed - " .. (error or "Unknown error"))
-        mp.msg.info("[WEB] Download failed")
+        show_message("{\\an9}Download failed - " .. (error or "Unknown error"))
+        print("Web video download failed")
     end
     state.downloading = false
 end
@@ -1951,7 +1949,7 @@ end
 
 function process_vid_stats(success, result, error)
     if not success then
-        print("[WEB] Couldn't fetch video stats: " .. error)
+        print("Couldn't fetch web video stats: " .. error)
         return
     end
 
@@ -1989,7 +1987,7 @@ function process_vid_stats(success, result, error)
     if state.showingDescription then
         show_description(state.localDescriptionClick)
     end
-    mp.msg.info("[WEB] Loaded video description")
+    print("Loaded web video description")
 end
 
 function add_commas_to_number(number)
@@ -2093,15 +2091,17 @@ local function make_sponsorblock_segments()
                     end
                 end
                 if string.find(chapter.title, ("end"):gsub("[%[%]]", "%%%1")) then
-                    if temp_segment[current_category]["is_start_added"] then
-                        temp_segment[current_category]["end"] = chapter.time / duration * 100
-                        if state.sponsor_segments ~= 2 then
-                            temp_segment[current_category]["is_start_added"] = nil
-                            -- table.sort(temp_segment[current_category], function(a, b) return a.time < b.time end)
-                            table.insert(state.sponsor_segments[current_category], temp_segment[current_category])
+                    if temp_segment[current_category] then
+                        if temp_segment[current_category]["is_start_added"] then
+                            temp_segment[current_category]["end"] = chapter.time / duration * 100
+                            if state.sponsor_segments ~= 2 then
+                                temp_segment[current_category]["is_start_added"] = nil
+                                -- table.sort(temp_segment[current_category], function(a, b) return a.time < b.time end)
+                                table.insert(state.sponsor_segments[current_category], temp_segment[current_category])
+                            end
+                            temp_segment[current_category] = {}
+                            is_start_added = false
                         end
-                        temp_segment[current_category] = {}
-                        is_start_added = false
                     end
                 end
             end

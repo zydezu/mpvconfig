@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-01-20
+
+- FIX: fix https://github.com/zydezu/ModernX/issues/76
+
 ### 2026-01-12
 
 - FEAT: add a new option: `show_skip_message`, to `sponsorblock.lua`
@@ -127,7 +131,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2025-09-04
 
 - FIX: change autocreate-playlist to same
-- FIX: https://github.com/zydezu/mpvconfig/issues/23
+- FIX: fix https://github.com/zydezu/mpvconfig/issues/23
 
 ### 2025-09-08
 
