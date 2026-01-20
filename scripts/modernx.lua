@@ -155,7 +155,7 @@ local user_opts = {
 
     info_button = false,                    -- show info button
     ontop_button = true,                    -- show window on top button
-    screenshot_button = true,               -- show screenshot button
+    screenshot_button = false,              -- show screenshot button
     screenshot_flag = "subtitles",          -- flag for screenshot button: "subtitles", "video", "window", "each-frame"
                                             -- https://mpv.io/manual/master/#command-interface-screenshot-%3Cflags%3E
 
