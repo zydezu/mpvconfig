@@ -155,12 +155,12 @@ local user_opts = {
 
     info_button = false,                    -- show info button
     ontop_button = true,                    -- show window on top button
-    screenshot_button = false,              -- show screenshot button
+    screenshot_button = true,               -- show screenshot button
     screenshot_flag = "subtitles",          -- flag for screenshot button: "subtitles", "video", "window", "each-frame"
                                             -- https://mpv.io/manual/master/#command-interface-screenshot-%3Cflags%3E
 
     download_button = true,                 -- show download button on web videos (requires yt-dlp and ffmpeg)
-    download_path = "~/Pictures/mpv/downloads", -- default download directory for videos (https://mpv.io/manual/master/#paths)
+    download_path = "~/Pictures/mpv/",      -- default download directory for videos (https://mpv.io/manual/master/#paths)
 
     loop_button = false,                    -- show loop button
     loop_in_pause = true,                   -- enable looping by right-clicking pause
@@ -226,10 +226,10 @@ local user_opts = {
     title_youtube_stats = true,             -- update the window/OSC title bar with YouTube video stats (views, comments, likes)
     ytdl_format = "",                       -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 
-    -- sponsorblock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to work!
-    show_sponsorblock_segments = true,      -- show sponsorblock segments on the progress bar
-    add_sponsorblock_chapters = false,      -- add sponsorblock chapters to the chapter list
-    sponsorblock_seek_range_alpha = 75,     -- transparency of sponsorblock segments
+    -- SponsorBlock - these SponsorBlock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to function
+    show_sponsorblock_segments = true,      -- show SponsorBlock segments on the progress bar
+    add_sponsorblock_chapters = false,      -- add SponsorBlock chapters to the chapter list
+    sponsorblock_seek_range_alpha = 75,     -- transparency of SponsorBlock segments
     sponsor_types = {                       -- what categories to show in the progress bar
         "sponsor",                          -- all categories: sponsor, intro, outro,
         "intro",                            -- interaction, selfpromo, preview, music_offtopic, filler
@@ -307,7 +307,7 @@ local icons = {
         like = "👍"
     },
 
-    playlist = "\238\161\159", -- unused rn
+    playlist = "\238\161\159", -- currently unused
 }
 
 -- Localization

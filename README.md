@@ -51,6 +51,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-01-20
 
 - FIX: fix https://github.com/zydezu/ModernX/issues/76
+- FIX: remove `screenshot-sw` from `mpv.conf`
 
 ### 2026-01-12
 
