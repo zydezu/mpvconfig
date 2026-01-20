@@ -23,6 +23,12 @@ Use `mkdir -p ~/.var/app/io.mpv.Mpv/config` to make the mpv configuration direct
 
 See the [Files section](https://mpv.io/manual/master/#files) in mpv's manual for more information.
 
+## Sponsorblock
+
+To allow SponsorBlock segments to show up on the timeline, please add this script to your mpv scripts directory. https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua
+
+![image](https://github.com/user-attachments/assets/a7dd23bb-f59e-4f0a-bbcb-b9c5c759e802)
+
 ## Note about Audio
 ![2025-07-05_15-15-16_411_ApplicationFrameHost](https://github.com/user-attachments/assets/6e457e40-d1ca-4e9e-bce6-a309d09ce091)
 For files with 5.1 or 7.1 surround sound, you may need to set `Audio enhancements` to `Off` in the windows sound settings to hear all the audio channels properly.
