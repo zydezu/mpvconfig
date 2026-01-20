@@ -52,6 +52,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 - FIX: fix https://github.com/zydezu/ModernX/issues/76
 - FIX: remove `screenshot-sw` from `mpv.conf`
+- FIX: rename some variables in `modernX.lua`
 
 ### 2026-01-12
 

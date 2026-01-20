@@ -270,6 +270,7 @@ local icons = {
     play = "\238\166\143",
     pause = "\238\163\140",
     replay = "\238\189\191",
+
     previous = "\239\152\167",
     next = "\239\149\168",
     rewind = "\238\168\158",
@@ -277,19 +278,28 @@ local icons = {
 
     audio = "\238\175\139",
     subtitle = "\238\175\141",
-    volume_mute = "\238\173\138",
-    volume_quiet = "\238\172\184",
-    volume_low = "\238\172\189",
-    volume_high = "\238\173\130",
+
+    volume = {
+        mute = "\238\173\138",
+        quiet = "\238\172\184",
+        low = "\238\172\189",
+        high = "\238\173\130",
+    },
 
     download = "\239\133\144",
-    downloading = "\239\140\174",
+    download_initiated = "\239\140\174",
+
     loop_off = "\239\133\178",
     loop_on = "\239\133\181",
+
     info = "\239\146\164",
-    ontop_on = "\238\165\190",
-    ontop_off = "\238\166\129",
+
+    pinned_off = "\238\166\129",
+    pinned_on = "\238\165\190",
+
     screenshot = "\239\154\142",
+    playlist = "\238\161\159", -- currently unused
+
     fullscreen = "\239\133\160",
     fullscreen_exit = "\239\133\166",
 
@@ -310,10 +320,8 @@ local icons = {
     emoticon = {
         view = "👁️",
         comment = "💬",
-        like = "👍"
+        like = "👍",
     },
-
-    playlist = "\238\161\159", -- currently unused
 }
 
 -- Localization
@@ -3422,14 +3430,14 @@ local function osc_init()
     ne.content = function ()
         local volume = mp.get_property_number("volume", 0)
         if state.mute then
-            return icons.volume_mute
+            return icons.volume.mute
         else
             if volume >= 75 then
-                return icons.volume_high
+                return icons.volume.high
             elseif volume >= 25 then
-                return icons.volume_low
+                return icons.volume.low
             else
-                return icons.volume_quiet
+                return icons.volume.quiet
             end
         end
     end
@@ -3481,7 +3489,7 @@ local function osc_init()
 
     --download
     ne = new_element("download", "button")
-    ne.content = function () return state.downloading and icons.downloading or icons.download end
+    ne.content = function () return state.downloading and icons.download_initiated or icons.download end
     ne.visible = (osc_param.playresx >= 1100 - outeroffset - (user_opts.loop_button and 0 or 100) - (user_opts.ontop_button and 0 or 100) - (user_opts.info_button and 0 or 100) - (user_opts.screenshot_button and 0 or 100)) and state.is_URL
     ne.tooltip_style = osc_styles.tooltip
     ne.tooltipF = function () return state.downloading and (texts.downloading .. "...") or (texts.download .. " (" .. state.file_size_normalized .. ")") end
@@ -3546,9 +3554,9 @@ local function osc_init()
     ne = new_element('tog_ontop', 'button')
     ne.content = function ()
         if mp.get_property('ontop') == 'no' then
-            return (icons.ontop_on)
+            return (icons.pinned_on)
         else
-            return (icons.ontop_off)
+            return (icons.pinned_off)
         end
     end
     ne.tooltip_style = osc_styles.tooltip
