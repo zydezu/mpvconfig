@@ -256,7 +256,6 @@ local user_opts = {
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
-
 mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
 
 local osc_param = {                         -- calculated by osc_init()
@@ -301,6 +300,13 @@ local icons = {
         default = {"\238\172\138", "\238\172\138"}, -- second icon is mirrored in layout()
     },
 
+    window = {
+        maximize = "\238\132\147",
+        unmaximize = "\238\132\148",
+        minimize = "\238\132\146",
+        close = "\238\132\149",
+    },
+
     emoticon = {
         view = "👁️",
         comment = "💬",
@@ -313,7 +319,7 @@ local icons = {
 -- Localization
 local language = {
     ['en'] = {
-        welcome = 'Drop files or URLs here to play',  -- this text appears when mpv starts
+        welcome = 'Drop files or URLs here to play',    -- appears on mpv startup
         off = 'OFF',
         na = 'Not available',
         none = 'None available',
@@ -340,8 +346,6 @@ local language = {
         downloaded = "Already downloaded",
     }
 }
-
--- apply lang opts
 local texts = language[user_opts.language] or language["en"]
 
 local function contains(list, item)
@@ -360,20 +364,6 @@ local function contains(list, item)
         end
     end
     return false
-end
-
--- debug function
-local function dumptable(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dumptable(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
 end
 
 local thumbfast = {
@@ -401,7 +391,7 @@ local window_control_box_width = 138
 local max_descsize = 200
 local comments_per_page = 25
 local is_december = os.date("*t").month == 12
-local UNICODE_MINUS = string.char(0xe2, 0x88, 0x92)  -- UTF-8 for U+2212 MINUS SIGN
+local unicode_minus_symbol = string.char(0xe2, 0x88, 0x92)  -- UTF-8 for U+2212 MINUS SIGN
 local iconfont = 'fluent-system-icons'
 
 local function osc_color_convert(color)
@@ -429,7 +419,7 @@ local osc_styles = {
     tooltip = "{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs" .. user_opts.time_font_size .. "\\fn" .. user_opts.font .. "}",
     volumebar_bg = "{\\blur0\\bord0\\1c&H999999&}",
     volumebar_fg = "{\\blur1\\bord1\\1c&H" .. osc_color_convert(user_opts.side_buttons_color) .. "&}",
-    window_control = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_controls_color) .. "&\\3c&H0&\\fs18\\fnmpv-osd-symbols}",
+    window_control = "{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.window_controls_color) .. "&\\3c&H0&\\fs18\\fn" .. user_opts.font .. "}",
     window_title = "{\\blur1\\bord0.5\\1c&H" .. osc_color_convert(user_opts.window_title_color) .. "&\\3c&H0&\\fs19\\q2\\fn" .. user_opts.font .. "}",
     description = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs'.. user_opts.description_font_size ..'\\q2\\fn' .. user_opts.font .. '}',
 }
@@ -2454,9 +2444,9 @@ function window_controls()
     -- default font, even if another font with them is available.
 
     if user_opts.window_controls then
-        -- Close: 🗙
+        -- Close
         ne = new_element('close', 'button')
-        ne.content = '\238\132\149'
+        ne.content = icons.window.close
         ne.eventresponder['mbtn_left_up'] =
             function () mp.commandv('quit') end
         lo = add_layout('close')
@@ -2464,9 +2454,9 @@ function window_controls()
         lo.style = osc_styles.window_control
         lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_close_hover) .. "&}"
 
-        -- Minimize: 🗕
+        -- Minimize
         ne = new_element('minimize', 'button')
-        ne.content = '\238\132\146'
+        ne.content = icons.window.minimize
         ne.eventresponder['mbtn_left_up'] =
             function () mp.commandv('cycle', 'window-minimized') end
         lo = add_layout('minimize')
@@ -2474,12 +2464,12 @@ function window_controls()
         lo.style = osc_styles.window_control
         lo.button.hoverstyle = "{\\c&H" .. osc_color_convert(user_opts.window_controls_minmax_hover) .. "&}"
 
-        -- Maximize: 🗖/🗗
+        -- Maximize
         ne = new_element('maximize', 'button')
         if state.maximized or state.fullscreen then
-            ne.content = '\238\132\148'
+            ne.content = icons.window.unmaximize
         else
-            ne.content = '\238\132\147'
+            ne.content = icons.window.maximize
         end
         ne.eventresponder['mbtn_left_up'] =
             function ()
@@ -3883,7 +3873,7 @@ local function osc_init()
 
         local time_to_display = state.tc_right_rem and mp.get_property_number("playtime-remaining", 0) or duration
         if time_to_display < 0 then time_to_display = 0 end
-        local prefix = state.tc_right_rem and (user_opts.unicode_minus and UNICODE_MINUS or "-") or ""
+        local prefix = state.tc_right_rem and (user_opts.unicode_minus and unicode_minus_symbol or "-") or ""
 
         return prefix .. format_time(time_to_display) .. (state.is_live and " • LIVE" or "")
     end
