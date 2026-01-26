@@ -29,6 +29,8 @@ local count = 0
 local current_format = options.file_ext
 local file, cmd
 
+local unpack = table.unpack or unpack
+
 local platform = mp.get_property_native('platform')
 if platform == 'windows' then
     file = os.getenv('TEMP')..'\\'..options.clipboard_filename
@@ -62,7 +64,7 @@ end
 
 local function clipshot(arg)
     mp.commandv('screenshot-to-file', file, arg)
-    mp.command_native_async({'run', table.unpack(cmd)}, function(suc, _, err)
+    mp.command_native_async({'run', unpack(cmd)}, function(suc, _, err)
         print(suc and 'Copied screenshot to clipboard' or err)
     end)
 end

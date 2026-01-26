@@ -48,6 +48,9 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-01-26
+- FIX: fix screenshotting (unpack) on different systems
+
 ### 2026-01-20
 
 - FIX: fix https://github.com/zydezu/ModernX/issues/76
