@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-01-27
+
+- Tweak `input.conf`
+
 ### 2026-01-26
 - FIX: fix screenshotting (unpack) on different systems
 
