@@ -19,6 +19,8 @@ local options = {
 	key_cut = "a",
 	key_cancel_cut = "shift+a",
 	key_cycle_action = "A",
+	key_cycle_codec = "alt+a",
+	codecs_list = { "h264", "h265", "av1" },
 
 	-- The default action
 	action = "ENCODE",						-- the default action, ENCODE, ENCODE_GIF, COMPRESS or CUT
@@ -513,6 +515,24 @@ local function cycle_action()
 	print_or_update_text_overlay("Action: " .. ACTION)
 end
 
+local function cycle_codec()
+    local current_index = nil
+    for i, codec in ipairs(options.codecs_list) do
+        if codec == options.encoding_type then
+            current_index = i
+            break
+        end
+    end
+
+    local next_index = current_index + 1
+    if next_index > #options.codecs_list then
+        next_index = 1
+    end
+
+    options.encoding_type = options.codecs_list[next_index]
+    print_or_update_text_overlay("Encoding codec: " .. options.encoding_type)
+end
+
 local function cut(start_time, end_time)
 	local d = get_data()
 	local t = get_times(start_time, end_time)
@@ -554,3 +574,4 @@ end
 mp.add_key_binding(options.key_cut, "cut", put_time)
 mp.add_key_binding(options.key_cancel_cut, "cancel_cut", cancel_cut)
 mp.add_key_binding(options.key_cycle_action, "cycle_action", cycle_action)
+mp.add_key_binding(options.key_cycle_codec, "cycle_codec", cycle_codec)
