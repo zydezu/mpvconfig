@@ -51,6 +51,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-02-02
 
 - FEAT: add the ability to change codecs using a keybind in `mpvcut.lua`
+- FIX: add the encoding type to files made by `mpvcut.lua`
 
 ### 2026-01-27
 

@@ -184,7 +184,7 @@ end
 ACTIONS = {}
 
 ACTIONS.ENCODE = function(d)
-	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (encode)"
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (" .. options.encoding_type .. "encode)"
 	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
 	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 
@@ -327,7 +327,7 @@ ACTIONS.COMPRESS = function(d)
 	end
 	mp.msg.info("Using bitrate: " .. target_bitrate)
 
-	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (compress)"
+	local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (" .. options.encoding_type .. "compress)"
 	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
 	if options.save_to_directory then
 		result_path = check_paths(d, file_extra_suffix)
