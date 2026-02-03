@@ -30,7 +30,7 @@ local options = {
 
 	-- encoding options
 	encoding_type = "h265",					-- h264, h265, or av1
-	animated_encoding_type = ".avif",		-- for encoding gifs (or animated avifs), .gif or .avif
+	animated_encoding_type = "avif",		-- for encoding animated gifs, webps or avifs - gif, webp or avif
 
 	cap_resolution = true,				    -- whether to lower the resolution to the target resolution (COMPRESS/ENCODE_GIF only)
 	max_resolution = 1080, 					-- resolution to shrink to if video is above this resolution (COMPRESS only)
@@ -38,9 +38,13 @@ local options = {
 
 	h264_crf = 23,							-- the crf value to use for h264 clips, lower numbers mean higher quality
 	h265_crf = 28,							-- the crf value to use for h265 clips, lower numbers mean higher quality
-	av1_crf = 35,							-- the crf value to use for av1 clips, lower numbers mean higher quality
+	av1_crf = 40,							-- the crf value to use for av1 clips, lower numbers mean higher quality
+
+	webp_quality = 75,						-- quality for animated .webps, 0-100 low-high
+	webp_compression_level = 6,             -- compression effort, a trade-off between speed and size, lower numbers provide a higher speed
+
 	avif_crf = 42,							-- the crf value to use for animated .avif clips, lower numbers mean higher quality
-	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provided a higher speed
+	av1_preset = 6,							-- av1 encoding preset, a trade-off between speed and size, higher numbers provide a higher speed
 
 	-- Web videos/cache
 	use_cache_for_web_videos = true,		-- whether to cut web videos using the player's cache (experimental)
@@ -219,7 +223,7 @@ ACTIONS.ENCODE = function(d)
 		table.insert(args, "-c:v")
 		table.insert(args, "libsvtav1")
 		table.insert(args, "-crf")
-		table.insert(args, tostring(options.av1_crf or 35))
+		table.insert(args, tostring(options.av1_crf or 40))
 		table.insert(args, "-preset")
 		table.insert(args, tostring(options.av1_preset or 6))
 		table.insert(args, "-c:a")
@@ -262,8 +266,8 @@ end
 
 ACTIONS.ENCODE_GIF = function(d)
 	local file_extra_suffix =  "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (clip)"
-	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. options.animated_encoding_type)
-	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, options.animated_encoding_type) end
+	local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. "." .. options.animated_encoding_type)
+	if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix, nil, "." .. options.animated_encoding_type) end
 
 	local video_height = mp.get_property_number("height")
 
@@ -281,7 +285,7 @@ ACTIONS.ENCODE_GIF = function(d)
 		table.insert(args, res_line)
 	end
 
-	if options.animated_encoding_type == ".avif" then
+	if options.animated_encoding_type == "avif" then
 		-- AV1 (avif) using libsvtav1
 		table.insert(args, "-c:v")
 		table.insert(args, "libsvtav1")
@@ -289,6 +293,16 @@ ACTIONS.ENCODE_GIF = function(d)
 		table.insert(args, tostring(options.avif_crf or 42))
 		table.insert(args, "-preset")
 		table.insert(args, tostring(options.av1_preset or 6))
+	elseif options.animated_encoding_type == ".webp" then
+		-- webp using libwebp_anim
+		table.insert(args, "-c:v")
+		table.insert(args, "libwebp_anim")
+		table.insert(args, "-quality")
+		table.insert(args, tostring(options.webp_quality or 75))
+		table.insert(args, "-compression_level")
+		table.insert(args, tostring(options.webp_compression_level or 6))
+		table.insert(args, "-loop")
+		table.insert(args, "0")
 	else
 		-- Default to gif
 	end
