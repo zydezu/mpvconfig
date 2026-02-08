@@ -48,6 +48,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-02-08
+
+- FIX: reduce autofit size
+
 ### 2026-02-02
 
 - FEAT: add the ability to change codecs using a keybind in `mpvcut.lua`
