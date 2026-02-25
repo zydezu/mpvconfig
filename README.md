@@ -52,6 +52,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-02-25
+
+- FIX: add information about xclip functionality, change default font (fix CJK)
+- FIX: make autolyrics.lua show a message if lyrics not found
+
 ### 2026-02-08
 
 - FIX: reduce autofit size

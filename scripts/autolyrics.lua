@@ -336,6 +336,9 @@ local function auto_download()
         if without_timestamps then
             mp.osd_message("Lyrics without timestamps downloaded automatically")
         end
+        if not got_lyrics then
+            show_error("Lyrics not found")
+        end
     end
 end
 
