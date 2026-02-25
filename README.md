@@ -11,6 +11,10 @@ My personal [mpv](https://mpv.io/) config.
 
 Use `git clone https://github.com/zydezu/mpvconfig mpv`, and place it in the relevant directory. This will be typically located at `\%APPDATA%\mpv\` on Windows and `~/.config/mpv/` on Linux/MacOS.
 
+### Linux Note
+
+For the clipboard functionality use in `copypaste.lua`, you many need to install the `xclip` or `wl-clipboard` package, depending on your session type.
+
 ### Flatpak Instructions (from https://github.com/zydezu/mpvconfig/issues/21)
 
 Use `mkdir -p ~/.var/app/io.mpv.Mpv/config` to make the mpv configuration directory for the first time

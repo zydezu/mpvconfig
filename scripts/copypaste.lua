@@ -216,7 +216,9 @@ end
 
 local function paste()
     mp.osd_message("Loading...", 10)
-    local clip = get_clipboard():gsub("\n", " ")
+    local clip = get_clipboard()
+    if not clip then return end
+    clip = clip:gsub("\n", " ")
     if not clip then return end
     local clip_file = clip:gsub('"', "")
     if is_url(clip) then
