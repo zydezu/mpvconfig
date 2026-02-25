@@ -55,7 +55,8 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-02-25
 
 - FIX: add information about xclip functionality, change default font (fix CJK)
-- FIX: make autolyrics.lua show a message if lyrics not found
+- FIX: make `autolyrics.lua` show a message if lyrics not found
+- FIX: add "Picture-in-Picture" to the window title when the window is pinned in `modernX.lua`
 
 ### 2026-02-08
 

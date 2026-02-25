@@ -4424,9 +4424,11 @@ if user_opts.key_bindings then
             if mp.get_property('ontop') == 'yes' then
                 show_message("Pinned window")
                 mp.commandv('set', 'border', "no")
+                mp.set_property("title", mp.get_property("media-title") .. " (Picture-in-Picture)")
             else
                 show_message("Unpinned window")
                 mp.commandv('set', 'border', "yes")
+                mp.set_property("title", mp.get_property("media-title"))
             end
         end
     end);
