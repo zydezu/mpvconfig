@@ -29,6 +29,7 @@ local count = 0
 local current_format = options.file_ext
 local file, cmd
 
+---@diagnostic disable-next-line: deprecated
 local unpack = table.unpack or unpack
 
 local platform = mp.get_property_native('platform')
