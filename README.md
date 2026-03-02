@@ -52,9 +52,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
-### 2026-03-2
+### 2026-03-02
 
 - FIX: fix cutting videos with no audio in `mpvcut.lua`
+- FIX: optimise `modernX.lua`
 
 ### 2026-02-25
 

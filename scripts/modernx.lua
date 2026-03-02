@@ -1495,10 +1495,11 @@ function check_title()
     local artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or mp.get_property("filtered-metadata/by-key/Artist") or mp.get_property("filtered-metadata/by-key/Uploader")
     local tempartistclicktext = "Contributing artists: " .. (artist or "")
 
-    if (mp.get_property("filtered-metadata/by-key/Album_Artist") and mp.get_property("filtered-metadata/by-key/Artist")) then
-        if (mp.get_property("filtered-metadata/by-key/Album_Artist") ~= mp.get_property("filtered-metadata/by-key/Artist")) then
-            artist = mp.get_property("filtered-metadata/by-key/Artist") .. ", " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
-            tempartistclicktext = "Contributing artists: " .. mp.get_property("filtered-metadata/by-key/Artist") .. "\\NAlbum artist: " .. mp.get_property("filtered-metadata/by-key/Album_Artist")
+    local album_artist = mp.get_property("filtered-metadata/by-key/Album_Artist")
+    if album_artist and artist then
+        if album_artist ~= artist then
+            artist = artist .. ", " .. album_artist
+            tempartistclicktext = "Contributing artists: " .. artist .. "\\NAlbum artist: " .. album_artist
         end
     end
     local album = mp.get_property("filtered-metadata/by-key/Album")
@@ -1945,6 +1946,17 @@ function split_utf8_strings(str, maxLength)
     return table.concat(result), charCount
 end
 
+local function add_commas_to_number(number)
+    if number == nil then return '' end
+
+    return tostring(number) -- Make sure the "number" is a string
+       :reverse() -- Reverse the string
+       :gsub('%d%d%d', '%0,') -- insert one comma after every 3 numbers
+       :gsub(',$', '') -- Remove a trailing comma if present
+       :reverse() -- Reverse the string again
+       :sub(1) -- a little hack to get rid of the second return value
+end
+
 function process_vid_stats(success, result, error)
     if not success then
         print("Couldn't fetch web video stats: " .. error)
@@ -1953,14 +1965,17 @@ function process_vid_stats(success, result, error)
 
     add_like_count_to_title()
 
-    if (state.localDescriptionClick:match('Views: (%d+)')) then
-        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Views: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)')))
+    local views = state.localDescriptionClick:match('Views: (%d+)')
+    if views then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(views, add_commas_to_number(views))
     end
-    if (state.localDescriptionClick:match('Likes: (%d+)')) then
-        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Likes: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)')))
+    local likes = state.localDescriptionClick:match('Likes: (%d+)')
+    if likes then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(likes, add_commas_to_number(likes))
     end
-    if (state.localDescriptionClick:match('Comments: (%d+)')) then
-        state.localDescriptionClick = state.localDescriptionClick:gsub(state.localDescriptionClick:match('Comments: (%d+)'), add_commas_to_number(state.localDescriptionClick:match('Comments: (%d+)')))
+    local comments = state.localDescriptionClick:match('Comments: (%d+)')
+    if comments then
+        state.localDescriptionClick = state.localDescriptionClick:gsub(comments, add_commas_to_number(comments))
     end
 
     state.localDescriptionClick = state.localDescriptionClick:gsub("Uploaded by: NA\\N", "")
@@ -1975,9 +1990,10 @@ function process_vid_stats(success, result, error)
     end
 
     if not state.ytdescription or #state.ytdescription < 5 then
-        if mp.get_property_number("estimated-vf-fps") then
+        local vf_fps = mp.get_property_number("estimated-vf-fps")
+        if vf_fps then
             state.videoDescription = mp.get_property("width") .. "x" .. mp.get_property("height") .. " | FPS: " ..
-            (math.floor(mp.get_property_number("estimated-vf-fps") + 0.5) or "") -- can't get a normal description, display something else
+            (math.floor(vf_fps + 0.5) or "")
         end
     end
 
@@ -1987,17 +2003,6 @@ function process_vid_stats(success, result, error)
     end
     print("Loaded web video description")
 end
-
-function add_commas_to_number(number)
-    if number == nil then return '' end
-
-    return tostring(number) -- Make sure the "number" is a string
-       :reverse() -- Reverse the string
-       :gsub('%d%d%d', '%0,') -- insert one comma after every 3 numbers
-       :gsub(',$', '') -- Remove a trailing comma if present
-       :reverse() -- Reverse the string again
-       :sub(1) -- a little hack to get rid of the second return value
- end
 
 function add_like_count_to_title()
     if (user_opts.show_description and user_opts.title_youtube_stats) then
@@ -3722,7 +3727,8 @@ local function osc_init()
 
     --volumebar
     if user_opts.volume_control then
-        local volume_max = mp.get_property_number("volume-max") > 0 and mp.get_property_number("volume-max") or 100
+        local volume_max_setting = mp.get_property_number("volume-max")
+        local volume_max = volume_max_setting and volume_max_setting > 0 and volume_max_setting or 100
         ne = new_element("volumebar", "slider")
         ne.visible = (osc_param.playresx >= 900 - outeroffset) and user_opts.volume_control
         ne.enabled = get_track('audio') > 0

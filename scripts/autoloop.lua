@@ -35,8 +35,9 @@ local function set_loop()
                 print("Autolooped file")
                 mp.set_property_native("loop-file", true)
             end
-            if duration <= options.autoloop_threshold or duration <= options.savepos_threshold or 
-            (mp.get_property_native("current-tracks/video") == nil) or (mp.get_property_native("current-tracks/video")["albumart"] == true) then
+            local vid_track = mp.get_property_native("current-tracks/video")
+            if duration <= options.autoloop_threshold or duration <= options.savepos_threshold or
+            (vid_track == nil) or (vid_track["albumart"] == true) then
                 print("Not saving video position")
                 mp.set_property_bool("file-local-options/save-position-on-quit", false)
                 mp.set_property("file-local-options/watch-later-options", "start") -- so videos don't load paused
