@@ -215,7 +215,7 @@ ACTIONS.ENCODE = function(d)
 		"-t", d.duration,
 		"-i", d.inpath,
 		"-map", "0:v:0",
-        "-map", "0:a:" .. ff_audio_index,
+        "-map", "0:a:" .. ff_audio_index .. "?",
 	}
 
 	if options.encoding_type == "av1" then
@@ -371,7 +371,7 @@ ACTIONS.COMPRESS = function(d)
 		"-t", d.duration,
 		"-i", d.inpath,
 		"-map", "0:v:0",
-        "-map", "0:a:" .. ff_audio_index,
+        "-map", "0:a:" .. ff_audio_index .. "?",
 	}
 
 	if video_height and options.cap_resolution and video_height > options.max_resolution then

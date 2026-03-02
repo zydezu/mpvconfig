@@ -52,6 +52,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-03-2
+
+- FIX: fix cutting videos with no audio in `mpvcut.lua`
+
 ### 2026-02-25
 
 - FIX: add information about xclip functionality, change default font (fix CJK)
