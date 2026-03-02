@@ -100,7 +100,7 @@ local user_opts = {
     vid_scale = false,                      -- scale osc with the video
     scale_windowed = 1.0,                   -- osc scale factor when windowed
     scale_fullscreen = 1.0,                 -- osc scale factor when fullscreen
-    scale_forced_window = 1.0,              -- osc scale factor when forced (no video, like music files)
+    scale_forced_window = 1.0,              -- osc scale factor when forced (no video, for example music files)
 
     -- Time, title and description display
     show_title = true,                      -- show title in the OSC (above seekbar)
