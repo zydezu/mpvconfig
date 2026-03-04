@@ -1611,20 +1611,53 @@ function shuffle_playlist()
 end
 
 function normalize_date(date)
-    date = string.gsub(date:gsub("/", ""), "-", "")
-    local date_table
-    if string.find(date:sub(1,8), ":") then
+    date = tostring(date or ""):gsub("[/%-]", "")
+
+    if date:sub(1,8):find(":") then
         return date
     end
-    if (#date > 8) then -- YYYYMMDD HHMMSS (plus a time)
-        date_table = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
-        return os.date(user_opts.date_format, os.time(date_table)) .. date:sub(9)
-    elseif (#date > 4) then -- YYYYMMDD
-        date_table = {year = date:sub(1,4), month = date:sub(5,6), day = date:sub(7,8)}
-        return os.date(user_opts.date_format, os.time(date_table))
-    else -- YYYY
+
+    local len = #date
+
+    -- YYYYMMDD (or with time after)
+    if len >= 8 then
+        local year  = tonumber(date:sub(1,4))
+        local month = tonumber(date:sub(5,6))
+        local day   = tonumber(date:sub(7,8))
+
+        if year and month and day then
+            local timestamp = os.time({
+                year = year,
+                month = month,
+                day = day,
+                hour = 0,
+                min = 0,
+                sec = 0
+            })
+
+            if timestamp then
+                local formatted = os.date(user_opts.date_format, timestamp)
+                return len > 8 and (formatted .. date:sub(9)) or formatted
+            end
+        end
+    end
+
+    -- YYYYMM
+    if len == 6 then
+        local year  = tonumber(date:sub(1,4))
+        local month = tonumber(date:sub(5,6))
+
+        if year and month then
+            return string.format("%04d-%02d", year, month)
+        end
+    end
+
+    -- YYYY
+    if len == 4 then
         return date
     end
+
+    return date
 end
 
 function exec_async(args, callback)

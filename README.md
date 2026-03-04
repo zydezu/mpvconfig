@@ -52,16 +52,20 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-03-04
+
+- FIX: fix weird date formats in `modernx.lua`
+
 ### 2026-03-02
 
 - FIX: fix cutting videos with no audio in `mpvcut.lua`
-- FIX: optimise `modernX.lua`
+- FIX: optimise `modernx.lua`
 
 ### 2026-02-25
 
 - FIX: add information about xclip functionality, change default font (fix CJK)
 - FIX: make `autolyrics.lua` show a message if lyrics not found
-- FIX: add "Picture-in-Picture" to the window title when the window is pinned in `modernX.lua`
+- FIX: add "Picture-in-Picture" to the window title when the window is pinned in `modernx.lua`
 
 ### 2026-02-08
 
