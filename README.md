@@ -56,6 +56,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 - FIX: improve `selectformat.lua` configuration, add icons for dropdowns
 
+### 2026-04-25
+
+- FIX: removed `detectdualsubs.lua` as it was rarely used
+- FIX: add `screenshot-high-bit-depth=no` to `mpv.conf` to stop huge screenshots being taken (we can add it back in 10 years when HDR screenshots are supported on social media platforms)
+
 ### 2026-04-19
 
 - FIX: use `screen-name` instead of `screen` in mpv.conf
