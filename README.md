@@ -52,6 +52,14 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-05-17
+
+- FIX: improve `selectformat.lua` configuration, add icons for dropdowns
+
+### 2026-04-19
+
+- FIX: use `screen-name` instead of `screen` in mpv.conf
+
 ### 2026-04-12
 
 - FIX: improve audio track naming in `modernx.lua`

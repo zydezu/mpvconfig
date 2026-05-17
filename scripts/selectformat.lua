@@ -78,12 +78,12 @@ local function istable(v) end
 -- ====================
 
 local opts = {
-	prioritize_proto = false,
-	prefix_header = "  ", -- a non-breaking space followed by a space
-	prefix_norm = "  ", -- a non-breaking space followed by a space
+	prioritize_proto = true,
+	prefix_header = "     ", -- a non-breaking space followed by a space
+	prefix_norm = "  ",   -- a non-breaking space followed by a space
 	prefix_cursor = "● ",
 	prefix_norm_sel = "○ ",
-	prefix_indent = "  ",
+	prefix_indent = "◀ ",
 	header_separator = "─",
 	menu_pos_x = 7,
 	menu_pos_y = 7,
@@ -97,7 +97,7 @@ mp.options.read_options(opts)
 
 local keys = {
 	{
-		{ "UP", "k" },
+		{ "UP",             "k" },
 		"up",
 		function()
 			menu_cursor_move(-1)
@@ -105,7 +105,7 @@ local keys = {
 		{ repeatable = true },
 	},
 	{
-		{ "DOWN", "j" },
+		{ "DOWN",           "j" },
 		"down",
 		function()
 			menu_cursor_move(1)
@@ -113,7 +113,7 @@ local keys = {
 		{ repeatable = true },
 	},
 	{
-		{ "PGUP", "ctrl+u" },
+		{ "PGUP",           "ctrl+u" },
 		"pgup",
 		function()
 			menu_cursor_move(-5)
@@ -121,7 +121,7 @@ local keys = {
 		{ repeatable = true },
 	},
 	{
-		{ "PGDWN", "ctrl+d" },
+		{ "PGDWN",          "ctrl+d" },
 		"pgdwn",
 		function()
 			menu_cursor_move(5)
@@ -351,7 +351,7 @@ function menu_draw()
 		".",
 		opts.header_separator
 	)
-	
+
 
 	ass:pos(opts.menu_pos_x, opts.menu_pos_y)
 	ass:append(opts.ass_style)
@@ -387,7 +387,27 @@ function menu_get_indent_marker(pos)
 	if data[url].formats[pos].is_unfolded then
 		return opts.prefix_indent
 	else
-		return ""
+		-- check if this resolution has multiple formats (can be unfolded)
+		local fmt = data[url].formats[pos]
+		local res = (fmt.width or "") .. "x" .. (fmt.height or "")
+		if res == "x" then
+			res = is_format_audio_only(fmt) and "audio-only" or fmt.format_id
+		end
+		local count = 0
+		for _, ufmt in ipairs(data[url].formats_unfolded) do
+			local ures = (ufmt.width or "") .. "x" .. (ufmt.height or "")
+			if ures == "x" then
+				ures = is_format_audio_only(ufmt) and "audio-only" or ufmt.format_id
+			end
+			if ures == res then
+				count = count + 1
+			end
+		end
+		if count > 1 then
+			return "▶ "
+		else
+			return ""
+		end
 	end
 end
 
@@ -619,7 +639,7 @@ function get_menu_header()
 end
 
 function strfmt_label(...)
-	return string.format("%-10s %-3s %-5s %-4s %-4s %s", ...)
+	return string.format("%-16s %-4s %-6s %-4s %-4s %s", ...)
 end
 
 -- function for sorting the formats table
@@ -711,7 +731,7 @@ function get_param_precedence(param, value)
 
 		vcodec = {
 			{ "theora" },
-			{ "mp4v", "h263" },
+			{ "mp4v",    "h263" },
 			{ "vp0?8" },
 			{ "[hx]264", "avc" },
 			{ "[hx]265", "he?vc" },
@@ -727,21 +747,21 @@ function get_param_precedence(param, value)
 			{ "mp3" },
 			{ "mp?4a?" },
 			{ "avc" },
-			{ "vorbis", "ogg" },
+			{ "vorbis",     "ogg" },
 			{ "opus" },
 		},
 
 		protocol = {
 			{ "f4" },
-			{ "ws", "websocket$" },
-			{ "mms", "rtsp" },
+			{ "ws",            "websocket$" },
+			{ "mms",           "rtsp" },
 			{ "^$" },
 			{ "rtmpe?" },
 			{ "websocket_frag" },
 			{ ".*dash" },
 			{ "m3u8.*" },
-			{ "http$", "ftp$" },
-			{ "https", "ftps" },
+			{ "http$",         "ftp$" },
+			{ "https",         "ftps" },
 		},
 	}
 
