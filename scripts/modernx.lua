@@ -157,7 +157,7 @@ local user_opts = {
     ontop_button = true,            -- show window on top button
     screenshot_button = false,      -- show screenshot button
     screenshot_flag = "subtitles",  -- flag for screenshot button: "subtitles", "video", "window", "each-frame"
-    -- https://mpv.io/manual/master/#command-interface-screenshot-%3Cflags%3E
+    -- https://mpv.io/manual/master/#screenshot-commands
 
     download_button = true,            -- show download button on web videos (requires yt-dlp and ffmpeg)
     download_path = "~/Pictures/mpv/", -- default download directory for videos (https://mpv.io/manual/master/#paths)
@@ -214,8 +214,8 @@ local user_opts = {
     seek_range_alpha = 175,              -- transparency of the seek range
     seekbar_keyframes = false,           -- use keyframes when dragging the seekbar
 
-    automatic_keyframe_mode = true,      -- automatically set keyframes for the seekbar based on video length
-    automatic_keyframe_limit = 600,      -- videos longer than this (in seconds) will have keyframes on the seekbar
+    automatic_keyframe_mode = true,      -- automatically set seekbar_keyframes for the seekbar based on video length defined in automatic_keyframe_limit
+    automatic_keyframe_limit = 1800,     -- videos longer than this (in seconds) will have seekbar_keyframes set to true
 
     persistent_progress_default = false, -- always show a small progress line at the bottom of the screen
     persistent_progress_height = 17,     -- height of the persistent_progress bar
@@ -226,7 +226,7 @@ local user_opts = {
     title_youtube_stats = true, -- update the window/OSC title bar with YouTube video stats (views, comments, likes)
     ytdl_format = "",           -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 
-    -- SponsorBlock - these SponsorBlock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua to function
+    -- SponsorBlock - these SponsorBlock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua specifically to function
     show_sponsorblock_segments = true,  -- show SponsorBlock segments on the progress bar
     add_sponsorblock_chapters = false,  -- add SponsorBlock chapters to the chapter list
     sponsorblock_seek_range_alpha = 75, -- transparency of SponsorBlock segments
@@ -1563,8 +1563,6 @@ function check_title()
     state.youtubeuploader = artist
 
     local metadata = mp.get_property_native('metadata')
-
-    print(mp.get_property("track-list"))
 
     if metadata then
         state.ytdescription = metadata.ytdl_description or description or ""

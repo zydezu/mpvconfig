@@ -52,6 +52,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-05-19
+
+- FIX: add `hr-seek=no` to `mpv.conf` to fix various delays and errors upon startup when the video progress was saved at a non-keyframe position
+- FIX: adjust some defaults in `modernx.lua` and make some option descriptions clearer
+
 ### 2026-05-17
 
 - FIX: improve `selectformat.lua` configuration, add icons for dropdowns
