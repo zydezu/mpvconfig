@@ -50,6 +50,11 @@ Please note that many of these scripts have been slightly modified from their in
 | [thumbfast](https://github.com/po5/thumbfast) show thumbnails when hovering the progress bar | None |
 | [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
 
+## To-Do
+
+- [ ] Fix `mpvcut.lua` copying the resulting file
+- [ ] Add folders as an option in `mpvcut.lua`
+
 ## Updates
 
 ### 2026-05-19
