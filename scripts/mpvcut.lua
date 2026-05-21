@@ -62,6 +62,56 @@ local function is_url(s)
     return string.match(s, url_pattern) ~= nil
 end
 
+local function copy_to_clipboard(filepath)
+    local platform = mp.get_property_native("platform")
+    local cmd
+
+    if platform == "windows" then
+        -- Windows: copy file URI to clipboard via PowerShell
+        local uri = "file:///" .. filepath:gsub("\\", "/"):gsub(" ", "%%20")
+        cmd = {
+            "powershell", "-NoProfile", "-Command",
+            string.format("Set-Clipboard -Value '%s'", uri:gsub("'", "''"))
+        }
+    elseif platform == "darwin" then
+        -- macOS: use osascript to set file on clipboard
+        cmd = {
+            "osascript", "-e",
+            string.format("set the clipboard to (POSIX file %q)", filepath)
+        }
+    else
+        -- Linux
+        if os.getenv("WAYLAND_DISPLAY") then
+            -- Wayland: wl-copy with text/uri-list
+            cmd = {
+                "sh", "-c",
+                string.format("printf 'file://%s' | wl-copy --type text/uri-list", filepath)
+            }
+        else
+            -- X11: xclip with text/uri-list
+            cmd = {
+                "sh", "-c",
+                string.format("printf 'file://%s' | xclip -sel c -t text/uri-list", filepath)
+            }
+        end
+    end
+
+    mp.command_native_async({
+        name = "subprocess",
+        args = cmd,
+        playback_only = false,
+        capture_stdout = true,
+        capture_stderr = true,
+    }, function(success, result)
+        if success then
+            mp.msg.info("Copied file URI to clipboard: " .. filepath)
+        else
+            mp.msg.warn("Failed to copy to clipboard")
+        end
+    end)
+end
+
+
 local result = mp.command_native({ name = "subprocess", args = { "ffmpeg" }, playback_only = false, capture_stdout = true, capture_stderr = true })
 if result.status ~= 1 then
     mp.osd_message("FFmpeg failed to run")
@@ -303,8 +353,9 @@ ACTIONS.ENCODE = function(d)
         name = "subprocess",
         args = args,
         playback_only = false,
-    }, function()
+    }, function(success, result)
         print("Saved clip!")
+        copy_to_clipboard(result_path)
     end)
 end
 
@@ -519,8 +570,9 @@ RUN_WEB_CACHE = function(d)
     command["name"] = "dump-cache"
     command["start"] = d.start_time
     command["end"] = d.end_time
-    mp.command_native_async(command, function()
+    mp.command_native_async(command, function(success, result)
         print("Saved clip!")
+        copy_to_clipboard(command.filename)
     end)
 end
 
