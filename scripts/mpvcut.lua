@@ -14,6 +14,7 @@ local options = {
     -- Save location
     save_to_directory = true,                -- save to 'save_directory' instead of the current folder of the file
     save_directory = "~/Pictures/mpv/clips", -- required for web videos
+    save_to_title_directory = true,          -- save to subdirectory named after the video title
 
     -- Key config
     key_cut = "a",
@@ -86,11 +87,26 @@ local function get_bitrate()
     end
 end
 
+local function sanitize_filename(name)
+    return name and name:gsub('[\\/:*?"<>|]', '') or ""
+end
+
+local function get_title_subdir()
+    -- Returns the expanded save_directory, optionally with a title subdirectory appended.
+    -- Used for local (non-web) files when save_to_directory is true.
+    if options.save_to_title_directory then
+        local file_name_clean = sanitize_filename(mp.get_property("filename/no-ext"))
+        return mp.command_native({ "expand-path", options.save_directory .. "/" .. file_name_clean })
+    else
+        return full_path
+    end
+end
+
 local function init()
     -- Set save directory path
     if full_path then
-        full_path_save = mp.command_native({ "expand-path", options.save_directory ..
-        "/" .. mp.get_property("media-title") })
+        local file_name_clean = sanitize_filename(mp.get_property("filename/no-ext"))
+
         if (options.use_cache_for_web_videos and is_url(mp.get_property("path"))) then
             local video       = mp.get_property("video-format", "none")
             local audio       = mp.get_property("audio-codec-name", "none")
@@ -121,9 +137,25 @@ local function init()
             elseif (videoID) then
                 youtube_ID = " [" .. videoID .. "]"
             end
-            full_path_save = mp.command_native({ "expand-path", options.save_directory .. "/" ..
-            (string.gsub(mp.get_property("media-title"):sub(1, 100), "^%s*(.-)%s*$:", "%1") .. youtube_ID):gsub(
-                '[\\/:*?"<>|]', "") })
+
+            -- For web videos, full_path_save is the directory clips go into.
+            -- Respect save_to_title_directory here too.
+            if options.save_to_title_directory then
+                full_path_save = mp.command_native({ "expand-path",
+                    options.save_directory .. "/" .. file_name_clean .. youtube_ID })
+            else
+                full_path_save = mp.command_native({ "expand-path",
+                    options.save_directory })
+            end
+        else
+            -- Local file: full_path_save not used for path building (check_paths handles it),
+            -- but set it sensibly for the web-cache branch just in case.
+            if options.save_to_title_directory then
+                full_path_save = mp.command_native({ "expand-path",
+                    options.save_directory .. "/" .. file_name_clean })
+            else
+                full_path_save = full_path
+            end
         end
     end
 
@@ -179,12 +211,20 @@ local function create_folder(path)
 end
 
 local function check_paths(d, suffix, web_path_save, new_ext)
-    local result_path = mp.utils.join_path(full_path .. "/", d.infile_noext .. suffix .. (new_ext or ".mp4"))
-    if (mp.utils.readdir(full_path) == nil) then
-        create_folder(full_path)
+    -- Determine the output directory, respecting save_to_title_directory for local files.
+    local out_dir
+    if web_path_save then
+        -- Web cache path: directory is already baked into web_path_save by init().
+        return web_path_save .. " " .. suffix .. web_ext
     end
-    if web_path_save then return web_path_save .. " " .. suffix .. web_ext end
-    return result_path
+
+    out_dir = get_title_subdir()
+
+    if (mp.utils.readdir(out_dir) == nil) then
+        create_folder(out_dir)
+    end
+
+    return mp.utils.join_path(out_dir .. "/", d.infile_noext .. suffix .. (new_ext or ".mp4"))
 end
 
 ACTIONS = {}
@@ -373,7 +413,6 @@ ACTIONS.COMPRESS = function(d)
         ff_audio_index = 0
     end
 
-    -- Start with common args
     local args = {
         "ffmpeg", "-nostdin", "-y", "-loglevel", "error",
         "-ss", d.start_time,
