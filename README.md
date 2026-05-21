@@ -57,6 +57,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-21
+
+- FEAT: add folders as a save option in mpvcut.lua
+- FIX: mpucut.lua now copies the resulting file to the clipboard
+
 ### 2026-05-19
 
 - FIX: add `hr-seek=no` to `mpv.conf` to fix various delays and errors upon startup when the video progress was saved at a non-keyframe position

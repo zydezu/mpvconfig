@@ -416,8 +416,9 @@ ACTIONS.ENCODE_GIF = function(d)
         name = "subprocess",
         args = args,
         playback_only = false,
-    }, function()
+    }, function(success, result)
         print("Saved clip!")
+        copy_to_clipboard(result_path)
     end)
 end
 
@@ -524,8 +525,9 @@ ACTIONS.COMPRESS = function(d)
         name = "subprocess",
         args = args,
         playback_only = false,
-    }, function()
+    }, function(success, result)
         print("Saved clip!")
+        copy_to_clipboard(result_path)
     end)
 end
 
