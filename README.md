@@ -57,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-22
+
+- FIX: various speed improvements made in `mpv.conf`
+
 ### 2026-06-21
 
 - FEAT: add folders as a save option in mpvcut.lua
