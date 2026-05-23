@@ -57,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-23
+
+- FIX: add a format to ytdl-format to allow other web videos (such as Twitch) to play
+
 ### 2026-06-22
 
 - FIX: various speed improvements made in `mpv.conf`
