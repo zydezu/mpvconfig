@@ -3333,6 +3333,8 @@ local function osc_init()
     ne.eventresponder['mbtn_right_up'] =
         function() show_message(get_playlist(false)) end
     ne.eventresponder['shift+mbtn_left_down'] =
+        function() mp.commandv("script-binding", "select/select-playlist") end
+    ne.eventresponder['shift+mbtn_right_down'] =
         function() show_message(get_playlist(false)) end
 
     -- next
@@ -3354,6 +3356,8 @@ local function osc_init()
     ne.eventresponder['mbtn_right_up'] =
         function() show_message(get_playlist(false)) end
     ne.eventresponder['shift+mbtn_left_down'] =
+        function() mp.commandv("script-binding", "select/select-playlist") end
+    ne.eventresponder['shift+mbtn_right_down'] =
         function() show_message(get_playlist(false)) end
 
     -- play control buttons
@@ -3417,11 +3421,11 @@ local function osc_init()
             end
         end
     ne.eventresponder['shift+mbtn_left_down'] =
+        function() mp.commandv("script-binding", "select/select-chapter") end
+    ne.eventresponder['shift+mbtn_right_down'] =
         function()
             mp.commandv('seek', -jump_more_amount, jump_mode)
         end
-    ne.eventresponder['shift+mbtn_right_down'] =
-        function() show_message(get_chapterlist()) end
 
 
     -- skip forward
@@ -3449,11 +3453,11 @@ local function osc_init()
             end
         end
     ne.eventresponder['shift+mbtn_left_down'] =
+        function() mp.commandv("script-binding", "select/select-chapter") end
+    ne.eventresponder['shift+mbtn_right_down'] =
         function()
             mp.commandv('seek', jump_more_amount, jump_mode)
         end
-    ne.eventresponder['shift+mbtn_right_down'] =
-        function() show_message(get_chapterlist()) end
 
     if user_opts.jump_buttons then
         if user_opts.jump_icon_number then
@@ -4598,10 +4602,18 @@ if user_opts.key_bindings then
         show_message(get_tracklist("audio"))
     end);
 
+    mp.add_key_binding("Z", "selectaudiotrack", function()
+        mp.commandv("script-binding", "select/select-aid")
+    end);
+
     mp.add_key_binding("c", "cyclecaptions", function()
         mp.set_property_number("secondary-sid", 0)
         set_track("sub", 1)
         show_message(get_tracklist("sub"))
+    end);
+
+    mp.add_key_binding("C", "selectsubtitletrack", function()
+        mp.commandv("script-binding", "select/select-sid")
     end);
 
     if user_opts.persistent_progress_toggle then
