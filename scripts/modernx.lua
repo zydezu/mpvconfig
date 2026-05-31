@@ -3314,7 +3314,7 @@ local function osc_init()
         end
 
     -- playlist buttons
-    -- prev
+    -- previous
     ne = new_element('pl_prev', 'button')
     ne.visible = (osc_param.playresx >= 500 - nojumpoffset - noskipoffset * (nojumpoffset == 0 and 1 or 10))
     ne.content = icons.previous
@@ -3335,7 +3335,7 @@ local function osc_init()
     ne.eventresponder['shift+mbtn_left_down'] =
         function() show_message(get_playlist(false)) end
 
-    --next
+    -- next
     ne = new_element('pl_next', 'button')
     ne.visible = (osc_param.playresx >= 500 - nojumpoffset - noskipoffset * (nojumpoffset == 0 and 1 or 10))
     ne.content = icons.next
@@ -3356,8 +3356,8 @@ local function osc_init()
     ne.eventresponder['shift+mbtn_left_down'] =
         function() show_message(get_playlist(false)) end
 
-    --play control buttons
-    --playpause
+    -- play control buttons
+    -- play/pause
     ne = new_element("play_pause", "button")
     ne.content = function()
         if mp.get_property("eof-reached") == "yes" then
@@ -3387,7 +3387,7 @@ local function osc_init()
         shuffle_playlist()
     end
 
-    --skipback
+    -- skip back
     local jump_amount = user_opts.jump_amount
     local jump_more_amount = user_opts.jump_more_amount
     local jump_mode = user_opts.jump_mode
@@ -3424,7 +3424,7 @@ local function osc_init()
         function() show_message(get_chapterlist()) end
 
 
-    --skipfrwd
+    -- skip forward
     ne = new_element('skipfrwd', 'button')
     ne.visible = (osc_param.playresx >= 400 - nojumpoffset * 10)
     ne.softrepeat = user_opts.chapter_softrepeat == true
@@ -3460,7 +3460,7 @@ local function osc_init()
             tempicons = icons.jumpicons[jump_amount] or icons.jumpicons.default
         end
 
-        --jumpback
+        -- jump back
         ne = new_element('jumpback', 'button')
 
         ne.softrepeat = user_opts.jump_softrepeat == true
@@ -3473,7 +3473,7 @@ local function osc_init()
             function() mp.commandv('frame-back-step') end
 
 
-        --jumpfrwd
+        -- jump forward
         ne = new_element('jumpfrwd', 'button')
 
         ne.softrepeat = user_opts.jump_softrepeat == true
@@ -3489,7 +3489,7 @@ local function osc_init()
     --
     update_tracklist()
 
-    --cy_audio
+    -- audio
     ne = new_element('cy_audio', 'button')
     ne.enabled = (#tracks_osc.audio > 0)
     ne.off = (get_track('audio') == 0)
@@ -3547,11 +3547,11 @@ local function osc_init()
             show_message(get_tracklist('audio'))
         end
     ne.eventresponder['shift+mbtn_left_down'] =
-        function() mp.commandv("script-binding", "loadaudiotracks/ask_for_audio_track") end
+        function() mp.commandv("script-binding", "select/select-aid") end
     ne.eventresponder['shift+mbtn_right_down'] =
-        function() show_message(get_tracklist('audio')) end
+        function() mp.commandv("script-binding", "loadaudiotracks/ask_for_audio_track") end
 
-    --cy_sub
+    -- subtitles
     ne = new_element('cy_sub', 'button')
     ne.enabled = #tracks_osc.sub > 0
     ne.off = get_track('sub') == 0
@@ -3609,13 +3609,15 @@ local function osc_init()
         end
     ne.eventresponder['shift+mbtn_left_down'] =
         function()
+            mp.commandv("script-binding", "select/select-sid")
+        end
+    ne.eventresponder['shift+mbtn_right_down'] =
+        function()
             mp.set_property_number("secondary-sid", 0)
             set_track('sub', 1)
         end
-    ne.eventresponder['shift+mbtn_right_down'] =
-        function() show_message(get_tracklist('sub')) end
 
-    -- vol_ctrl
+    -- volume slider
     ne = new_element("vol_ctrl", "button")
     ne.enabled = get_track("audio") > 0
     ne.off = get_track("audio") == 0
@@ -3638,6 +3640,10 @@ local function osc_init()
         function()
             mp.commandv('cycle', 'mute')
         end
+    ne.eventresponder['mbtn_right_up'] =
+        function()
+            mp.commandv("script-binding", "select/select-audio-device")
+        end
     ne.eventresponder["wheel_up_press"] =
         function()
             if (state.mute) then mp.commandv('cycle', 'mute') end
@@ -3647,6 +3653,10 @@ local function osc_init()
         function()
             if (state.mute) then mp.commandv('cycle', 'mute') end
             mp.commandv("osd-auto", "add", "volume", -5)
+        end
+    ne.eventresponder['shift+mbtn_left_down'] =
+        function()
+            mp.commandv("script-binding", "select/select-audio-device")
         end
 
     --tog_fs

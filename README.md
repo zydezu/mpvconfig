@@ -57,15 +57,21 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
-### 2026-06-23
+### 2026-05-31
+
+- FIX: fix https://github.com/zydezu/ModernX/issues/23
+- FIX: allow scrollwheel to work on audio/subtitle button
+- FEAT: add `select.lua` menus for selecting audio/subtitle tracks and changing audio output
+
+### 2026-05-23
 
 - FIX: add a format to ytdl-format to allow other web videos (such as Twitch) to play
 
-### 2026-06-22
+### 2026-05-22
 
 - FIX: various speed improvements made in `mpv.conf`
 
-### 2026-06-21
+### 2026-05-21
 
 - FEAT: add folders as a save option in mpvcut.lua
 - FIX: mpucut.lua now copies the resulting file to the clipboard
