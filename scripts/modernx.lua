@@ -3534,6 +3534,18 @@ local function osc_init()
             set_track('audio', -1)
             show_message(get_tracklist('audio'))
         end
+    ne.eventresponder['wheel_up_press'] =
+        function()
+            mp.set_property("lavfi-complex", "")
+            set_track('audio', 1)
+            show_message(get_tracklist('audio'))
+        end
+    ne.eventresponder['wheel_down_press'] =
+        function()
+            mp.set_property("lavfi-complex", "")
+            set_track('audio', -1)
+            show_message(get_tracklist('audio'))
+        end
     ne.eventresponder['shift+mbtn_left_down'] =
         function() mp.commandv("script-binding", "loadaudiotracks/ask_for_audio_track") end
     ne.eventresponder['shift+mbtn_right_down'] =
@@ -3578,6 +3590,18 @@ local function osc_init()
             show_message(get_tracklist('sub'))
         end
     ne.eventresponder['mbtn_right_up'] =
+        function()
+            mp.set_property_number("secondary-sid", 0)
+            set_track('sub', -1)
+            show_message(get_tracklist('sub'))
+        end
+    ne.eventresponder['wheel_up_press'] =
+        function()
+            mp.set_property_number("secondary-sid", 0)
+            set_track('sub', 1)
+            show_message(get_tracklist('sub'))
+        end
+    ne.eventresponder['wheel_down_press'] =
         function()
             mp.set_property_number("secondary-sid", 0)
             set_track('sub', -1)
