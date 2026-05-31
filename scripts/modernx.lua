@@ -3278,11 +3278,15 @@ local function osc_init()
         return not (title == "") and title or "mpv video"
     end
     ne.eventresponder["mbtn_left_up"] = function()
-        local title = mp.get_property_osd("media-title")
-        show_message(title)
+        mp.commandv("script-binding", "stats/display-page-5")
+    end
+    ne.eventresponder["shift+mbtn_left_down"] = function()
+        mp.commandv("show-text", mp.get_property_osd("media-title"))
     end
     ne.eventresponder["mbtn_right_up"] =
-        function() show_message(mp.get_property_osd("filename")) end
+        function()
+            mp.commandv("script-binding", "select/select-watch-history")
+        end
 
     -- description
     ne = new_element('description', 'button')
