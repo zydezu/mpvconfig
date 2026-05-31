@@ -212,7 +212,7 @@ local user_opts = {
     progress_bar_height = 16,            -- height of the progress bar
     seek_range = true,                   -- show seek range overlay
     seek_range_alpha = 175,              -- transparency of the seek range
-    seekbar_keyframes = false,           -- use keyframes when dragging the seekbar
+    seekbar_keyframes = true,            -- use keyframes when dragging the seekbar
 
     automatic_keyframe_mode = true,      -- automatically set seekbar_keyframes for the seekbar based on video length defined in automatic_keyframe_limit
     automatic_keyframe_limit = 1800,     -- videos longer than this (in seconds) will have seekbar_keyframes set to true
@@ -1501,13 +1501,6 @@ local function startupevents()
     state.file_size_normalized = "Approximating size..."
     check_path_url()
     check_title()
-    if user_opts.automatic_keyframe_mode then
-        if mp.get_property_number("duration", 0) > user_opts.automatic_keyframe_limit then
-            user_opts.seekbar_keyframes = true
-        else
-            user_opts.seekbar_keyframes = false
-        end
-    end
     destroy_scrolling_keys() -- close description
 
     if user_opts.FORCE_fix_not_ontop and state.is_URL then
@@ -4526,6 +4519,11 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
     -- make_sponsorblock_segments()
     request_init()
 end)
+mp.observe_property('duration', "native", function()
+    if user_opts.automatic_keyframe_mode then
+        user_opts.seekbar_keyframes = (state.duration or 0) > user_opts.automatic_keyframe_limit
+    end
+end)
 mp.observe_property('seeking', nil, function()
     if user_opts.seek_resets_hide_timeout then
         reset_timeout()
@@ -4536,7 +4534,6 @@ mp.observe_property('seeking', nil, function()
         state.new_file_flag = false
     end
 end)
-
 if user_opts.key_bindings then
     local function change_chapter(number)
         mp.commandv("add", "chapter", number)
