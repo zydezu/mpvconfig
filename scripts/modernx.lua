@@ -4629,7 +4629,9 @@ if user_opts.key_bindings then
         mp.add_key_binding("d", "show_description", check_description);
     end
 
-    mp.add_key_binding("tab", 'get_chapterlist', function() show_message(get_chapterlist()) end)
+    mp.add_key_binding("tab", 'get_chapterlist', function()
+        mp.commandv("script-binding", "select/select-chapter")
+    end)
 
     mp.add_key_binding("p", "pinwindow", function()
         mp.commandv("cycle", "ontop")

@@ -62,6 +62,7 @@ Please note that many of these scripts have been slightly modified from their in
 - FIX: fix https://github.com/zydezu/ModernX/issues/23
 - FIX: allow scrollwheel to work on audio/subtitle button
 - FEAT: add `select.lua` menus for selecting audio/subtitle tracks and changing audio output
+- FEAT: add `shift+z`/`shift+c` key bindings to select audio/subtitle tracks, add `TAB` key binding to select chapters
 
 ### 2026-05-23
 
