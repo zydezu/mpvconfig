@@ -79,6 +79,7 @@ local function istable(v) end
 
 local opts = {
 	prioritize_proto = true,
+	exclude_ai_upscaled = false,
 	prefix_header = "     ", -- a non-breaking space followed by a space
 	prefix_norm = "  ",   -- a non-breaking space followed by a space
 	prefix_cursor = "● ",
@@ -615,6 +616,9 @@ function build_format_label(fmt)
 		br = fmt.abr or fmt.tbr
 	else
 		res = (fmt.width or "?") .. "x" .. (fmt.height or "?")
+		if type(fmt.format_note) == "string" and fmt.format_note:find("AI%-upscaled") then
+			res = res .. " [AI-Upscaled]"
+		end
 		codec = fmt.vcodec
 		br = fmt.vbr or fmt.tbr
 	end
@@ -639,7 +643,7 @@ function get_menu_header()
 end
 
 function strfmt_label(...)
-	return string.format("%-16s %-4s %-6s %-4s %-4s %s", ...)
+	return string.format("%-26s %-4s %-6s %-4s %-4s %s", ...)
 end
 
 -- function for sorting the formats table
@@ -788,6 +792,11 @@ end
 -- test whether the given format contains the bare minimum of information
 function is_format_useful(fmt)
 	if (not istable(fmt)) or fmt.ext == "mhtml" or fmt.protocol == "mhtml" then
+		return false
+	end
+
+	if opts.exclude_ai_upscaled and type(fmt.format_note) == "string"
+		and fmt.format_note:find("AI%-upscaled") then
 		return false
 	end
 

@@ -57,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-20
+
+- FIX: add an AI-resolution tag to videos in `selectformat.lua`
+
 ### 2026-05-31
 
 - FIX: fix https://github.com/zydezu/ModernX/issues/23
