@@ -24,7 +24,7 @@ local options = {
     codecs_list = { "h264", "h265", "av1" },
 
     -- The default action
-    action = "ENCODE", -- the default action, ENCODE, encode_animated, COMPRESS or CUT
+    action = "ENCODE", -- the default action, ENCODE, ENCODE_ANIMATED, COMPRESS or CUT
 
     -- File size targets
     compress_size = 9.50, -- the target size for the COMPRESS action (in MB)
@@ -33,9 +33,9 @@ local options = {
     encoding_type = "h265",          -- h264, h265, or av1
     animated_encoding_type = "avif", -- for encoding animated gifs, webps or avifs - gif, webp or avif
 
-    cap_resolution = true,           -- whether to lower the resolution to the target resolution (COMPRESS/encode_animated only)
+    cap_resolution = true,           -- whether to lower the resolution to the target resolution (COMPRESS/ENCODE_ANIMATED only)
     max_resolution = 1080,           -- resolution to shrink to if video is above this resolution (COMPRESS only)
-    max_animated_resolution = 540,   -- resolution to shrink to if gif/avif is above this resolution (encode_animated only)
+    max_animated_resolution = 540,   -- resolution to shrink to if gif/avif is above this resolution (ENCODE_ANIMATED only)
 
     h264_crf = 23,                   -- the crf value to use for h264 clips, lower numbers mean higher quality
     h265_crf = 28,                   -- the crf value to use for h265 clips, lower numbers mean higher quality
@@ -501,7 +501,7 @@ ACTIONS.ENCODE_GPU = function(d)
     end)
 end
 
-ACTIONS.encode_animated = function(d)
+ACTIONS.ENCODE_ANIMATED = function(d)
     local file_extra_suffix = string.format("_FROM_%s_TO_%s (clip)",
         d.start_time_hms, d.end_time_hms)
     local result_path = mp.utils.join_path(d.indir,
