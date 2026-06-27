@@ -48,11 +48,12 @@ local options = {
     av1_preset = 6,                  -- av1 encoding preset, a trade-off between speed and size, higher numbers provide a higher speed
 
     -- GPU encoding (used by the ENCODE_GPU action, respects the same codec as ENCODE)
-    gpu_type = "auto",   -- auto-detect, or set manually: nvenc (NVIDIA), vaapi (AMD/Intel Linux), amf (AMD), qsv (Intel)
-    nvenc_preset = "p2", -- NVENC speed preset: p1 (fastest) to p7 (best quality)
-    gpu_h264_cq = 28,    -- GPU h264 quality (CQ/QP), lower = better quality
-    gpu_h265_cq = 34,    -- GPU h265 quality
-    gpu_av1_cq = 46,     -- GPU av1 quality (nvenc and amf only)
+    gpu_type = "auto",                    -- auto-detect, or set manually: nvenc (NVIDIA), vaapi (AMD/Intel Linux), amf (AMD), qsv (Intel), videotoolbox (macOS)
+    vaapi_device = "/dev/dri/renderD128", -- render node used for vaapi (only used as a fallback if auto-detection is skipped)
+    nvenc_preset = "p2",                  -- NVENC speed preset: p1 (fastest) to p7 (best quality)
+    gpu_h264_cq = 28,                     -- GPU h264 quality (CQ/QP), lower = better quality
+    gpu_h265_cq = 34,                     -- GPU h265 quality
+    gpu_av1_cq = 46,                      -- GPU av1 quality (nvenc, amf, qsv, vaapi)
 
     -- Web videos/cache
     use_cache_for_web_videos = true, -- whether to cut web videos using the player's cache (experimental)
@@ -285,6 +286,7 @@ local function check_paths(d, suffix, web_path_save, new_ext)
 end
 
 local detected_gpu_type = nil
+local detected_vaapi_device = nil
 local function get_gpu_type()
     if detected_gpu_type then return detected_gpu_type end
     if options.gpu_type ~= "auto" then
@@ -299,15 +301,28 @@ local function get_gpu_type()
             f:close()
             detected_gpu_type = "nvenc"
         else
-            f = io.open("/dev/dri/renderD128", "r")
-            if f then
-                f:close(); detected_gpu_type = "vaapi"
+            -- Probe the common render nodes so we know which device to hand vaapi.
+            for _, node in ipairs({ "/dev/dri/renderD128", "/dev/dri/renderD129" }) do
+                local rf = io.open(node, "r")
+                if rf then
+                    rf:close()
+                    detected_gpu_type = "vaapi"
+                    detected_vaapi_device = node
+                    break
+                end
             end
         end
+    elseif platform == "darwin" then
+        -- Apple Silicon and Intel Macs both expose VideoToolbox.
+        detected_gpu_type = "videotoolbox"
     elseif platform == "windows" then
+        -- wmic is deprecated/removed on recent Windows 11, so query via PowerShell.
         local result = mp.command_native({
             name = "subprocess",
-            args = { "wmic", "path", "win32_VideoController", "get", "name" },
+            args = {
+                "powershell", "-NoProfile", "-Command",
+                "(Get-CimInstance Win32_VideoController).Name"
+            },
             playback_only = false,
             capture_stdout = true,
             capture_stderr = true,
@@ -338,31 +353,43 @@ local function resolve_gpu_encoder(codec_base)
     local cq_map = { h264 = options.gpu_h264_cq, h265 = options.gpu_h265_cq, av1 = options.gpu_av1_cq }
     local cq = cq_map[codec_base] or 28
     local encoder_map = {
-        nvenc = { h264 = "h264_nvenc", h265 = "hevc_nvenc", av1 = "av1_nvenc" },
-        vaapi = { h264 = "h264_vaapi", h265 = "hevc_vaapi", av1 = "av1_vaapi" },
-        amf   = { h264 = "h264_amf", h265 = "hevc_amf", av1 = "av1_amf" },
-        qsv   = { h264 = "h264_qsv", h265 = "hevc_qsv", av1 = "av1_qsv" },
+        nvenc        = { h264 = "h264_nvenc", h265 = "hevc_nvenc", av1 = "av1_nvenc" },
+        vaapi        = { h264 = "h264_vaapi", h265 = "hevc_vaapi", av1 = "av1_vaapi" },
+        amf          = { h264 = "h264_amf", h265 = "hevc_amf", av1 = "av1_amf" },
+        qsv          = { h264 = "h264_qsv", h265 = "hevc_qsv", av1 = "av1_qsv" },
+        -- VideoToolbox has no AV1 encoder, so AV1 falls back to HEVC on macOS.
+        videotoolbox = { h264 = "h264_videotoolbox", h265 = "hevc_videotoolbox", av1 = "hevc_videotoolbox" },
     }
     local encoder = (encoder_map[gpu] or encoder_map.nvenc)[codec_base] or "h264_nvenc"
     local quality_args = {}
     local vaapi_vf = nil
+    local hw_device = nil
 
     if gpu == "nvenc" then
         quality_args = { "-preset", options.nvenc_preset, "-cq", tostring(cq) }
     elseif gpu == "vaapi" then
         vaapi_vf = "format=nv12,hwupload"
+        hw_device = detected_vaapi_device or options.vaapi_device
         quality_args = { "-qp", tostring(cq) }
     elseif gpu == "amf" then
         quality_args = { "-rc", "cqp", "-qp_i", tostring(cq), "-qp_p", tostring(cq) }
     elseif gpu == "qsv" then
         quality_args = { "-global_quality", tostring(cq) }
+    elseif gpu == "videotoolbox" then
+        -- VideoToolbox uses a 0-100 quality scale where higher is better,
+        -- so invert the CQ value (lower CQ -> higher q:v).
+        local qv = math.max(1, math.min(100, 100 - cq))
+        quality_args = { "-q:v", tostring(qv) }
+        if codec_base == "av1" then
+            mp.msg.warn("VideoToolbox has no AV1 encoder, using HEVC instead")
+        end
     end
 
     if codec_base == "h265" then
         table.insert(quality_args, "-tag:v"); table.insert(quality_args, "hvc1")
     end
 
-    return encoder, quality_args, vaapi_vf
+    return encoder, quality_args, vaapi_vf, hw_device
 end
 
 ACTIONS = {}
@@ -467,21 +494,31 @@ ACTIONS.ENCODE_GPU = function(d)
     end
     if ff_audio_index == nil then ff_audio_index = 0 end
 
-    local encoder, quality_args, vaapi_vf = resolve_gpu_encoder(options.encoding_type)
+    local encoder, quality_args, vaapi_vf, hw_device = resolve_gpu_encoder(options.encoding_type)
 
-    local args = {
-        "ffmpeg", "-nostdin", "-y", "-loglevel", "error",
-        "-ss", d.start_time,
-        "-t", d.duration,
-        "-i", d.inpath,
-        "-map", "0:v:0",
-        "-map_chapters", "-1",
-        "-map", "0:a:" .. ff_audio_index .. "?",
-    }
+    -- Build the leading args manually so the vaapi device (if any) is passed
+    -- BEFORE -i, which is required for hwupload to have a device to upload to.
+    local args = { "ffmpeg", "-nostdin", "-y", "-loglevel", "error" }
+    if hw_device then
+        table.insert(args, "-vaapi_device")
+        table.insert(args, hw_device)
+    end
+    table.insert(args, "-ss"); table.insert(args, d.start_time)
+    table.insert(args, "-t"); table.insert(args, d.duration)
+    table.insert(args, "-i"); table.insert(args, d.inpath)
+    table.insert(args, "-map"); table.insert(args, "0:v:0")
+    table.insert(args, "-map_chapters"); table.insert(args, "-1")
+    table.insert(args, "-map"); table.insert(args, "0:a:" .. ff_audio_index .. "?")
 
     if vaapi_vf then
+        -- vaapi handles its own format conversion + hwupload.
         table.insert(args, "-vf")
         table.insert(args, vaapi_vf)
+    else
+        -- Normalise to 8-bit 4:2:0 for the other encoders. h264_nvenc has no
+        -- 10-bit support, so feeding it a 10-bit/HDR source would otherwise fail.
+        table.insert(args, "-vf")
+        table.insert(args, "format=yuv420p")
     end
     table.insert(args, "-c:v")
     table.insert(args, encoder)
