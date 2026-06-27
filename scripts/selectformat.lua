@@ -85,6 +85,9 @@ local opts = {
 	prefix_cursor = "● ",
 	prefix_norm_sel = "○ ",
 	prefix_indent = "◀ ",
+	prefix_child = " ◆",
+	prefix_foldable = "▶ ",
+	prefix_leaf = "◆ ",
 	header_separator = "─",
 	menu_pos_x = 7,
 	menu_pos_y = 7,
@@ -361,9 +364,15 @@ function menu_draw()
 	)
 
 	for idx, fmt in ipairs(data[url].formats) do
+		local indent_marker = menu_get_indent_marker(idx)
+		local label = fmt.label
+		if fmt.is_unfolded and indent_marker == opts.prefix_child then
+			local res_field = label:sub(1, 26):match("^(.-)%s*$")
+			label = string.format("%-26s%s", "  " .. res_field, label:sub(27))
+		end
 		ass:append(menu_get_prefix(idx))
-		ass:append(menu_get_indent_marker(idx))
-		ass:append(fmt.label .. "\\N")
+		ass:append(indent_marker)
+		ass:append(label .. "\\N")
 	end
 
 	mp.set_osd_ass(0, 0, ass.text)
@@ -385,11 +394,24 @@ function menu_get_prefix(pos)
 end
 
 function menu_get_indent_marker(pos)
-	if data[url].formats[pos].is_unfolded then
+	local fmt = data[url].formats[pos]
+	if fmt.is_unfolded then
+		if pos > 1 and data[url].formats[pos - 1].is_unfolded then
+			local prev = data[url].formats[pos - 1]
+			local function getres(f)
+				local r = (f.width or "") .. "x" .. (f.height or "")
+				if r == "x" then
+					r = is_format_audio_only(f) and "audio-only" or f.format_id
+				end
+				return r
+			end
+			if getres(fmt) == getres(prev) then
+				return opts.prefix_child
+			end
+		end
 		return opts.prefix_indent
 	else
 		-- check if this resolution has multiple formats (can be unfolded)
-		local fmt = data[url].formats[pos]
 		local res = (fmt.width or "") .. "x" .. (fmt.height or "")
 		if res == "x" then
 			res = is_format_audio_only(fmt) and "audio-only" or fmt.format_id
@@ -405,9 +427,9 @@ function menu_get_indent_marker(pos)
 			end
 		end
 		if count > 1 then
-			return "▶ "
+			return opts.prefix_foldable
 		else
-			return ""
+			return opts.prefix_leaf
 		end
 	end
 end
@@ -453,6 +475,26 @@ end
 
 function menu_unfold()
 	local cursor_fmt = data[url].formats[get_cursor_pos()]
+	if cursor_fmt.is_unfolded then
+		return
+	end
+	local res = (cursor_fmt.width or "") .. "x" .. (cursor_fmt.height or "")
+	if res == "x" then
+		res = is_format_audio_only(cursor_fmt) and "audio-only" or cursor_fmt.format_id
+	end
+	local count = 0
+	for _, ufmt in ipairs(data[url].formats_unfolded) do
+		local ures = (ufmt.width or "") .. "x" .. (ufmt.height or "")
+		if ures == "x" then
+			ures = is_format_audio_only(ufmt) and "audio-only" or ufmt.format_id
+		end
+		if ures == res then
+			count = count + 1
+		end
+	end
+	if count <= 1 then
+		return
+	end
 	formats_fold(
 		cursor_fmt.width,
 		cursor_fmt.height,
