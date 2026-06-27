@@ -24,7 +24,7 @@ local options = {
     codecs_list = { "h264", "h265", "av1" },
 
     -- The default action
-    action = "ENCODE", -- the default action, ENCODE, ENCODE_GIF, COMPRESS or CUT
+    action = "ENCODE", -- the default action, ENCODE, encode_animated, COMPRESS or CUT
 
     -- File size targets
     compress_size = 9.50, -- the target size for the COMPRESS action (in MB)
@@ -33,9 +33,9 @@ local options = {
     encoding_type = "h265",          -- h264, h265, or av1
     animated_encoding_type = "avif", -- for encoding animated gifs, webps or avifs - gif, webp or avif
 
-    cap_resolution = true,           -- whether to lower the resolution to the target resolution (COMPRESS/ENCODE_GIF only)
+    cap_resolution = true,           -- whether to lower the resolution to the target resolution (COMPRESS/encode_animated only)
     max_resolution = 1080,           -- resolution to shrink to if video is above this resolution (COMPRESS only)
-    max_animated_resolution = 540,   -- resolution to shrink to if gif/avif is above this resolution (ENCODE_GIF only)
+    max_animated_resolution = 540,   -- resolution to shrink to if gif/avif is above this resolution (encode_animated only)
 
     h264_crf = 23,                   -- the crf value to use for h264 clips, lower numbers mean higher quality
     h265_crf = 28,                   -- the crf value to use for h265 clips, lower numbers mean higher quality
@@ -46,6 +46,13 @@ local options = {
 
     avif_crf = 42,                   -- the crf value to use for animated .avif clips, lower numbers mean higher quality
     av1_preset = 6,                  -- av1 encoding preset, a trade-off between speed and size, higher numbers provide a higher speed
+
+    -- GPU encoding (used by the ENCODE_GPU action, respects the same codec as ENCODE)
+    gpu_type = "auto",   -- auto-detect, or set manually: nvenc (NVIDIA), vaapi (AMD/Intel Linux), amf (AMD), qsv (Intel)
+    nvenc_preset = "p2", -- NVENC speed preset: p1 (fastest) to p7 (best quality)
+    gpu_h264_cq = 28,    -- GPU h264 quality (CQ/QP), lower = better quality
+    gpu_h265_cq = 34,    -- GPU h265 quality
+    gpu_av1_cq = 46,     -- GPU av1 quality (nvenc and amf only)
 
     -- Web videos/cache
     use_cache_for_web_videos = true, -- whether to cut web videos using the player's cache (experimental)
@@ -277,12 +284,93 @@ local function check_paths(d, suffix, web_path_save, new_ext)
     return mp.utils.join_path(out_dir .. "/", d.infile_noext .. suffix .. (new_ext or ".mp4"))
 end
 
+local detected_gpu_type = nil
+local function get_gpu_type()
+    if detected_gpu_type then return detected_gpu_type end
+    if options.gpu_type ~= "auto" then
+        detected_gpu_type = options.gpu_type
+        return detected_gpu_type
+    end
+
+    local platform = mp.get_property_native("platform")
+    if platform == "linux" then
+        local f = io.open("/dev/nvidia0", "r")
+        if f then
+            f:close()
+            detected_gpu_type = "nvenc"
+        else
+            f = io.open("/dev/dri/renderD128", "r")
+            if f then
+                f:close(); detected_gpu_type = "vaapi"
+            end
+        end
+    elseif platform == "windows" then
+        local result = mp.command_native({
+            name = "subprocess",
+            args = { "wmic", "path", "win32_VideoController", "get", "name" },
+            playback_only = false,
+            capture_stdout = true,
+            capture_stderr = true,
+        })
+        if result and result.stdout then
+            local out = result.stdout:lower()
+            if out:find("nvidia") then
+                detected_gpu_type = "nvenc"
+            elseif out:find("amd") or out:find("radeon") then
+                detected_gpu_type = "amf"
+            elseif out:find("intel") then
+                detected_gpu_type = "qsv"
+            end
+        end
+    end
+
+    if not detected_gpu_type then
+        detected_gpu_type = "nvenc"
+        mp.msg.warn("Could not auto-detect GPU type, falling back to nvenc")
+    else
+        mp.msg.info("Auto-detected GPU encoder: " .. detected_gpu_type)
+    end
+    return detected_gpu_type
+end
+
+local function resolve_gpu_encoder(codec_base)
+    local gpu = get_gpu_type()
+    local cq_map = { h264 = options.gpu_h264_cq, h265 = options.gpu_h265_cq, av1 = options.gpu_av1_cq }
+    local cq = cq_map[codec_base] or 28
+    local encoder_map = {
+        nvenc = { h264 = "h264_nvenc", h265 = "hevc_nvenc", av1 = "av1_nvenc" },
+        vaapi = { h264 = "h264_vaapi", h265 = "hevc_vaapi", av1 = "av1_vaapi" },
+        amf   = { h264 = "h264_amf", h265 = "hevc_amf", av1 = "av1_amf" },
+        qsv   = { h264 = "h264_qsv", h265 = "hevc_qsv", av1 = "av1_qsv" },
+    }
+    local encoder = (encoder_map[gpu] or encoder_map.nvenc)[codec_base] or "h264_nvenc"
+    local quality_args = {}
+    local vaapi_vf = nil
+
+    if gpu == "nvenc" then
+        quality_args = { "-preset", options.nvenc_preset, "-cq", tostring(cq) }
+    elseif gpu == "vaapi" then
+        vaapi_vf = "format=nv12,hwupload"
+        quality_args = { "-qp", tostring(cq) }
+    elseif gpu == "amf" then
+        quality_args = { "-rc", "cqp", "-qp_i", tostring(cq), "-qp_p", tostring(cq) }
+    elseif gpu == "qsv" then
+        quality_args = { "-global_quality", tostring(cq) }
+    end
+
+    if codec_base == "h265" then
+        table.insert(quality_args, "-tag:v"); table.insert(quality_args, "hvc1")
+    end
+
+    return encoder, quality_args, vaapi_vf
+end
+
 ACTIONS = {}
 
 ACTIONS.ENCODE = function(d)
-    local file_extra_suffix = "_FROM_" ..
-        d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (" .. options.encoding_type .. "encode)"
-    local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
+    local file_extra_suffix = string.format("_FROM_%s_TO_%s (%s encode)",
+        d.start_time_hms, d.end_time_hms, options.encoding_type)
+    local result_path = mp.utils.join_path(d.indir, string.format("%s%s.mp4", d.infile_noext, file_extra_suffix))
     if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
 
     local selected_audio_id = mp.get_property_number("aid")
@@ -359,10 +447,65 @@ ACTIONS.ENCODE = function(d)
     end)
 end
 
-ACTIONS.ENCODE_GIF = function(d)
-    local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (clip)"
+ACTIONS.ENCODE_GPU = function(d)
+    local file_extra_suffix = string.format("_FROM_%s_TO_%s (%s gpu encode)",
+        d.start_time_hms, d.end_time_hms, options.encoding_type)
+    local result_path = mp.utils.join_path(d.indir, string.format("%s%s.mp4", d.infile_noext, file_extra_suffix))
+    if (options.save_to_directory) then result_path = check_paths(d, file_extra_suffix) end
+
+    local selected_audio_id = mp.get_property_number("aid")
+    local ff_audio_index = nil
+    local count = 0
+    for _, track in ipairs(mp.get_property_native("track-list") or {}) do
+        if track.type == "audio" then
+            if track.id == selected_audio_id then
+                ff_audio_index = count
+                break
+            end
+            count = count + 1
+        end
+    end
+    if ff_audio_index == nil then ff_audio_index = 0 end
+
+    local encoder, quality_args, vaapi_vf = resolve_gpu_encoder(options.encoding_type)
+
+    local args = {
+        "ffmpeg", "-nostdin", "-y", "-loglevel", "error",
+        "-ss", d.start_time,
+        "-t", d.duration,
+        "-i", d.inpath,
+        "-map", "0:v:0",
+        "-map_chapters", "-1",
+        "-map", "0:a:" .. ff_audio_index .. "?",
+    }
+
+    if vaapi_vf then
+        table.insert(args, "-vf")
+        table.insert(args, vaapi_vf)
+    end
+    table.insert(args, "-c:v")
+    table.insert(args, encoder)
+    for _, v in ipairs(quality_args) do table.insert(args, v) end
+    table.insert(args, "-c:a")
+    table.insert(args, "copy")
+    table.insert(args, result_path)
+
+    print("Saving clip...")
+    mp.command_native_async({
+        name = "subprocess",
+        args = args,
+        playback_only = false,
+    }, function(success, result)
+        print("Saved clip!")
+        copy_to_clipboard(result_path)
+    end)
+end
+
+ACTIONS.encode_animated = function(d)
+    local file_extra_suffix = string.format("_FROM_%s_TO_%s (clip)",
+        d.start_time_hms, d.end_time_hms)
     local result_path = mp.utils.join_path(d.indir,
-        d.infile_noext .. file_extra_suffix .. "." .. options.animated_encoding_type)
+        string.format("%s.%s", d.infile_noext, options.animated_encoding_type))
     if (options.save_to_directory) then
         result_path = check_paths(d, file_extra_suffix, nil,
             "." .. options.animated_encoding_type)
@@ -441,8 +584,8 @@ ACTIONS.COMPRESS = function(d)
     end
     mp.msg.info("Using bitrate: " .. target_bitrate)
 
-    local file_extra_suffix = "_FROM_" ..
-        d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (" .. options.encoding_type .. "compress)"
+    local file_extra_suffix = string.format("_FROM_%s_TO_%s (%s compress)",
+        d.start_time_hms, d.end_time_hms, options.encoding_type)
     local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. ".mp4")
     if options.save_to_directory then
         result_path = check_paths(d, file_extra_suffix)
@@ -532,7 +675,8 @@ ACTIONS.COMPRESS = function(d)
 end
 
 ACTIONS.COPY = function(d)
-    local file_extra_suffix = "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. " (cut)"
+    local file_extra_suffix = string.format("_FROM_%s_TO_%s (cut)",
+        d.start_time_hms, d.end_time_hms)
     local result_path = mp.utils.join_path(d.indir, d.infile_noext .. file_extra_suffix .. d.ext)
     if options.save_to_directory then
         result_path = check_paths(d, file_extra_suffix)
@@ -630,7 +774,14 @@ end
 
 local function cycle_action()
     ACTION = next_table_key(ACTIONS, ACTION)
-    print_or_update_text_overlay("Action: " .. ACTION)
+    local keys = {}
+    for k in pairs(ACTIONS) do keys[#keys + 1] = k end
+    table.sort(keys)
+    local lines = {}
+    for _, k in ipairs(keys) do
+        lines[#lines + 1] = (k == ACTION and "● " or "○ ") .. k
+    end
+    print_or_update_text_overlay(table.concat(lines, "\n"))
 end
 
 local function cycle_codec()
