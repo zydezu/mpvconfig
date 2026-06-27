@@ -57,6 +57,16 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-27
+
+- FIX: tweak `mpv.conf` to fix GPU memory issues with 8K videos
+- FIX: improved mpvcut.lua
+- FIX: indent markers in `selectformat.lua` are now consistent
+
+### 2026-06-26
+
+- FEAT: added GPU encoding support in mpvcut.lua
+
 ### 2026-06-20
 
 - FIX: add an AI-resolution tag to videos in `selectformat.lua`
