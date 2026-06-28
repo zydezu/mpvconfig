@@ -4563,7 +4563,7 @@ mp.observe_property("chapter-list", "native", function(_, list) -- chapter list 
 end)
 mp.observe_property('duration', "native", function()
     if user_opts.automatic_keyframe_mode then
-        user_opts.seekbar_keyframes = (state.duration or 0) > user_opts.automatic_keyframe_limit
+        user_opts.seekbar_keyframes = tonumber(mp.get_property("duration") or 0) > user_opts.automatic_keyframe_limit
     end
 end)
 mp.observe_property('seeking', nil, function()
