@@ -57,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-06-28
+
+- FIX: fix automatic_keyframe_mode not working correctly in `modernx.lua`
+
 ### 2026-06-27
 
 - FIX: tweak `mpv.conf` to fix GPU memory issues with 8K videos
