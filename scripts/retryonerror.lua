@@ -2,7 +2,7 @@
     retryonerror.lua by zydezu
     (https://github.com/zydezu/mpvconfig/blob/main/scripts/retryonerror.lua)
 
-    Automatically retry loading a URL when mpv fails with an error (e.g. 403)
+    Automatically retry loading a URL when mpv fails with an error (403 for example)
 --]]
 
 local options = {
@@ -18,7 +18,6 @@ local function is_url(s)
     return s and string.match(s, "^[%w]+://") ~= nil
 end
 
--- keep-open=yes prevents exit on EOF but not on load errors; idle=yes
 -- ensures mpv enters idle mode instead of quitting so our retry can run
 mp.set_property("idle", "yes")
 
