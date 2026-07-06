@@ -103,30 +103,33 @@ local user_opts = {
     scale_forced_window = 1.0,       -- osc scale factor when forced (no video, for example music files)
 
     -- Time, title and description display
-    show_title = true,           -- show title in the OSC (above seekbar)
-    title = "${media-title}",    -- title above seekbar format: "${media-title}" or "${filename}"
-    title_font_size = 28,        -- font size of the title text (above seekbar)
-    dynamic_title = true,        -- change title if {media-title} and {filename} differ (eg: when playing URLs or audio)
+    show_title = true,             -- show title in the OSC (above seekbar)
+    title = "${media-title}",      -- title above seekbar format: "${media-title}" or "${filename}"
+    title_font_size = 28,          -- font size of the title text (above seekbar)
+    dynamic_title = true,          -- change title if {media-title} and {filename} differ (eg: when playing URLs or audio)
 
-    show_chapter_title = true,   -- show chapter title alongside timestamp (below seekbar)
-    chapter_fmt = "%s",          -- format for chapter display on seekbar hover (set to "no" to disable)
-    show_chapter_markers = true, -- show chapter markers on the seekbar
-    show_top_mark = true,        -- show the top part of the chapter marker
-    show_bottom_mark = false,    -- show the bottom part of the chapter marker
+    show_chapter_title = true,     -- show chapter title alongside timestamp (below seekbar)
+    chapter_fmt = "%s",            -- format for chapter display on seekbar hover (set to "no" to disable)
+    chapter_hover_title = false,   -- show the hovered chapter's name in place of the main title while scrubbing (only applies when thumbfast isn't available)
+    chapter_hover_subtitle = true, -- show the hovered chapter's name in the chapter title text below the seekbar instead of the main title (only applies when thumbfast isn't available)
+    show_chapter_markers = true,   -- show chapter markers on the seekbar
+    chapter_marker_style = "gap",  -- shape of chapter markers: "triangle", "bar", "single-bar", or "gap"
+    show_top_mark = true,          -- show the top part of the chapter marker (only for the "triangle" chapter_marker_style)
+    show_bottom_mark = false,      -- show the bottom part of the chapter marker (only for the "triangle" chapter_marker_style)
 
-    time_total = true,           -- show total time instead of remaining time
-    time_ms = false,             -- show timecodes with milliseconds
-    unicode_minus = false,       -- use the Unicode minus sign in remaining time
-    time_format = "dynamic",     -- "dynamic" or "fixed" - dynamic shows MM:SS when possible, fixed always shows HH:MM:SS
-    time_font_size = 18,         -- font size of the time display
+    time_total = true,             -- show total time instead of remaining time
+    time_ms = false,               -- show timecodes with milliseconds
+    unicode_minus = false,         -- use the Unicode minus sign in remaining time
+    time_format = "dynamic",       -- "dynamic" or "fixed" - dynamic shows MM:SS when possible, fixed always shows HH:MM:SS
+    time_font_size = 18,           -- font size of the time display
 
-    show_description = true,     -- show video description - description on web videos or metadata/stats on local video
-    show_file_size = true,       -- show the current file's size in the description
-    description_font_size = 19,  -- font size of the description text (below title)
-    description_alpha = 100,     -- alpha of the description background box
-    scrolling_speed = 40,        -- the speed of scrolling text in description/comment menus
+    show_description = true,       -- show video description - description on web videos or metadata/stats on local video
+    show_file_size = true,         -- show the current file's size in the description
+    description_font_size = 19,    -- font size of the description text (below title)
+    description_alpha = 100,       -- alpha of the description background box
+    scrolling_speed = 40,          -- the speed of scrolling text in description/comment menus
 
-    date_format = "%Y-%m-%d",    -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
+    date_format = "%Y-%m-%d",      -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
 
     -- Title bar settings
     window_title = true,                      -- show window title in borderless/fullscreen mode
@@ -182,6 +185,8 @@ local user_opts = {
     volumebar_match_seek_color = false,       -- match volume bar color with seekbar color (ignores side_buttons_color)
     time_color = "#FFFFFF",                   -- color of the timestamps (below seekbar)
     chapter_title_color = "#FFFFFF",          -- color of the chapter title next to timestamp (below seekbar)
+    chapter_marker_color = "#1D96F5",         -- color of chapter markers on the seekbar
+    chapter_marker_current_color = "#9D96f5", -- color of the marker for the current chapter
     side_buttons_color = "#FFFFFF",           -- color of the side buttons (audio, subtitles, playlist, etc.)
     middle_buttons_color = "#FFFFFF",         -- color of the middle buttons (skip, jump, chapter, etc.)
     playpause_color = "#FFFFFF",              -- color of the play/pause button
@@ -196,8 +201,10 @@ local user_opts = {
     window_fade_alpha = 100,                  -- alpha of the window title bar
     window_fade_blur_strength = 75,           -- blur strength for the window title bar. caution: high values can take a lot of CPU time to render
     window_fade_transparency_strength = 0,    -- use with "window_fade_blur_strength = 0" to create a transparency box
-    thumbnail_border = 3,                     -- width of the thumbnail border (for thumbfast)
-    thumbnail_border_radius = 3,              -- rounded corner radius for thumbnail border (0 to disable)
+    thumbnail_border = 1,                     -- width of the thumbnail border (for thumbfast)
+    thumbnail_border_radius = 5,              -- rounded corner radius for thumbnail border (0 to disable)
+    -- capped to thumbnail_border, since the thumbnail image itself
+    -- can't be rounded, only the border around it
 
     -- Button hover effects
     hover_effect = "size,glow,color", -- active button hover effects: "glow", "size", "color"; can use multiple separated by commas
@@ -227,18 +234,18 @@ local user_opts = {
     ytdl_format = "",           -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 
     -- SponsorBlock - these SponsorBlock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua specifically to function
-    show_sponsorblock_segments = true,  -- show SponsorBlock segments on the progress bar
-    add_sponsorblock_chapters = false,  -- add SponsorBlock chapters to the chapter list
-    sponsorblock_seek_range_alpha = 75, -- transparency of SponsorBlock segments
-    sponsor_types = {                   -- what categories to show in the progress bar
-        "sponsor",                      -- all categories: sponsor, intro, outro,
-        "intro",                        -- interaction, selfpromo, preview, music_offtopic, filler
-        "outro",
-        "interaction",
-        "selfpromo",
-        "preview",
-        "music_offtopic",
-        "filler"
+    show_sponsorblock_segments = true,             -- show SponsorBlock segments on the progress bar
+    add_sponsorblock_chapters = false,             -- add SponsorBlock chapters to the chapter list
+    sponsorblock_seek_range_alpha = 75,            -- transparency of SponsorBlock segments
+    sponsor_types = {                              -- what categories to show in the progress bar
+        "sponsor",                                 -- all categories: sponsor, intro, outro,
+        "intro",                                   -- interaction, selfpromo, preview, music_offtopic, filler
+        "outro",                                   -- video outro
+        "interaction",                             -- interaction reminders such as liking and subscribing
+        "selfpromo",                               -- self promotion of socials or other channels
+        "preview",                                 -- video preview
+        "music_offtopic",                          -- silence in music videos
+        "filler"                                   -- filler content/tangents
     },
     sponsorblock_sponsor_color = "#00D400",        -- color for sponsors
     sponsorblock_intro_color = "#00FFFF",          -- color for intermission/intro animations
@@ -247,7 +254,7 @@ local user_opts = {
     sponsorblock_selfpromo_color = "#FFFF00",      -- color for unpaid/self promotion
     sponsorblock_preview_color = "#008FD6",        -- color for unpaid/self promotion
     sponsorblock_music_offtopic_color = "#FF9900", -- color for unpaid/self promotion
-    sponsorblock_filler_color = "#7300FF",         -- color for filler tangent/jokes
+    sponsorblock_filler_color = "#7300FF",         -- color for filler content/tangents
 
     -- Experimental
     show_youtube_comments = false,                                -- EXPERIMENTAL - show youtube comments
@@ -959,38 +966,8 @@ local function prepare_elements()
             -- a hack which prepares the whole slider area to allow center placements such like an=5
             static_ass:rect_cw(0, 0, elem_geo.w, elem_geo.h)
             static_ass:rect_ccw(0, 0, elem_geo.w, elem_geo.h)
-            -- chapter marker nibbles
-            if user_opts.show_chapter_markers and element.slider.markerF ~= nil and slider_lo.gap > 0 then
-                local markers = element.slider.markerF()
-                for _, marker in pairs(markers) do
-                    if marker >= element.slider.min.value and marker <= element.slider.max.value then
-                        local s = get_slider_ele_pos_for(element, marker)
-                        if slider_lo.gap > 5 then -- draw triangles
-                            --top
-                            if slider_lo.nibbles_top then
-                                static_ass:move_to(s - 3, slider_lo.gap - 5)
-                                static_ass:line_to(s + 3, slider_lo.gap - 5)
-                                static_ass:line_to(s, slider_lo.gap - 1)
-                            end
-                            --bottom
-                            if slider_lo.nibbles_bottom then
-                                static_ass:move_to(s - 3, elem_geo.h - slider_lo.gap + 5)
-                                static_ass:line_to(s, elem_geo.h - slider_lo.gap + 1)
-                                static_ass:line_to(s + 3, elem_geo.h - slider_lo.gap + 5)
-                            end
-                        else -- draw 2x1px nibbles
-                            --top
-                            if slider_lo.nibbles_top then
-                                static_ass:rect_cw(s - 1, 0, s + 1, slider_lo.gap);
-                            end
-                            --bottom
-                            if slider_lo.nibbles_bottom then
-                                static_ass:rect_cw(s - 1, elem_geo.h - slider_lo.gap, s + 1, elem_geo.h);
-                            end
-                        end
-                    end
-                end
-            end
+            -- chapter marker nibbles are drawn dynamically in draw_seekbar_nibbles(), so they can use
+            -- their own colors instead of inheriting whatever color the slider is drawn with
         end
 
         element.static_ass = static_ass
@@ -1060,6 +1037,26 @@ local function draw_seekbar_handle(element, elem_ass, override_alpha)
     return xp, 0
 end
 
+-- Collects sorted pixel-space positions of chapter markers, skipping the first (start of file)
+local function collect_gap_cuts(element)
+    local cuts = {}
+    if element.slider.markerF then
+        for n, marker in ipairs(element.slider.markerF()) do
+            if n > 1 and marker >= element.slider.min.value and marker <= element.slider.max.value then
+                cuts[#cuts + 1] = get_slider_ele_pos_for(element, marker)
+            end
+        end
+        table.sort(cuts)
+    end
+    return cuts
+end
+
+-- whether chapter markers should be drawn as a real cut in the seekbar rather than a marker shape
+local function gap_style_active(element)
+    return element.name == "seekbar" and user_opts.show_chapter_markers
+        and user_opts.chapter_marker_style == "gap"
+end
+
 -- Draw seekbar progress more accurately
 local function draw_seekbar_progress(element, elem_ass)
     local pos = element.slider.posF()
@@ -1069,7 +1066,153 @@ local function draw_seekbar_progress(element, elem_ass)
     local xp = get_slider_ele_pos_for(element, pos)
     local slider_lo = element.layout.slider
     local elem_geo = element.layout.geometry
-    elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
+
+    if gap_style_active(element) then
+        -- cut a small gap out of the played progress at each chapter boundary instead of drawing a marker shape
+        local gap_half = 1.5
+        local seg_start = 0
+        for _, cut in ipairs(collect_gap_cuts(element)) do
+            if cut >= xp then break end
+            local seg_end = math.min(cut - gap_half, xp)
+            if seg_end > seg_start then
+                elem_ass:rect_cw(seg_start, slider_lo.gap, seg_end, elem_geo.h - slider_lo.gap)
+            end
+            seg_start = cut + gap_half
+        end
+        if xp > seg_start then
+            elem_ass:rect_cw(seg_start, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
+        end
+    else
+        elem_ass:rect_cw(0, slider_lo.gap, xp, elem_geo.h - slider_lo.gap)
+    end
+end
+
+-- Draws the seekbar's unplayed background with real gaps cut at chapter boundaries
+local function draw_seekbar_gap_background(element, elem_ass)
+    if not gap_style_active(element) then
+        return
+    end
+
+    local slider_lo = element.layout.slider
+    local elem_geo = element.layout.geometry
+
+    elem_ass:draw_stop()
+    elem_ass:merge(element.style_ass)
+    ass_append_alpha(elem_ass, element.layout.alpha, 128)
+    elem_ass:append("{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.seekbarbg_color) .. "&}")
+    elem_ass:merge(element.static_ass)
+
+    local gap_half = 1.5
+    local seg_start = 0
+    for _, cut in ipairs(collect_gap_cuts(element)) do
+        local seg_end = cut - gap_half
+        if seg_end > seg_start then
+            elem_ass:rect_cw(seg_start, slider_lo.gap, seg_end, elem_geo.h - slider_lo.gap)
+        end
+        seg_start = cut + gap_half
+    end
+    if elem_geo.w > seg_start then
+        elem_ass:rect_cw(seg_start, slider_lo.gap, elem_geo.w, elem_geo.h - slider_lo.gap)
+    end
+
+    -- restore the seekbar's own color so the handle and progress fill drawn after this aren't left
+    -- using the background color
+    elem_ass:draw_stop()
+    elem_ass:merge(element.style_ass)
+    ass_append_alpha(elem_ass, element.layout.alpha, 0)
+    elem_ass:append("{\\blur0\\bord0\\1c&H" .. osc_color_convert(user_opts.seekbarfg_color) .. "&}")
+    elem_ass:merge(element.static_ass)
+end
+
+-- Draws chapter markers on the seekbar, shaped and colored according to user_opts
+local function draw_seekbar_nibbles(element, elem_ass)
+    local slider_lo = element.layout.slider
+    local elem_geo = element.layout.geometry
+    local style = user_opts.chapter_marker_style
+
+    if not user_opts.show_chapter_markers or element.slider.markerF == nil or slider_lo.gap <= 0
+        or gap_style_active(element) then
+        return
+    end
+
+    local markers = element.slider.markerF()
+    if #markers == 0 then
+        return
+    end
+
+    -- draw a single marker shape at pixel position s
+    local function draw_nibble(ass, s)
+        if slider_lo.gap > 5 then
+            local bar_h = 3
+            if slider_lo.nibbles_top then
+                if style == "triangle" then
+                    ass:move_to(s - 3, slider_lo.gap - 5)
+                    ass:line_to(s + 3, slider_lo.gap - 5)
+                    ass:line_to(s, slider_lo.gap - 1)
+                elseif style == "bar" then
+                    ass:rect_cw(s - 1, slider_lo.gap - bar_h, s + 1, slider_lo.gap)
+                else -- single-bar
+                    ass:rect_cw(s - 1, slider_lo.gap - bar_h, s + 1, elem_geo.h - slider_lo.gap)
+                end
+            end
+            if slider_lo.nibbles_bottom then
+                if style == "triangle" then
+                    ass:move_to(s - 3, elem_geo.h - slider_lo.gap + 5)
+                    ass:line_to(s, elem_geo.h - slider_lo.gap + 1)
+                    ass:line_to(s + 3, elem_geo.h - slider_lo.gap + 5)
+                elseif style == "bar" then
+                    ass:rect_cw(s - 1, elem_geo.h - slider_lo.gap, s + 1, elem_geo.h - slider_lo.gap + bar_h)
+                else -- single-bar
+                    ass:rect_cw(s - 1, slider_lo.gap, s + 1, elem_geo.h - slider_lo.gap + bar_h)
+                end
+            end
+        else -- not enough room for a shape, draw 2x1px nibbles
+            if slider_lo.nibbles_top then
+                ass:rect_cw(s - 1, 0, s + 1, slider_lo.gap)
+            end
+            if slider_lo.nibbles_bottom then
+                ass:rect_cw(s - 1, elem_geo.h - slider_lo.gap, s + 1, elem_geo.h)
+            end
+        end
+    end
+
+    local function begin_layer(color)
+        elem_ass:draw_stop()
+        elem_ass:merge(element.style_ass)
+        ass_append_alpha(elem_ass, element.layout.alpha, 0)
+        elem_ass:append("{\\blur0\\bord0\\1c&H" .. osc_color_convert(color) .. "&}")
+        elem_ass:merge(element.static_ass)
+    end
+
+    local current_chapter = mp.get_property_number("chapter", -1)
+
+    -- draw non-current chapter markers first
+    local has_non_current = false
+    for n, marker in ipairs(markers) do
+        if (n - 1) ~= current_chapter and marker >= element.slider.min.value and marker <= element.slider.max.value then
+            if not has_non_current then
+                begin_layer(user_opts.chapter_marker_color)
+                has_non_current = true
+            end
+            draw_nibble(elem_ass, get_slider_ele_pos_for(element, marker))
+        end
+    end
+
+    -- draw the current chapter's marker on top, in its own color
+    local drew_current = false
+    if current_chapter >= 0 and current_chapter < #markers then
+        local marker = markers[current_chapter + 1]
+        if marker >= element.slider.min.value and marker <= element.slider.max.value then
+            begin_layer(user_opts.chapter_marker_current_color)
+            draw_nibble(elem_ass, get_slider_ele_pos_for(element, marker))
+            drew_current = true
+        end
+    end
+
+    -- restore the seekbar's own color so later draws (progress fill, handle) aren't left using a marker color
+    if has_non_current or drew_current then
+        begin_layer(user_opts.seekbarfg_color)
+    end
 end
 
 -- Draws seekbar ranges according to user_opts
@@ -1148,16 +1291,24 @@ function render_elements(master_ass)
     -- then we use it instead of the normal title. we calculate it before the
     -- render iterations because the title may be rendered before the slider.
     state.forced_title = nil
+    state.forced_chapter_title = nil
 
     -- disable displaying chapter name in title when thumbfast is available
     -- because thumbfast will render it above the thumbnail instead
     if thumbfast.disabled then
-        if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
+        if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar
+            and (user_opts.chapter_hover_title or user_opts.chapter_hover_subtitle) then
             local dur = mp.get_property_number("duration", 0)
             if dur > 0 then
                 local ch = get_chapter(state.sliderpos * dur / 100)
                 if ch and ch.title and ch.title ~= "" then
-                    state.forced_title = string.format(user_opts.chapter_fmt, ch.title)
+                    local formatted = string.format(user_opts.chapter_fmt, ch.title)
+                    if user_opts.chapter_hover_subtitle then
+                        state.forced_chapter_title = formatted
+                    end
+                    if user_opts.chapter_hover_title then
+                        state.forced_title = formatted
+                    end
                 end
             end
         end
@@ -1202,7 +1353,13 @@ function render_elements(master_ass)
                 local s_min = element.slider.min.value
                 local s_max = element.slider.max.value
 
+                if element.name == "seekbar" then
+                    draw_seekbar_gap_background(element, elem_ass)
+                end
                 local xp, rh = draw_seekbar_handle(element, elem_ass) -- handle posistion, handle radius
+                if element.name == "seekbar" then
+                    draw_seekbar_nibbles(element, elem_ass)
+                end
                 draw_seekbar_progress(element, elem_ass)
                 if element.name == "seekbar" then
                     draw_seekbar_ranges(element, elem_ass, xp, rh)
@@ -1273,10 +1430,15 @@ function render_elements(master_ass)
                                     elem_ass:an(7)
                                     elem_ass:append(osc_styles.thumbnail)
                                     elem_ass:draw_start()
-                                    if user_opts.thumbnail_border_radius and user_opts.thumbnail_border_radius > 0 then
+                                    -- the thumbnail image itself is a plain rectangle (drawn separately by thumbfast,
+                                    -- not by this script) and can't be clipped to a rounded shape, so the radius is
+                                    -- capped to the border padding to avoid rounding into the image and exposing its
+                                    -- square corners past the curve
+                                    local radius = math.min(user_opts.thumbnail_border_radius or 0, thumbPad)
+                                    if radius > 0 then
                                         elem_ass:round_rect_cw(-thumbPad * r_w, -thumbPad * r_h,
                                             (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h,
-                                            user_opts.thumbnail_border_radius)
+                                            radius)
                                     else
                                         elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h,
                                             (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
@@ -2682,6 +2844,9 @@ layouts["original"] = function()
     lo.style = osc_styles.seekbar_bg
     lo.alpha[1] = 128
     lo.alpha[3] = 128
+    -- the "gap" style cuts real gaps into the seekbar itself (see draw_seekbar_gap_background),
+    -- so this plain solid background would otherwise be visible underneath those gaps
+    elements['seekbarbg'].visible = not (user_opts.show_chapter_markers and user_opts.chapter_marker_style == "gap")
 
     lo = add_layout('seekbar')
     if user_opts.seekbar_between_timers then
@@ -2979,6 +3144,9 @@ layouts["reduced"] = function()
     lo.style = osc_styles.seekbar_bg
     lo.alpha[1] = 128
     lo.alpha[3] = 128
+    -- the "gap" style cuts real gaps into the seekbar itself (see draw_seekbar_gap_background),
+    -- so this plain solid background would otherwise be visible underneath those gaps
+    elements['seekbarbg'].visible = not (user_opts.show_chapter_markers and user_opts.chapter_marker_style == "gap")
 
     lo = add_layout('seekbar')
     lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = 16 }
@@ -4071,7 +4239,9 @@ local function osc_init()
     ne = new_element("chapter_title", "button")
     ne.visible = true
     ne.content = function()
-        if state.buffering ~= nil and state.buffering then
+        if state.forced_chapter_title then
+            return state.forced_chapter_title
+        elseif state.buffering ~= nil and state.buffering then
             return "Buffering..." .. " " .. (mp.get_property("cache-buffering-state") or "0") .. "%"
         else
             if user_opts.chapter_fmt ~= "no" and chapter_index >= 0 then

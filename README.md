@@ -57,6 +57,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-07-06
+
+- FIX: chapter markers on the seekbar now use their own colors (`chapter_marker_color` and `chapter_marker_current_color`) instead of inheriting the seekbar's progress color
+- FEAT: add `chapter_marker_style` option to `modernx.lua` to change the shape of chapter markers, supporting `triangle`, `bar`, `single-bar` and `gap`
+
 ### 2026-06-28
 
 - FIX: fix automatic_keyframe_mode not working correctly in `modernx.lua`
