@@ -57,10 +57,15 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-07-08
+
+- FIX: `add_sponsorblock_chapters = false` not being respected on YouTube videos without chapters already
+
 ### 2026-07-06
 
 - FIX: chapter markers on the seekbar now use their own colors (`chapter_marker_color` and `chapter_marker_current_color`) instead of inheriting the seekbar's progress color
 - FEAT: add `chapter_marker_style` option to `modernx.lua` to change the shape of chapter markers, supporting `triangle`, `bar`, `single-bar` and `gap`
+- FEAT: add `chapter_hover_subtitle` option to `modernx.lua` to show the hovered chapter's name in the chapter title text below the seekbar instead of the main title (this option only applies when thumbfast isn't available)
 
 ### 2026-06-28
 
@@ -69,7 +74,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-06-27
 
 - FIX: tweak `mpv.conf` to fix GPU memory issues with 8K videos
-- FIX: improved mpvcut.lua
+- FIX: improved `mpvcut.lua`
 - FIX: indent markers in `selectformat.lua` are now consistent
 
 ### 2026-06-26

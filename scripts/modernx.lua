@@ -2367,7 +2367,7 @@ local function make_sponsorblock_segments()
 
         -- updated chapter list
         state.chapter_list = updated_chapters
-        if #updated_chapters > 0 then
+        if #updated_chapters ~= #temp_chapters then
             mp.set_property_native("chapter-list", updated_chapters)
         end
     end
