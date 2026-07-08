@@ -311,7 +311,7 @@ local function skip_ads(name, pos)
             if options.fast_forward == uuid then return end
             if options.fast_forward == false then
                 if options.show_skip_message then mp.osd_message("[sponsorblock] " .. t.category .. " skipped") end
-                mp.set_property("time-pos", t.end_time)
+                mp.commandv("seek", tostring(t.end_time), "absolute+exact")
             else
                 mp.osd_message("[sponsorblock] skipping " .. t.category)
             end

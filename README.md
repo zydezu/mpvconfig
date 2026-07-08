@@ -60,6 +60,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-07-08
 
 - FIX: `add_sponsorblock_chapters = false` not being respected on YouTube videos without chapters already
+- FIX: fix a sponsorblock seeking issue
 
 ### 2026-07-06
 
