@@ -25,12 +25,17 @@ local http = want("socket.http")
 local https = want("ssl.https")
 
 local options = {
-    source_lang = "en",            -- language code (en, fr, es, de, ...) to load as a secondary subtitle alongside the original
-    autoload_on_start = true,      -- automatically load auto-subs when a video starts, without needing to press select_binding/autoload_binding
-    select_binding = "alt+y",      -- interactively pick which auto-sub language to load
-    autoload_binding = "alt+Y",    -- load the original + source_lang auto-subs immediately
-    cache_dir = "~/.cache/ytsub/", -- where downloaded subtitles are cached
-    filter_sub_single_line = true, -- remove duplicate/overlapping lines from YouTube's auto-generated subtitles
+    -- General
+    source_lang = "en",                 -- language code (en, fr, es, etc.) to load as a secondary subtitle alongside the original
+    autoload_on_start = true,           -- automatically load auto-subs when a video starts, without needing to press select_binding/autoload_binding
+    filter_sub_single_line = true,      -- remove duplicate/overlapping lines from YouTube's auto-generated subtitles
+
+    -- Keybindings
+    select_binding = "alt+y",           -- interactively pick which auto-sub language to load
+    autoload_binding = "alt+Y",         -- load the original + source_lang auto-subs immediately
+
+    -- Cache settings
+    cache_dir = "~/.cache/ytsub/",      -- where downloaded subtitles are cached
 }
 require("mp.options").read_options(options)
 
@@ -185,9 +190,16 @@ local function ytsub(is_auto, is_silent)
         -- source_lang as the secondary subtitle
         local source_lang = options.source_lang
 
-        -- if the video already has real (non-auto-generated) subtitles, still
-        -- cache the auto-subs for later use, but don't switch the active track to them
-        local has_real_subs = j["subtitles"] ~= nil and next(j["subtitles"]) ~= nil
+        -- if the video already has real subtitles don't switch to them (except for live_chat)
+        local has_real_subs = false
+        if j["subtitles"] ~= nil then
+            for k, _ in pairs(j["subtitles"]) do
+                if k ~= "live_chat" then
+                    has_real_subs = true
+                    break
+                end
+            end
+        end
         local select_track = not has_real_subs
 
         local orig_lang

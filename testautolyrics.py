@@ -1,6 +1,6 @@
 import requests
 
-def get_lyrics(title, artist, token):
+def get_lyrics(title, artist, token) -> dict:
     base_url = "https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get"
     
     params = {

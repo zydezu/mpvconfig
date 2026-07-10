@@ -5,9 +5,9 @@
 -- Built for easy integration in third-party UIs.
 
 --[[
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at https://mozilla.org/MPL/2.0/.
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
 local options = {
@@ -304,7 +304,7 @@ end
 local function vo_tone_mapping()
     local passes = mp.get_property_native("vo-passes")
     if passes and passes["fresh"] then
-        for k, v in pairs(passes["fresh"]) do
+        for _, v in pairs(passes["fresh"]) do
             for k2, v2 in pairs(v) do
                 if k2 == "desc" and v2 then
                     local tone_mapping = string.match(v2, "([0-9a-z.-]+) tone map")
@@ -413,7 +413,7 @@ local function info(w, h)
         info_timer = mp.add_timeout(0.05, function() info(w, h) end)
     end
 
-    local json, err = mp.utils.format_json({width=w * options.scale_factor, height=h * options.scale_factor, scale_factor=options.scale_factor, disabled=disabled, available=true, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
+    local json, _ = mp.utils.format_json({width=w * options.scale_factor, height=h * options.scale_factor, scale_factor=options.scale_factor, disabled=disabled, available=true, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
     if pre_0_30_0 then
         mp.command_native({"script-message", "thumbfast-info", json})
     else
@@ -602,7 +602,7 @@ local function draw(w, h, script)
             mp.command_native_async({"overlay-add", options.overlay_id, x, y, options.thumbnail..".bgra", 0, "bgra", w, h, (4*w), scale_w, scale_h}, function() end)
         end
     elseif script then
-        local json, err = mp.utils.format_json({width=w, height=h, scale_factor=options.scale_factor, x=x, y=y, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
+        local json, _ = mp.utils.format_json({width=w, height=h, scale_factor=options.scale_factor, x=x, y=y, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
         mp.commandv("script-message-to", script, "thumbfast-render", json)
     end
 end
@@ -853,7 +853,7 @@ local function update_property_dirty(name, value)
     end
 end
 
-local function update_tracklist(name, value)
+local function update_tracklist(_, value)
     -- current-tracks shim
     for _, track in ipairs(value) do
         if track.type == "video" and track.selected then
@@ -913,7 +913,7 @@ local function shutdown()
     end
 end
 
-local function on_duration(prop, val)
+local function on_duration(_, val)
     allow_fast_seek = (val or 30) >= 30
 end
 

@@ -78,8 +78,11 @@ local function istable(v) end
 -- ====================
 
 local opts = {
+	-- Title filtering
 	prioritize_proto = true,
-	exclude_ai_upscaled = false,
+    exclude_ai_upscaled = false,
+
+    -- Format prefixes and separators
 	prefix_header = "     ", -- a non-breaking space followed by a space
 	prefix_norm = "  ",   -- a non-breaking space followed by a space
 	prefix_cursor = "● ",
@@ -88,7 +91,9 @@ local opts = {
 	prefix_child = " ◆",
 	prefix_foldable = "▶ ",
 	prefix_leaf = "◆ ",
-	header_separator = "─",
+    header_separator = "─",
+
+    -- Menu position and style
 	menu_pos_x = 7,
 	menu_pos_y = 7,
 	ass_style = "{\\fnmonospace\\fs8}",

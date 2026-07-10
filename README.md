@@ -57,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-07-10
+
+- FIX: fix auto-generated subtitle tracks being selected by default when real subtitles are already present in `ytsub.lua`
+
 ### 2026-07-08
 
 - FIX: `add_sponsorblock_chapters = false` not being respected on YouTube videos without chapters already

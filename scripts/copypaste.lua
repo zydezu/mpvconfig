@@ -10,13 +10,16 @@ mp.utils = require("mp.utils")
 local display_protocol = os.getenv("XDG_SESSION_TYPE")
 
 local options = {
+    -- Keybinds
     copy_keybind = [[
-	["ctrl+c", "ctrl+C", "meta+c", "meta+C"]
-	]],
+        ["ctrl+c", "ctrl+C", "meta+c", "meta+C"]
+    ]],
     paste_keybind = [[
-    ["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
+        ["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
     ]],
     open_keybind = "o",
+
+    -- Copy and paste commands
     linux_copy_command = { "xclip", "-silent", "-selection", "clipboard", "-in" },
     linux_paste_command = { "xclip", "-selection", "clipboard", "-o" },
     copy_youtube_timestamp = true,
@@ -61,7 +64,7 @@ local function bind_keys(keys, name, func, opts)
 	end
 end
 
-local function handle_res(res, args)
+local function handle_res(res, _)
 	if not res.error and res.status == 0 then
 		return res.stdout
 	else
@@ -73,7 +76,7 @@ local function set_clipboard(text)
     local pipe
     if device == "linux" then
 		local command = table.concat(options.linux_copy_command, " ")
-		pipe = io.popen(command, "w")
+		pipe = assert(io.popen(command, "w"))
         pipe:write(text)
         pipe:close()
     elseif device == "windows" then
@@ -88,7 +91,7 @@ local function set_clipboard(text)
             }]], text)
         } })
     elseif device == "mac" then
-        pipe = io.popen("pbcopy","w")
+        pipe = assert(io.popen("pbcopy","w"))
         pipe:write(text)
         pipe:close()
     end
@@ -246,7 +249,7 @@ local function open()
         if device == "linux" then
             cmd = url_browser_linux_cmd
         elseif device == "windows" then
-            local ret = mp.command_native_async({
+            local _ = mp.command_native_async({
                 name = "subprocess",
                 args = {"powershell","start",path}
             })
@@ -258,7 +261,7 @@ local function open()
         if device == "linux" then
             cmd = file_browser_linux_cmd
         elseif device == "windows" then
-            local ret = mp.command_native_async({
+            local _ = mp.command_native_async({
                 name = "subprocess",
                 args = { "explorer", "/select," ,path}
             })

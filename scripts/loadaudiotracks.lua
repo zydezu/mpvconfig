@@ -1,10 +1,8 @@
 --[[
-    loadaudiotracks.lua
-    
-    * Based on 
-    https://github.com/mpv-player/mpv/issues/10554#issuecomment-2360602290 
-    by https://github.com/guidocella
-    * Modified by zydezu
+    loadaudiotracks.lua by zydezu
+    (https://github.com/zydezu/mpvconfig/blob/main/scripts/loadaudiotracks.lua)
+
+    * Based on https://github.com/mpv-player/mpv/issues/10554#issuecomment-2360602290 by guidocella
 
     Allows multiple audio tracks to be selected and played together
 --]]
@@ -76,7 +74,7 @@ local function ask_for_audio_track()
     local clear_all_index = #items + 3
 
     items[separator_index] = ""
-    items[play_all_index] = "🔊Play all available tracks together"
+    items[play_all_index] = "🔊Play all audio tracks together"
     items[clear_all_index] = "🚫Clear all audio tracks"
 
     mp.input.select({

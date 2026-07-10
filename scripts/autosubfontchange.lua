@@ -2,7 +2,7 @@
     autosubfontchange.lua by zydezu
     (https://github.com/zydezu/mpvconfig/blob/main/scripts/autosubfontchange.lua)
 
-    This script changes the subtitle font depending on the 
+    This script changes the subtitle font depending on the
     language detected in the subtitles.
 
     Add this to mpv.conf for faster subtitle changes when switching between file types
@@ -19,7 +19,10 @@
 mp.utils = require("mp.utils")
 
 local options = {
-    video_only = true,  -- only change subtitle font for video files, not audio files
+    -- General
+    video_only = true, -- only change subtitle font for video files, not audio files
+
+    -- Fonts
     english_font = "Segoe UI Semibold",
     japanese_font = "A-OTF Shin Go Pro M",
 }

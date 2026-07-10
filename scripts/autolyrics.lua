@@ -1,7 +1,7 @@
 --[[
     autolyrics.lua by zydezu
 	(https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua)
-	
+
 	* Based on https://github.com/guidocella/mpv-lrc
 
     Tries to download lyrics and display them for said file
@@ -11,13 +11,16 @@ mp.utils = require("mp.utils")
 mp.input = require("mp.input")
 
 local options = {
+    -- General
     musixmatch_token = "2501192ac605cc2e16b6b2c04fe43d1011a38d919fe802976084e7",
+
+    -- Lyrics
     download_for_all = false,                                       -- try to get subtitles for music without metadata
     load_for_youtube = true,                                        -- try to load lyrics on youtube videos
     store_lyrics_seperate = true,                                   -- store lyrics in ~~Pictures/mpv/lyrics/
     lyrics_store = "~/Pictures/mpv/lyrics/",                        -- where to store downloaded lyric files if store_lyrics_seperate is true
-    cache_loading = true,                                           -- try to load lyrics that were already downloaded
     strip_artists = true,                                           -- remove lines with the names of the artists from NetEase lyrics
+    cache_loading = true,                                           -- try to load lyrics that were already downloaded
     run_automatically = false                                       -- run this script without pressing Alt+m
 }
 require("mp.options").read_options(options)
@@ -96,7 +99,7 @@ local function get_metadata()
     end
 
     local duration = mp.get_property_number("duration") or 0
-    
+
     return title, artist, album, duration
 end
 
@@ -139,7 +142,7 @@ local function save_lyrics(lyrics)
         return
     end
 
-    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters    
+    lyrics = lyrics:gsub("’", "'"):gsub("' ", "'"):gsub("\\", "") -- remove strange characters
 
     if options.strip_artists then
         lyrics = strip_artists(lyrics)
@@ -158,8 +161,8 @@ local function save_lyrics(lyrics)
 
     if (is_url(path) and path or nil) and options.load_for_youtube then
         local youtube_ID = ""
-        if not downloading_name then 
-            youtube_ID = " [" .. mp.get_property("filename"):match("[?&]v=([^&]+)") .. "]" 
+        if not downloading_name then
+            youtube_ID = " [" .. mp.get_property("filename"):match("[?&]v=([^&]+)") .. "]"
         end
         local filename = string.gsub(media:sub(1, 100):gsub(pattern, ""), "^%s*(.-)%s*$", "%1") .. youtube_ID
         path =  mp.command_native({"expand-path", options.lyrics_store .. filename})
@@ -185,7 +188,7 @@ local function save_lyrics(lyrics)
     lrc:close()
 
     if lyrics:find("^%[") then
-        mp.command(current_sub_path and "sub-reload" or "rescan-external-files") 
+        mp.command(current_sub_path and "sub-reload" or "rescan-external-files")
         if manual_run then
             mp.osd_message("Lyrics downloaded")
         end
@@ -240,7 +243,7 @@ local function musixmatch_download()
 
     local lyrics = ""
     local body = response and response.message and response.message.body and response.message.body.macro_calls
-    
+
     if not body then
         show_error("Invalid response structure: macro_calls not found")
         return
@@ -374,12 +377,12 @@ local function check_downloaded_subs()
     end
 end
 
-mp.add_key_binding("alt+m", "musixmatch-download", function() 
+mp.add_key_binding("alt+m", "musixmatch-download", function()
     manual_run = true
     auto_download()
 end)
 
-mp.add_key_binding("alt+n", "netease-download", function() 
+mp.add_key_binding("alt+n", "netease-download", function()
     manual_run = true
     lrclib_download()
 end)

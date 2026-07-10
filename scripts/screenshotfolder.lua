@@ -8,19 +8,24 @@
 --]]
 
 local options = {
+    -- General
     screenshot_key = 's',
 
+    -- Screenshot settings
     file_ext = "png",
     save_location = "~/Pictures/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
 
+    -- OSD message settings
     show_message = false,
     short_saved_message = true,
 
+    -- Screenshot folder settings
     save_as_time_stamp = true,
     save_based_on_chapter_name = false,
     include_YouTube_ID = true,
 
+    -- Clipboard settings
     copy_to_clipboard = true,
     clipboard_filename = "mpvscreenshot.png",
 }

@@ -12,56 +12,56 @@ mp.utils = require("mp.utils")
 
 local options = {
     -- Save location
-    save_to_directory = true,                -- save to 'save_directory' instead of the current folder of the file
-    save_directory = "~/Pictures/mpv/clips", -- required for web videos
-    save_to_title_directory = true,          -- save to subdirectory named after the video title
+    save_to_directory = true,                   -- save to 'save_directory' instead of the current folder of the file
+    save_directory = "~/Pictures/mpv/clips",    -- required for web videos
+    save_to_title_directory = true,             -- save to subdirectory named after the video title
 
     -- Actions
-    action = "ENCODE",      -- default action: ENCODE, ENCODE_ANIMATED or COMPRESS
-    codecs_list = { "h264", "h265", "av1" },
-    encoding_type = "h265", -- active codec: h264, h265, or av1
+    action = "ENCODE",                          -- default action: ENCODE, ENCODE_ANIMATED or COMPRESS
+    codecs_list = { "h264", "h265", "av1" },    -- list of codecs to cycle through
+    encoding_type = "h265",                     -- active codec: h264, h265, or av1
 
     -- Key bindings
     key_cut = "a",
     key_cancel_cut = "shift+a",
     key_cycle_action = "A",
     key_cycle_codec = "alt+a",
-    key_cycle_encode_gpu = "alt+g",     -- toggle GPU/CPU for the ENCODE action
-    key_cycle_encode_cap_res = "alt+r", -- toggle resolution cap for the ENCODE action
+    key_cycle_encode_gpu = "alt+g",             -- toggle GPU/CPU for the ENCODE action
+    key_cycle_encode_cap_res = "alt+r",         -- toggle resolution cap for the ENCODE action
 
     -- ENCODE action defaults
-    encode_gpu_default = true,     -- start with GPU encoding enabled
-    encode_cap_res_default = true, -- start with resolution cap enabled
-    clip_resolution = 1080,        -- target resolution (height) when resolution cap is enabled
+    encode_gpu_default = true,                  -- start with GPU encoding enabled
+    encode_cap_res_default = true,              -- start with resolution cap enabled
+    clip_resolution = 1080,                     -- target resolution (height) when resolution cap is enabled
 
     -- CPU encoding quality
-    h264_crf = 23, -- lower = better quality
+    h264_crf = 23,                              -- lower crf = better quality
     h265_crf = 28,
     av1_crf = 40,
-    av1_preset = 6, -- trade-off between speed and size, higher = faster (also used for ENCODE_ANIMATED avif)
+    av1_preset = 6,                             -- trade-off between speed and size, higher = faster (also used for ENCODE_ANIMATED avif)
 
     -- GPU encoding
-    gpu_type = "auto",                    -- auto-detect, or set manually: nvenc (NVIDIA), vaapi (AMD/Intel Linux), amf (AMD), qsv (Intel), videotoolbox (macOS)
-    vaapi_device = "/dev/dri/renderD128", -- render node used for vaapi (only used as a fallback if auto-detection is skipped)
-    nvenc_preset = "p4",                  -- NVENC speed preset: p1 (fastest) to p7 (best quality)
-    gpu_h264_cq = 25,                     -- GPU quality (CQ/QP), lower = better quality
+    gpu_type = "auto",                          -- auto-detect, or set manually: nvenc (NVIDIA), vaapi (AMD/Intel Linux), amf (AMD), qsv (Intel), videotoolbox (macOS)
+    vaapi_device = "/dev/dri/renderD128",       -- render node used for vaapi (only used as a fallback if auto-detection is skipped)
+    nvenc_preset = "p4",                        -- NVENC speed preset: p1 (fastest) to p7 (best quality)
+    gpu_h264_cq = 25,                           -- GPU quality (CQ/QP), lower = better quality
     gpu_h265_cq = 30,
-    gpu_av1_cq = 42,                      -- please check your GPU for AV1 support
+    gpu_av1_cq = 42,                            -- please check your GPU for AV1 support
 
     -- COMPRESS action
-    compress_size = 9.50,  -- target file size in MB
-    cap_resolution = true, -- shrink video if above max_resolution
-    max_resolution = 1080, -- resolution cap (height) for COMPRESS
+    compress_size = 9.50,                       -- target file size in MB
+    cap_resolution = true,                      -- shrink video if above max_resolution
+    max_resolution = 1080,                      -- resolution cap (height) for COMPRESS
 
     -- ENCODE_ANIMATED action
-    animated_encoding_type = "avif", -- output format: gif, webp, or avif
-    max_animated_resolution = 540,   -- resolution cap (height) for ENCODE_ANIMATED
-    avif_crf = 42,                   -- lower = better quality
-    webp_quality = 75,               -- 0–100, higher = better quality
-    webp_compression_level = 6,      -- trade-off between speed and size, lower = faster
+    animated_encoding_type = "avif",            -- output format: gif, webp, or avif
+    max_animated_resolution = 540,              -- resolution cap (height) for ENCODE_ANIMATED
+    avif_crf = 42,                              -- lower crf = better quality
+    webp_quality = 75,                          -- 0–100, higher = better quality
+    webp_compression_level = 6,                 -- trade-off between speed and size, lower = faster
 
     -- Web videos/cache
-    use_cache_for_web_videos = true, -- cut web videos using the player's cache (experimental)
+    use_cache_for_web_videos = true,            -- cut web videos using the player's cache (experimental)
 }
 require("mp.options").read_options(options)
 

@@ -1,3 +1,10 @@
+--[[
+    livechat.lua by zydezu
+    (https://github.com/zydezu/mpvconfig/blob/main/scripts/livechat.lua)
+
+    Downloads and displays a YouTube video's live chat replay as an on-screen overlay
+--]]
+
 mp.utils = require("mp.utils")
 
 local messages = {}
@@ -6,23 +13,34 @@ local chat_hidden = false
 local download_finished = false
 
 local options = {
-    auto_load = true, -- whether to automatically load live chat when a video loads
-    live_chat_directory = "~/Pictures/mpv/livechat/", -- livechat directory
-    yt_dlp_path = "yt-dlp", -- path to yt-dlp executable
-    show_author = true, -- show the author's name
-    author_color = "random", -- the color of the author's name, can be 'random', 'none' or a hex value
-    author_border_color = "000000", -- the color of borders around the author's name
-    message_color = "FFFFFF", -- the color of the author's message
-    message_border_color = "000000", -- the color of the borders around an author's message
-    font = "A-OTF Shin Go Pro M", -- the font to use for chat messages
-    font_size = 18, -- the font size of chat messages
-    border_size = 2, -- the border size of chat messages
-    message_duration = 5000, -- the duration that each message is shown for in miliseconds
-    max_message_line_length = 40, -- the amount of characters before a message breaks into a new line
-    message_break_anywhere = false, -- whether line breaks in messages can happen anywhere or only after whole words
-    message_gap = 0, -- additional spacing between chat messages, given as a percentage of the font height
-    anchor = 9, -- where chat displays on the screen in numpad notation (1 is bottom-left, 7 is top-left, 9 is top-right, etc.)
-    parse_interval = 0.5
+    -- General
+    auto_load = true,                                   -- whether to automatically load live chat when a video loads
+    live_chat_directory = "~/Pictures/mpv/livechat/",   -- livechat directory
+    yt_dlp_path = "yt-dlp",                             -- path to yt-dlp executable
+
+    -- Author appearance
+    show_author = true,                                 -- show the author's (who sent the message's) name
+    author_color = "random",                            -- the color of the author's name, can be 'random', 'none' or a hex value
+    author_border_color = "000000",                     -- the color of borders around the author's name
+
+    -- Message appearance
+    message_color = "FFFFFF",                            -- the color of the author's message
+    message_border_color = "000000",                     -- the color of the borders around an author's message
+    font = "Segoe UI Semibold",                          -- the font to use for chat messages
+    font_size = 18,                                      -- the font size of chat messages
+    border_size = 2,                                     -- the border size of chat messages
+
+    -- Message formatting
+    message_duration = 6000,                            -- the duration that each message is shown for in miliseconds
+    max_message_line_length = 50,                       -- the amount of characters before a message breaks into a new line
+    message_break_anywhere = false,                     -- whether line breaks in messages can happen anywhere or only after whole words
+    message_gap = 0,                                    -- additional spacing between chat messages, given as a percentage of the font height
+
+    -- Display
+    anchor = 9,                                         -- where chat displays on the screen in numpad notation (1 is bottom-left, 7 is top-left, 9 is top-right, etc.)
+
+    -- Parsing
+    parse_interval = 0.5,                               -- the interval at which to parse chat messages
 }
 require("mp.options").read_options(options)
 
@@ -160,7 +178,7 @@ local function break_message(message, initial_length)
         return message
     end
 
-    local contains_cjk = message:find("[%z\1-\127\194-\244][\226\128\128-\226\255\255]") 
+    local contains_cjk = message:find("[%z\1-\127\194-\244][\226\128\128-\226\255\255]")
                        or message:find("[\224\176\128-\233\190\191]")
 
     local break_anywhere = options.message_break_anywhere or contains_cjk
@@ -343,7 +361,7 @@ local function live_chat_exists_remote(url)
 end
 
 local function update_messages(live_chat_json, last)
-    local file = io.open(live_chat_json, 'rb')
+    local file = assert(io.open(live_chat_json, 'rb'))
     file:seek('set', last)
     while true do
         local line = file:read('*l')
@@ -412,6 +430,7 @@ local function update_messages(live_chat_json, last)
                         end
 
                         local message_data = liveChatPaidMessageRenderer.message
+                        ---@type string?
                         local message = ""
                         if message_data ~= nil then
                             for _,data in ipairs(message_data.runs) do
