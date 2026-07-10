@@ -81,7 +81,8 @@ local function filter_sub(path)
     end
 end
 
-local function load_autosub(lang, sub_info, ytid, is_primary)
+local function load_autosub(lang, sub_info, ytid, is_primary, select_track)
+    if select_track == nil then select_track = true end
     local lang_name, url
 
     if sub_info ~= nil then
@@ -147,8 +148,8 @@ local function load_autosub(lang, sub_info, ytid, is_primary)
     end
 
     if is_primary then
-        mp.command("sub-add " .. subfile .. " select 'auto-generated' '" .. lang .. "'")
-    else
+        mp.command("sub-add " .. subfile .. " " .. (select_track and "select" or "auto") .. " 'auto-generated' '" .. lang .. "'")
+    elseif select_track then
         -- compute the number of subtitle tracks in order to select the new track by id
         local n_tracks = mp.get_property_native("track-list/count")
         local n_subs = 0
@@ -159,6 +160,8 @@ local function load_autosub(lang, sub_info, ytid, is_primary)
         end
         mp.command("sub-add " .. subfile .. " auto 'auto-generated' '" .. lang .. "'")
         mp.set_property("secondary-sid", n_subs + 1)
+    else
+        mp.command("sub-add " .. subfile .. " auto 'auto-generated' '" .. lang .. "'")
     end
     notify(lang_name .. " loaded")
 end
@@ -182,6 +185,11 @@ local function ytsub(is_auto, is_silent)
         -- source_lang as the secondary subtitle
         local source_lang = options.source_lang
 
+        -- if the video already has real (non-auto-generated) subtitles, still
+        -- cache the auto-subs for later use, but don't switch the active track to them
+        local has_real_subs = j["subtitles"] ~= nil and next(j["subtitles"]) ~= nil
+        local select_track = not has_real_subs
+
         local orig_lang
         for k, _ in pairs(subs) do
             if string.find(k, "(orig)") ~= nil then
@@ -190,12 +198,12 @@ local function ytsub(is_auto, is_silent)
             end
         end
 
-        load_autosub(orig_lang, subs[orig_lang], j["id"], true)
+        load_autosub(orig_lang, subs[orig_lang], j["id"], true, select_track)
         if source_lang ~= nil then
             if orig_lang == source_lang .. "-orig" then
                 notify("source language and original language are the same (" .. source_lang .. ")")
             else
-                load_autosub(source_lang, subs[source_lang], j["id"], false)
+                load_autosub(source_lang, subs[source_lang], j["id"], false, select_track)
             end
         end
     else
