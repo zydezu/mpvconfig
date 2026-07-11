@@ -30,40 +30,41 @@ local function render_persistent_progressbar() end
 local function limited_list() end
 local function check_title() end
 local function shuffle_playlist() end
-local function normalize_date(date) end
+local function normalize_date(_) end
 local function exec_async() end
 local function is_url() end
 local function check_path_url() end
 local function check_comments() end
 local function load_set_of_comments() end
 local function process_filesize() end
-local function split_utf8_strings(str, maxLength) end
+---@return string, integer
+local function split_utf8_strings(_, _) return "", 0 end
 local function process_vid_stats() end
 local function add_commas_to_number() end
 local function add_like_count_to_title() end
-local function get_playlist(shuffled) end
+local function get_playlist(_) end
 local function get_chapterlist() end
-local function show_message(text, duration) end
+local function show_message(_, _) end
 local function bind_keys() end
 local function unbind_keys() end
 local function destroy_scrolling_keys() end
 local function check_description() end
-local function show_description(text) end
+local function show_description(_) end
 local function reset_desc_timer() end
 local function render_message() end
 local function window_controls() end
 local function validate_user_opts() end
-local function update_options(list) end
+local function update_options(_) end
 local function show_osc() end
 local function hide_osc() end
-local function osc_visible(visible) end
-local function adjust_subtitles(visible) end
+local function osc_visible(_) end
+local function adjust_subtitles(_) end
 local function pause_state() end
 local function cache_state() end
 local function process_event() end
 local function tick() end
 local function reset_timeout() end
-local function visibility_mode(mode) end
+local function visibility_mode(_) end
 
 -- ====================
 -- Parameters
@@ -261,7 +262,7 @@ local user_opts = {
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
-mp.observe_property("osc", "bool", function(name, value) if value == true then mp.set_property("osc", "no") end end)
+mp.observe_property("osc", "bool", function(_, value) if value == true then mp.set_property("osc", "no") end end)
 
 local osc_param = { -- calculated by osc_init()
     playresy = 0,   -- canvas size Y
@@ -398,8 +399,6 @@ local sponsorblock_color_map = {
 }
 
 local tick_delay = 1 / 60   -- Fallback
-local audio_track_count = 0 -- TODO: implement
-local sub_track_count = 0   -- TODO: implement
 local window_control_box_width = 138
 local max_descsize = 200
 local comments_per_page = 25
@@ -465,6 +464,14 @@ local osc_styles = {
         user_opts.description_font_size .. '\\q2\\fn' .. user_opts.font .. '}',
 }
 
+---@class mp.Timer
+---@field oneshot boolean
+---@field timeout number
+---@field stop fun(self: mp.Timer)
+---@field kill fun(self: mp.Timer)
+---@field resume fun(self: mp.Timer)
+---@field is_enabled fun(self: mp.Timer): boolean
+
 -- internal states, do not touch
 local state = {
     showtime = nil,                          -- time of last invocation (last mouse move)
@@ -484,9 +491,9 @@ local state = {
     last_mouseY = nil,     -- last mouse position, to detect significant mouse movement
     mouse_in_window = false,
     fullscreen = false,
-    tick_timer = nil,
+    tick_timer = nil, ---@type mp.Timer?
     tick_last_time = 0, -- when the last tick() was run
-    hide_timer = nil,
+    hide_timer = nil,  ---@type mp.Timer?
     cache_state = nil,
     buffering = false,
     idle = false,
@@ -537,7 +544,7 @@ local state = {
     sponsor_segments = {},
 
     message_text = nil,       -- TODO: needs to be removed
-    message_hide_timer = nil, -- TODO: needs to be removed
+    message_hide_timer = nil, ---@type mp.Timer? -- TODO: needs to be removed
 }
 
 local logo_lines = {
@@ -811,6 +818,7 @@ function update_tracklist()
         if not (tracktable[n].type == 'unknown') then
             local type = tracktable[n].type
             local mpv_id = tonumber(tracktable[n].id)
+            ---@cast mpv_id number
 
             -- by osc_id
             table.insert(tracks_osc[type], tracktable[n])
@@ -952,7 +960,6 @@ local function prepare_elements()
             static_ass:draw_stop()
         elseif element.type == "slider" then
             --draw static slider parts
-            local slider_lo = element.layout.slider
             -- calculate positions of min and max points
             element.slider.min.ele_pos = user_opts.seek_handle_size * elem_geo.h / 2
             element.slider.max.ele_pos = elem_geo.w - element.slider.min.ele_pos
@@ -1266,7 +1273,6 @@ local function draw_sponsorblock_ranges(element, elem_ass, xp, rh)
         return
     end
 
-    local handle = xp and rh
     xp = xp or 0
     rh = rh or 0
     local slider_lo = element.layout.slider
@@ -1501,8 +1507,6 @@ function render_elements(master_ass)
                     end
                     buttontext = buttontext .. "..."
                 end
-                local _, nchars2 = buttontext:gsub(".[\128-\191]*", "")
-                local stretch = (maxchars / #buttontext) * 100
                 buttontext = string.format("{\\fscx%f}",
                     (maxchars / #buttontext) * 100) .. buttontext
             end
@@ -1671,19 +1675,6 @@ local function startupevents()
     mp.set_property_bool("auto-window-resize", false)
 end
 
-function dump(o)
-    if type(o) == 'table' then
-        local s = '{ '
-        for k, v in pairs(o) do
-            if type(k) ~= 'number' then k = '"' .. k .. '"' end
-            s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
-        end
-        return s .. '} '
-    else
-        return tostring(o)
-    end
-end
-
 function check_title()
     local mediatitle = mp.get_property("media-title")
     mp.set_property("title", mediatitle or "")
@@ -1732,7 +1723,7 @@ function check_title()
                 state.localDescriptionClick = title ..
                     "\\N────────────────────\\N" .. state.ytdescription .. "\\N────────────────────\\N"
 
-                local utf8split, lastchar = split_utf8_strings(state.ytdescription, max_descsize)
+                local utf8split, _ = split_utf8_strings(state.ytdescription, max_descsize)
 
                 if #utf8split ~= #state.ytdescription then
                     local tmp = utf8split:gsub("[,%.%s]+$", "")
@@ -1993,7 +1984,7 @@ function check_comments()
         },
         capture_stdout = true,
         capture_stderr = true
-    }, function(success, result, error)
+    }, function(success, _, error)
         if not success then
             print("Failed to write YouTube comments: " .. error)
             return
@@ -2128,7 +2119,7 @@ function process_filesize(success, result, error)
     request_tick()
 end
 
-local function download_done(success, result, error)
+local function download_done(success, _, error)
     if success then
         show_message("{\\an9}Download saved to " .. mp.command_native({ "expand-path", user_opts.download_path }))
         state.downloaded_once = true
@@ -2189,7 +2180,7 @@ function split_utf8_strings(str, maxLength)
     return table.concat(result), charCount
 end
 
-local function add_commas_to_number(number)
+function add_commas_to_number(number)
     if number == nil then return '' end
 
     return tostring(number)    -- Make sure the "number" is a string
@@ -2197,10 +2188,10 @@ local function add_commas_to_number(number)
         :gsub('%d%d%d', '%0,') -- insert one comma after every 3 numbers
         :gsub(',$', '')        -- Remove a trailing comma if present
         :reverse()             -- Reverse the string again
-        :sub(1)                -- a little hack to get rid of the second return value
+        :sub(1)                -- hack to get rid of the second return value
 end
 
-function process_vid_stats(success, result, error)
+function process_vid_stats(success, _, error)
     if not success then
         print("Couldn't fetch web video stats: " .. error)
         return
@@ -2270,7 +2261,7 @@ function get_playlist(shuffled)
 
     local playlist_label = shuffled and (texts.playlistshuffled or texts.playlist .. " (shuffled)") or texts.playlist
     local message = string.format(playlist_label .. ' [%d/%d]\n', pos, count)
-    for i, v in ipairs(limlist) do
+    for _, v in ipairs(limlist) do
         local title = v.title
         local _, filename = mp.utils.split_path(v.filename)
         if title == nil then
@@ -2421,7 +2412,7 @@ function unbind_keys(keys, name)
         return
     end
     local i = 1
-    for key in keys:gmatch("[^%s]+") do
+    for _ in keys:gmatch("[^%s]+") do
         local prefix = i == 1 and '' or i
         mp.remove_key_binding(name .. prefix)
         i = i + 1
@@ -2621,24 +2612,25 @@ end
 --
 
 local function new_element(name, type)
-    elements[name] = {}
-    elements[name].type = type
-    elements[name].name = name
+    local element = {}
+    element.type = type
+    element.name = name
 
     -- add default stuff
-    elements[name].eventresponder = {}
-    elements[name].visible = true
-    elements[name].enabled = true
-    elements[name].softrepeat = false
-    elements[name].styledown = (type == "button")
-    elements[name].state = {}
+    element.eventresponder = {}
+    element.visible = true
+    element.enabled = true
+    element.softrepeat = false
+    element.styledown = (type == "button")
+    element.state = {}
 
     if type == "slider" then
-        elements[name].slider = { min = { value = 0 }, max = { value = 100 } }
-        elements[name].thumbnailable = false
+        element.slider = { min = { value = 0 }, max = { value = 100 } }
+        element.thumbnailable = false
     end
 
-    return elements[name]
+    elements[name] = element
+    return element
 end
 
 local function add_layout(name)
@@ -2804,7 +2796,7 @@ layouts["original"] = function()
     add_area('showhide', 0, 0, osc_param.playresx, osc_param.playresy)
 
     -- fetch values
-    local osc_w, osc_h = osc_geo.w, osc_geo.h
+    local osc_w, _ = osc_geo.w, osc_geo.h
 
     -- Controller Background
     local lo, geo
@@ -3108,7 +3100,7 @@ layouts["reduced"] = function()
     add_area('showhide', 0, 0, osc_param.playresx, osc_param.playresy)
 
     -- fetch values
-    local osc_w, osc_h = osc_geo.w, osc_geo.h
+    local osc_w, _ = osc_geo.w, osc_geo.h
 
     -- Controller Background
     local lo, geo
@@ -3378,7 +3370,7 @@ function validate_user_opts()
     end
 end
 
-function update_options(list)
+function update_options(_)
     validate_user_opts()
     request_tick()
     visibility_mode("auto")
@@ -4009,15 +4001,15 @@ local function osc_init()
         if not user_opts.seek_range then
             return nil
         end
-        local cache_state = state.cache_state
-        if not cache_state then
+        local temp_cache_state = state.cache_state
+        if not temp_cache_state then
             return nil
         end
         local duration = mp.get_property_number("duration")
         if (duration == nil) or duration <= 0 then
             return nil
         end
-        local ranges = cache_state["seekable-ranges"]
+        local ranges = temp_cache_state["seekable-ranges"]
         if #ranges == 0 then
             return nil
         end
@@ -4157,15 +4149,15 @@ local function osc_init()
                 if not user_opts.seek_range then
                     return nil
                 end
-                local cache_state = state.cache_state
-                if not cache_state then
+                local temp_cache_state = state.cache_state
+                if not temp_cache_state then
                     return nil
                 end
                 local duration = mp.get_property_number('duration', nil)
                 if (duration == nil) or duration <= 0 then
                     return nil
                 end
-                local ranges = cache_state['seekable-ranges']
+                local ranges = temp_cache_state['seekable-ranges']
                 if #ranges == 0 then
                     return nil
                 end
@@ -4349,8 +4341,8 @@ function adjust_subtitles(visible)
     end
 end
 
-function pause_state(name, enabled)
-    -- fix OSC instantly hiding after scrubbing (initiates a 'fake' pause to stop issues when scrubbing to the end of files)
+function pause_state(_, enabled)
+    -- fix OSC instantly hiding after scrubbing (initiates a pause to stop issues when scrubbing to the end of files)
     if (state.playingWhilstSeeking) then
         state.playingWhilstSeekingWaitingForEnd = true
         return
@@ -4371,7 +4363,7 @@ function pause_state(name, enabled)
     request_tick()
 end
 
-function cache_state(name, st)
+function cache_state(_, st)
     state.cache_state = st
     request_tick()
 end
@@ -4411,13 +4403,12 @@ end
 
 local function render()
     mp.msg.trace('rendering')
-    local current_screen_sizeX, current_screen_sizeY, aspect = mp.get_osd_size()
+    local current_screen_sizeX, current_screen_sizeY, _ = mp.get_osd_size()
     local mouseX, mouseY = get_virt_mouse_pos()
     local now = mp.get_time()
 
     -- check if display changed, if so request reinit
-    if not (state.mp_screen_sizeX == current_screen_sizeX
-            and state.mp_screen_sizeY == current_screen_sizeY) then
+    if not (state.mp_screen_sizeX == current_screen_sizeX and state.mp_screen_sizeY == current_screen_sizeY) then
         request_init_resize()
 
         state.mp_screen_sizeX = current_screen_sizeX
@@ -4666,7 +4657,7 @@ function tick()
 
         -- mpv logo
         if user_opts.idle_screen then
-            for i, line in ipairs(logo_lines) do
+            for _, line in ipairs(logo_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
             end
@@ -4674,7 +4665,7 @@ function tick()
 
         -- Santa hat
         if is_december and user_opts.idle_screen and not user_opts.green_and_grumpy then
-            for i, line in ipairs(santa_hat_lines) do
+            for _, line in ipairs(santa_hat_lines) do
                 ass:new_event()
                 ass:append(line_prefix .. line)
             end
@@ -4827,23 +4818,23 @@ if user_opts.key_bindings then
 end
 
 mp.observe_property('fullscreen', 'bool',
-    function(name, val)
+    function(_, val)
         state.fullscreen = val
         request_init_resize()
     end
 )
 mp.observe_property('mute', 'bool',
-    function(name, val)
+    function(_, val)
         state.mute = val
     end
 )
 mp.observe_property('paused-for-cache', 'bool',
-    function(name, val)
+    function(_, val)
         state.buffering = val
     end
 )
 mp.observe_property('loop-file', 'bool',
-    function(name, val) -- ensure compatibility with auto looping scripts (eg: a script that sets videos under 2 seconds to loop by default)
+    function(_, val) -- ensure compatibility with auto looping scripts (eg: a script that sets videos under 2 seconds to loop by default)
         if (val == nil) then
             state.looping = true;
         else
@@ -4852,38 +4843,38 @@ mp.observe_property('loop-file', 'bool',
     end
 )
 mp.observe_property('border', 'bool',
-    function(name, val)
+    function(_, val)
         state.border = val
         request_init_resize()
     end
 )
 mp.observe_property('title-bar', 'bool',
-    function(name, val)
+    function(_, val)
         state.title_bar = val
         request_init_resize()
     end
 )
 mp.observe_property('window-maximized', 'bool',
-    function(name, val)
+    function(_, val)
         state.maximized = val
         request_init_resize()
     end
 )
 mp.observe_property('idle-active', 'bool',
-    function(name, val)
+    function(_, val)
         state.idle = val
         request_tick()
     end
 )
 mp.observe_property('pause', 'bool', pause_state)
 mp.observe_property('demuxer-cache-state', 'native', cache_state)
-mp.observe_property('vo-configured', 'bool', function(name, val)
+mp.observe_property('vo-configured', 'bool', function(_, _)
     request_tick()
 end)
-mp.observe_property('playback-time', 'number', function(name, val)
+mp.observe_property('playback-time', 'number', function(_, _)
     request_tick()
 end)
-mp.observe_property('osd-dimensions', 'native', function(name, val)
+mp.observe_property('osd-dimensions', 'native', function(_, _)
     -- (we could use the value instead of re-querying it all the time, but then
     --  we might have to worry about property update ordering)
     request_init_resize()
@@ -4891,29 +4882,29 @@ end)
 mp.observe_property("display-fps", "number", set_tick_delay)
 -- mouse show/hide bindings
 mp.set_key_bindings({
-    { 'mouse_move',  function(e) process_event('mouse_move', nil) end },
+    { 'mouse_move',  function(_) process_event('mouse_move', nil) end },
     { 'mouse_leave', mouse_leave },
 }, 'showhide', 'force')
 mp.set_key_bindings({
-    { 'mouse_move',  function(e) process_event('mouse_move', nil) end },
+    { 'mouse_move',  function(_) process_event('mouse_move', nil) end },
     { 'mouse_leave', mouse_leave },
 }, 'showhide_wc', 'force')
 do_enable_key_bindings()
 
 --mouse input bindings
 mp.set_key_bindings({
-    { "mbtn_left", function(e) process_event("mbtn_left", "up") end,
-        function(e) process_event("mbtn_left", "down") end },
-    { "shift+mbtn_left", function(e) process_event("shift+mbtn_left", "up") end,
-        function(e) process_event("shift+mbtn_left", "down") end },
-    { "shift+mbtn_right", function(e) process_event("shift+mbtn_right", "up") end,
-        function(e) process_event("shift+mbtn_right", "down") end },
-    { "mbtn_right", function(e) process_event("mbtn_right", "up") end,
-        function(e) process_event("mbtn_right", "down") end },
-    { "mbtn_mid", function(e) process_event("shift+mbtn_left", "up") end,
-        function(e) process_event("shift+mbtn_left", "down") end },
-    { "wheel_up",            function(e) process_event("wheel_up", "press") end },
-    { "wheel_down",          function(e) process_event("wheel_down", "press") end },
+    { "mbtn_left", function(_) process_event("mbtn_left", "up") end,
+        function(_) process_event("mbtn_left", "down") end },
+    { "shift+mbtn_left", function(_) process_event("shift+mbtn_left", "up") end,
+        function(_) process_event("shift+mbtn_left", "down") end },
+    { "shift+mbtn_right", function(_) process_event("shift+mbtn_right", "up") end,
+        function(_) process_event("shift+mbtn_right", "down") end },
+    { "mbtn_right", function(_) process_event("mbtn_right", "up") end,
+        function(_) process_event("mbtn_right", "down") end },
+    { "mbtn_mid", function(_) process_event("shift+mbtn_left", "up") end,
+        function(_) process_event("shift+mbtn_left", "down") end },
+    { "wheel_up",            function(_) process_event("wheel_up", "press") end },
+    { "wheel_down",          function(_) process_event("wheel_down", "press") end },
     { "mbtn_left_dbl",       "ignore" },
     { "shift+mbtn_left_dbl", "ignore" },
     { "mbtn_right_dbl",      "ignore" },
@@ -4921,8 +4912,8 @@ mp.set_key_bindings({
 mp.enable_key_bindings('input')
 
 mp.set_key_bindings({
-    { 'mbtn_left', function(e) process_event('mbtn_left', 'up') end,
-        function(e) process_event('mbtn_left', 'down') end },
+    { 'mbtn_left', function(_) process_event('mbtn_left', 'up') end,
+        function(_) process_event('mbtn_left', 'down') end },
 }, 'window-controls', 'force')
 mp.enable_key_bindings('window-controls')
 

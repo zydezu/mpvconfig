@@ -178,6 +178,7 @@ end
 
 local function copy()
     local path = mp.get_property("path")
+    if path then path = path:gsub("^%s+", ""):gsub("%s+$", "") end
 
     local function remove_timestamp_from_url(inputpath)
         if type(inputpath) == "string" then
@@ -218,10 +219,11 @@ local function copy()
 end
 
 local function paste()
-    mp.osd_message("Loading...", 10)
+    mp.osd_message("Loading...", 3)
     local clip = get_clipboard()
     if not clip then return end
     clip = clip:gsub("\n", " ")
+    clip = clip:gsub("^%s+", ""):gsub("%s+$", "")
     if not clip then return end
     local clip_file = clip:gsub('"', "")
     if is_url(clip) then

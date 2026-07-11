@@ -1,5 +1,6 @@
    {
      "diagnostics": {
-       "globals": ["mp", "jit"]
+       "globals": ["mp", "jit"],
+       "disable": ["duplicate-set-field"]
      }
    }
