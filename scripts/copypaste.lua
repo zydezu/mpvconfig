@@ -239,42 +239,36 @@ local function paste()
 end
 
 local function open()
-    -- for ubuntu
-    local url_browser_linux_cmd = "xdg-open \"$url\""
-    local file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
-    local url_browser_macos_cmd = "open \"$url\""
-    local file_browser_macos_cmd = "open -a Finder -R \"$path\""
-
     local path = mp.get_property("path")
-    local cmd = ""
+    if not path then return end
+
+    local args
     if is_url(path) then
-        if device == "linux" then
-            cmd = url_browser_linux_cmd
-        elseif device == "windows" then
-            local _ = mp.command_native_async({
-                name = "subprocess",
-                args = {"powershell","start",path}
-            })
+        if device == "windows" then
+            args = { "powershell", "start", path }
         elseif device == "mac" then
-            cmd = url_browser_macos_cmd
+            args = { "open", path }
+        else -- linux
+            args = { "xdg-open", path }
         end
-        cmd = cmd:gsub("$url", path)
     else
-        if device == "linux" then
-            cmd = file_browser_linux_cmd
-        elseif device == "windows" then
-            local _ = mp.command_native_async({
-                name = "subprocess",
-                args = { "explorer", "/select," ,path}
-            })
+        if device == "windows" then
+            args = { "explorer", "/select,", path }
         elseif device == "mac" then
-            cmd = file_browser_macos_cmd
+            args = { "open", "-a", "Finder", "-R", path }
+        else -- linux, for ubuntu
+            args = {
+                "dbus-send", "--print-reply",
+                "--dest=org.freedesktop.FileManager1",
+                "/org/freedesktop/FileManager1",
+                "org.freedesktop.FileManager1.ShowItems",
+                "array:string:file://" .. path,
+                "string:"
+            }
         end
-        cmd = cmd:gsub("$path", path)
     end
-    if device ~= "windows" then
-        os.execute(cmd)
-    end
+
+    mp.command_native_async({ name = "subprocess", args = args })
 end
 
 bind_keys(options.copy_keybind, "copy", copy)

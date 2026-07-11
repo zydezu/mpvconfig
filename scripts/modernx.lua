@@ -4891,6 +4891,18 @@ mp.set_key_bindings({
 }, 'showhide_wc', 'force')
 do_enable_key_bindings()
 
+
+mp.observe_property("playlist-pos", "number", function(_, pos)
+    -- only unpause on an actual navigation, not the initial file load
+    local last_pos = mp.get_property_number("playlist-pos", -1)
+
+    if pos ~= nil and last_pos ~= nil and last_pos ~= -1 and pos ~= last_pos then
+        if mp.get_property_bool("pause") then
+            mp.set_property_bool("pause", false)
+        end
+    end
+end)
+
 --mouse input bindings
 mp.set_key_bindings({
     { "mbtn_left", function(_) process_event("mbtn_left", "up") end,

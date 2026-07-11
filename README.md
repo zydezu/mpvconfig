@@ -48,6 +48,7 @@ Please note that many of these scripts have been slightly modified from their in
 | [selectformat](https://github.com/koonix/mpv-selectformat) allows you to change the quality of internet videos on the fly | **Ctrl+f** - Open format menu <br> Use up and down to choose a resolution, and fold and unfold selections with the arrow keys to see more codec options |
 | [sponsorblock](https://github.com/po5/mpv_sponsorblock) a fully-featured port of SponsorBlock for mpv | [See repository](https://github.com/po5/mpv_sponsorblock?tab=readme-ov-file#usage) |
 | [thumbfast](https://github.com/po5/thumbfast) show thumbnails when hovering the progress bar | None |
+| [unpauseonplaylistchange](https://github.com/zydezu/mpvconfig/blob/main/scripts/unpauseonplaylistchange.lua) automatically resumes playback when moving to another item in the playlist while paused | None |
 | [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
 
 ## To-Do
@@ -56,6 +57,10 @@ Please note that many of these scripts have been slightly modified from their in
 - [x] Add folders as an option in `mpvcut.lua`
 
 ## Updates
+
+### 2026-07-11
+
+- FEAT: add `unpauseonplaylistchange.lua`, which resumes playback when moving to another playlist item while paused
 
 ### 2026-07-10
 
