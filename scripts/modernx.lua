@@ -2021,7 +2021,8 @@ function check_comments()
         if file_exists(filename) then
             print("Reading YouTube comments file...")
             local lines = lines_from(filename)
-            state.jsoncomments = mp.utils.parse_json(lines[1]).comments
+            local parsed = lines[1] and mp.utils.parse_json(lines[1])
+            state.jsoncomments = (parsed and parsed.comments) or {}
         else
             print("Error opening YouTube comments file")
             return
