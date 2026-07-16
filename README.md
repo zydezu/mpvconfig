@@ -58,6 +58,10 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-07-16
+
+- FIX: `t` now shows the subtitle transcription
+
 ### 2026-07-11
 
 - FEAT: add `unpauseonplaylistchange.lua`, which resumes playback when moving to another playlist item while paused
