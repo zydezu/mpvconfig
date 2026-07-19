@@ -2452,6 +2452,33 @@ function destroy_scrolling_keys()
     unbind_keys("Shift+TAB", "link_prev")
 end
 
+-- strips trailing punctuation/brackets that the match caught but aren't part of the URL,
+-- e.g. "(...wiki/Foo_(bar))" keeps the URL's own ")" and only drops the wrapping one
+local function trim_trailing_punctuation(url)
+    url = url:gsub('[,%.;:!?"\'>]+$', "")
+    while true do
+        local last = url:sub(-1)
+        local open, close
+        if last == ")" then
+            open, close = "%(", "%)"
+        elseif last == "]" then
+            open, close = "%[", "%]"
+        elseif last == "}" then
+            open, close = "%{", "%}"
+        else
+            break
+        end
+        local _, opens = url:gsub(open, "")
+        local _, closes = url:gsub(close, "")
+        if closes > opens then
+            url = url:sub(1, -2)
+        else
+            break
+        end
+    end
+    return url
+end
+
 -- finds every URL mentioned in a video description
 function extract_links(text)
     local links = {}
@@ -2459,7 +2486,7 @@ function extract_links(text)
     -- \r/\n are converted to the literal escape "\N" before this runs, and backslash isn't
     -- whitespace, so it must be excluded too or a link swallows the rest of the description
     for match in text:gmatch("https?://[^%s\\]+") do
-        local url = match:gsub('[%)%]%}>,%.;:"\']+$', "") -- drop trailing punctuation caught by the match
+        local url = trim_trailing_punctuation(match)
         if url ~= "" and not seen[url] then
             seen[url] = true
             links[#links + 1] = url
