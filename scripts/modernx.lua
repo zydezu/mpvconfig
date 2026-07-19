@@ -48,6 +48,10 @@ local function show_message(_, _) end
 local function bind_keys() end
 local function unbind_keys() end
 local function destroy_scrolling_keys() end
+local function extract_links() end
+local function open_url() end
+local function plain_replace_all() end
+local function apply_link_highlight() end
 local function check_description() end
 local function show_description(_) end
 local function reset_desc_timer() end
@@ -406,6 +410,14 @@ local is_december = os.date("*t").month == 12
 local unicode_minus_symbol = string.char(0xe2, 0x88, 0x92) -- UTF-8 for U+2212 MINUS SIGN
 local iconfont = 'fluent-system-icons'
 
+local device = "linux"
+if os.getenv("windir") ~= nil then
+    device = "windows"
+elseif os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" ]' == 0
+    or os.execute '[ -d "/Applications" ]' == true and os.execute '[ -d "/Library" ]' == true then
+    device = "mac"
+end
+
 local function osc_color_convert(color)
     return color:sub(6, 7) .. color:sub(4, 5) .. color:sub(2, 3)
 end
@@ -531,6 +543,9 @@ local state = {
     descriptionLoaded = false,
     showingDescription = false,
     scrolledlines = 25,
+    descriptionLinks = {},   -- URLs found in the description
+    descriptionBaseText = "", -- description text without link highlighting applied
+    selectedLinkIndex = 0,   -- 0 = no link selected
     youtubeuploader = "",
     jsoncomments = {},
     youtubecomments = {},
@@ -1686,6 +1701,8 @@ function check_title()
     -- fake description using metadata
     state.localDescription = nil
     state.localDescriptionClick = nil
+    state.descriptionLinks = {}
+    state.selectedLinkIndex = 0
 
     local title = mp.get_property("media-title")
     local artist = mp.get_property("filtered-metadata/by-key/Album_Artist") or
@@ -1711,6 +1728,7 @@ function check_title()
     if metadata then
         state.ytdescription = metadata.ytdl_description or description or ""
         state.ytdescription = state.ytdescription:gsub('\r', '\\N'):gsub('\n', '\\N'):gsub("%%", "%%")
+        state.descriptionLinks = extract_links(state.ytdescription)
 
         state.is_live = metadata.ytdl_is_live
     else
@@ -2422,6 +2440,7 @@ end
 function destroy_scrolling_keys()
     state.showingDescription = false
     state.scrolledlines = 25
+    state.selectedLinkIndex = 0
     show_message("", 0.01) -- clear text
     unbind_keys("UP WHEEL_UP", "move_up")
     unbind_keys("DOWN WHEEL_DOWN", "move_down")
@@ -2429,6 +2448,59 @@ function destroy_scrolling_keys()
     unbind_keys("ESC MBTN_RIGHT", "close")
     unbind_keys("LEFT", "comments_left")
     unbind_keys("RIGHT", "comments_right")
+    unbind_keys("TAB", "link_next")
+    unbind_keys("Shift+TAB", "link_prev")
+end
+
+-- finds every URL mentioned in a video description
+function extract_links(text)
+    local links = {}
+    local seen = {}
+    -- \r/\n are converted to the literal escape "\N" before this runs, and backslash isn't
+    -- whitespace, so it must be excluded too or a link swallows the rest of the description
+    for match in text:gmatch("https?://[^%s\\]+") do
+        local url = match:gsub('[%)%]%}>,%.;:"\']+$', "") -- drop trailing punctuation caught by the match
+        if url ~= "" and not seen[url] then
+            seen[url] = true
+            links[#links + 1] = url
+        end
+    end
+    return links
+end
+
+-- string.gsub can't do plain-text (non-pattern) replacement, so this does it manually
+function plain_replace_all(text, find, replace)
+    local out, start = {}, 1
+    while true do
+        local i, j = text:find(find, start, true)
+        if not i then
+            out[#out + 1] = text:sub(start)
+            break
+        end
+        out[#out + 1] = text:sub(start, i - 1)
+        out[#out + 1] = replace
+        start = j + 1
+    end
+    return table.concat(out)
+end
+
+-- wraps the currently selected link (if any) in ASS tags so it stands out in the description
+function apply_link_highlight(text)
+    local url = state.descriptionLinks[state.selectedLinkIndex]
+    if not url then return text end
+    return plain_replace_all(text, url, '{\\c&H4DC3FF&\\u1}' .. url .. '{\\u0\\c}')
+end
+
+function open_url(url)
+    local args
+    if device == "windows" then
+        args = { "powershell", "start", url }
+    elseif device == "mac" then
+        args = { "open", url }
+    else
+        args = { "xdg-open", url }
+    end
+    mp.command_native_async({ name = "subprocess", args = args })
 end
 
 function check_description()
@@ -2439,6 +2511,7 @@ function check_description()
             destroy_scrolling_keys()
         else
             state.showingDescription = true
+            state.selectedLinkIndex = #state.descriptionLinks > 0 and 1 or 0
             if state.is_URL then
                 show_description(state.localDescriptionClick)
             else
@@ -2482,11 +2555,19 @@ function show_description(text)
         reset_desc_timer()
         request_tick()
     end, { repeatable = true })
-    bind_keys("ENTER", "select", destroy_scrolling_keys)
+    bind_keys("ENTER", "select", function()
+        local url = state.descriptionLinks[state.selectedLinkIndex]
+        if url then
+            open_url(url)
+        else
+            destroy_scrolling_keys()
+        end
+    end)
     bind_keys("ESC", "close", function()
         if (state.commentsPage > 0) then
             state.commentsPage = 0
-            state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
+            state.descriptionBaseText = state.localDescriptionClick .. state.commentsAdditionalText
+            state.message_text = "\\N" .. apply_link_highlight(state.descriptionBaseText)
             reset_desc_timer()
             request_tick()
             state.scrolledlines = 25
@@ -2494,6 +2575,21 @@ function show_description(text)
             destroy_scrolling_keys()
         end
     end) -- close menu using ESC
+
+    if #state.descriptionLinks > 0 then
+        bind_keys("TAB", "link_next", function()
+            state.selectedLinkIndex = state.selectedLinkIndex % #state.descriptionLinks + 1
+            state.message_text = "\\N" .. apply_link_highlight(state.descriptionBaseText)
+            reset_desc_timer()
+            request_tick()
+        end)
+        bind_keys("Shift+TAB", "link_prev", function()
+            state.selectedLinkIndex = (state.selectedLinkIndex - 2) % #state.descriptionLinks + 1
+            state.message_text = "\\N" .. apply_link_highlight(state.descriptionBaseText)
+            reset_desc_timer()
+            request_tick()
+        end)
+    end
 
     local function returnMessageText()
         local totalCommentCount = #state.jsoncomments
@@ -2524,7 +2620,8 @@ function show_description(text)
             if (state.commentsParsed) then
                 state.commentsPage = state.commentsPage - 1
                 if (state.commentsPage == 0) then
-                    state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
+                    state.descriptionBaseText = state.localDescriptionClick .. state.commentsAdditionalText
+                    state.message_text = "\\N" .. apply_link_highlight(state.descriptionBaseText)
                 elseif (state.commentsPage > 0) then
                     state.message_text = returnMessageText()
                 else
@@ -2541,7 +2638,8 @@ function show_description(text)
                 state.commentsPage = state.commentsPage + 1
                 if (state.commentsPage > state.maxCommentPages) then
                     state.commentsPage = 0
-                    state.message_text = state.localDescriptionClick .. state.commentsAdditionalText
+                    state.descriptionBaseText = state.localDescriptionClick .. state.commentsAdditionalText
+                    state.message_text = "\\N" .. apply_link_highlight(state.descriptionBaseText)
                 else
                     state.message_text = returnMessageText()
                 end
@@ -2552,7 +2650,8 @@ function show_description(text)
         end)
     end
 
-    text = "\\N" .. text
+    state.descriptionBaseText = text
+    text = "\\N" .. apply_link_highlight(text)
     state.message_text = text
 
     if not state.message_hide_timer then

@@ -58,6 +58,14 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-07-19
+
+- FEAT: add the ability to open links from the description of YouTube video directly, by using TAB to navigate to the link and ENTER to open it when viewing the full description
+
+### 2026-07-18
+
+- FIX: fix playlists being cleared when `retryonerror.lua` triggers
+
 ### 2026-07-16
 
 - FIX: `t` now shows the subtitle transcription
