@@ -55,7 +55,8 @@ local options = {
 
     -- ENCODE_ANIMATED action
     animated_encoding_type = "avif", -- output format: gif, webp, or avif
-    max_animated_resolution = 540,   -- resolution cap (height) for ENCODE_ANIMATED
+    max_animated_resolution = 540,   -- resolution cap (short side) for ENCODE_ANIMATED
+    max_animated_long_side = 960,    -- resolution cap (long side) for ENCODE_ANIMATED
     avif_crf = 42,                   -- lower crf = better quality
     webp_quality = 75,               -- 0–100, higher = better quality
     webp_compression_level = 6,      -- trade-off between speed and size, lower = faster
@@ -562,6 +563,7 @@ ACTIONS.ENCODE_ANIMATED = function(d)
             "." .. options.animated_encoding_type)
     end
 
+    local video_width = mp.get_property_number("width")
     local video_height = mp.get_property_number("height")
 
     -- Start with common args
@@ -572,10 +574,18 @@ ACTIONS.ENCODE_ANIMATED = function(d)
         "-i", d.inpath
     }
 
-    if video_height and options.cap_resolution and video_height > options.max_animated_resolution then
-        local res_line = "scale=trunc(oh*a/2)*2:" .. options.max_animated_resolution
-        table.insert(args, "-vf")
-        table.insert(args, res_line)
+    -- Better scaling for 16:9
+    if video_width and video_height and options.cap_resolution then
+        local short_side = options.max_animated_resolution
+        local long_side = options.max_animated_long_side
+        if math.max(video_width, video_height) > long_side
+            or math.min(video_width, video_height) > short_side then
+            local res_line = string.format(
+                "scale='if(gt(iw,ih),min(%d,iw),min(%d,iw))':'if(gt(iw,ih),min(%d,ih),min(%d,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2",
+                long_side, short_side, short_side, long_side)
+            table.insert(args, "-vf")
+            table.insert(args, res_line)
+        end
     end
 
     if options.animated_encoding_type == "avif" then
