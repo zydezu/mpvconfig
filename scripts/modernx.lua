@@ -48,7 +48,7 @@ local function show_message(_, _) end
 local function bind_keys() end
 local function unbind_keys() end
 local function destroy_scrolling_keys() end
-local function extract_links() end
+local function extract_links(text) end
 local function open_url() end
 local function plain_replace_all() end
 local function apply_link_highlight() end
@@ -81,7 +81,7 @@ local user_opts = {
     language = "en",            -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",   -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
     icon_style = "modern",      -- icon set used by the buttons: "modern" (fluent-system-icons),
-                                -- "solid" (Material-Design-Iconic-Font) or "round" (Material-Design-Iconic-Round)
+    -- "solid" (Material-Design-Iconic-Font) or "round" (Material-Design-Iconic-Round)
     layout_option = "original", -- use the original/reduced layout
     idle_screen = true,         -- show mpv logo when idle
     key_bindings = true,        -- register additional key bindings, such as chapter scrubbing, pinning the window
@@ -278,7 +278,7 @@ local osc_param = { -- calculated by osc_init()
     areas = {},
 }
 
-local icons = {
+local icons_modern = {
     play = "\238\166\143",
     pause = "\238\163\140",
     replay = "\238\189\191",
@@ -335,6 +335,65 @@ local icons = {
         like = "👍",
     },
 }
+
+-- so retro
+local icons_material = {
+    play = "\239\142\170",
+    pause = "\239\142\167",
+    replay = "\239\142\178",
+
+    previous = "\239\142\181",
+    next = "\239\142\180",
+    rewind = "\239\142\160",
+    forward = "\239\142\159",
+
+    audio = "\239\142\183",
+    subtitle = "\239\140\164",
+
+    volume = {
+        mute = "\239\142\187",
+        quiet = "\239\142\186",
+        low = "\239\142\185",
+        high = "\239\142\188",
+    },
+
+    download = "\239\136\160",
+    download_initiated = "\239\134\185",
+
+    loop_off = "\239\134\181",
+    loop_on = "\239\134\183",
+
+    info = "\239\135\183",
+
+    pinned_off = "\239\142\149",
+    pinned_on = "\239\142\150",
+
+    screenshot = "\239\135\168",
+    playlist = icons_modern.playlist, -- currently unused
+
+    fullscreen = "\239\133\173",
+    fullscreen_exit = "\239\133\172",
+
+    jumpicons = {
+        [5] = { "\239\142\177", "\239\142\163" },
+        [10] = { "\239\142\175", "\239\142\161" },
+        [30] = { "\239\142\176", "\239\142\162" },
+        default = { "\239\142\178", "\239\142\178" }, -- second icon is mirrored in layout()
+    },
+
+    window = icons_modern.window, -- drawn with osc_styles.window_control, not iconfont
+
+    emoticon = icons_modern.emoticon,
+}
+
+local icon_styles = {
+    modern = { font = "fluent-system-icons" },
+    solid = { font = "Material-Design-Iconic-Font" },
+    round = { font = "Material-Design-Iconic-Round" },
+}
+local selected_icon_style = icon_styles[user_opts.icon_style] or icon_styles.modern
+local icons = (user_opts.icon_style == "solid" or user_opts.icon_style == "round")
+    and icons_material or icons_modern
 
 -- Localization
 local language = {
@@ -410,7 +469,7 @@ local max_descsize = 200
 local comments_per_page = 25
 local is_december = os.date("*t").month == 12
 local unicode_minus_symbol = string.char(0xe2, 0x88, 0x92) -- UTF-8 for U+2212 MINUS SIGN
-local iconfont = 'fluent-system-icons'
+local iconfont = selected_icon_style.font
 
 local device = "linux"
 if os.getenv("windir") ~= nil then

@@ -1,11 +1,11 @@
 # mpvconfig
 
-<img src="https://raw.githubusercontent.com/zydezu/mpvconfig/refs/heads/main/image.png">
+> [!NOTE]
+> Releases of the [modernx](https://github.com/zydezu/modernx) script are in a seperate repository, please see here: [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
+
+<img src="https://raw.githubusercontent.com/zydezu/mpvconfig/refs/heads/main/image.png" width=300>
 
 My personal [mpv](https://mpv.io/) config.
-
-> [!NOTE]
-> Releases of the [modernx](https://github.com/zydezu/modernx) script are in a seperate repository - see here [https://github.com/zydezu/ModernX/releases](https://github.com/zydezu/ModernX/releases).
 
 ## How to Use
 
