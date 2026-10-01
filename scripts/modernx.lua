@@ -80,6 +80,8 @@ local user_opts = {
     -- Language and display
     language = "en",            -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",   -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
+    icon_style = "modern",      -- icon set used by the buttons: "modern" (fluent-system-icons),
+                                -- "solid" (Material-Design-Iconic-Font) or "round" (Material-Design-Iconic-Round)
     layout_option = "original", -- use the original/reduced layout
     idle_screen = true,         -- show mpv logo when idle
     key_bindings = true,        -- register additional key bindings, such as chapter scrubbing, pinning the window
@@ -201,10 +203,10 @@ local user_opts = {
     thumbnail_border_outline = "#000000",     -- color of the border outline for thumbnails
 
     fade_alpha = 100,                         -- alpha of the title bar background box
-    fade_blur_strength = 75,                  -- blur strength for the OSC alpha fade - caution: high values can take a lot of CPU time to render
+    fade_blur_strength = 75,                  -- blur strength for the OSC alpha fade, higher values have a smoother fade effect
     fade_transparency_strength = 0,           -- use with "fade_blur_strength = 0" to create a transparency box
     window_fade_alpha = 100,                  -- alpha of the window title bar
-    window_fade_blur_strength = 75,           -- blur strength for the window title bar. caution: high values can take a lot of CPU time to render
+    window_fade_blur_strength = 75,           -- blur strength for the window title bar. higher values have a smoother fade effect
     window_fade_transparency_strength = 0,    -- use with "window_fade_blur_strength = 0" to create a transparency box
     thumbnail_border = 1,                     -- width of the thumbnail border (for thumbfast)
     thumbnail_border_radius = 5,              -- rounded corner radius for thumbnail border (0 to disable)
