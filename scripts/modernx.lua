@@ -80,15 +80,14 @@ local user_opts = {
     -- Language and display
     language = "en",            -- en:English - .json translations need implementing
     font = "mpv-osd-symbols",   -- font for the OSC (default: mpv-osd-symbols or the one set in mpv.conf)
-    icon_style = "modern",      -- icon set used by the buttons: "modern" (fluent-system-icons),
-    -- "solid" (Material-Design-Iconic-Font) or "round" (Material-Design-Iconic-Round)
+    icon_style = "modern",      -- icon set used by the buttons: "modern", "solid" or "round"
     layout_option = "original", -- use the original/reduced layout
     idle_screen = true,         -- show mpv logo when idle
     key_bindings = true,        -- register additional key bindings, such as chapter scrubbing, pinning the window
     window_top_bar = "auto",    -- show OSC window top bar: "auto", "yes", or "no" (borderless/fullscreen)
     show_windowed = true,       -- show OSC when windowed
     show_fullscreen = true,     -- show OSC when fullscreen
-    show_on_pause = true,       -- show OSC when paused
+    show_on_pause = false,      -- show OSC when paused
     keep_on_pause = false,      -- disable OSC hide timeout when paused
     green_and_grumpy = false,   -- disable the Santa hat in December
     visibility = "auto",        -- only used at init to set visibility_mode(...)
@@ -164,7 +163,7 @@ local user_opts = {
     volume_control_type = "linear", -- volume scale type: "linear" or "logarithmic"
 
     info_button = false,            -- show info button
-    ontop_button = true,            -- show window on top button
+    ontop_button = false,           -- show window on top button
     screenshot_button = false,      -- show screenshot button
     screenshot_flag = "subtitles",  -- flag for screenshot button: "subtitles", "video", "window", "each-frame"
     -- https://mpv.io/manual/master/#screenshot-commands
@@ -218,7 +217,7 @@ local user_opts = {
     hover_effect_for_sliders = false, -- apply hover effects to slider handles
 
     -- Progress bar settings
-    seek_handle_size = 0.8,              -- size ratio of the seekbar handle (range: 0 ~ 1)
+    seek_handle_size = 0,                -- size ratio of the seekbar handle (range: 0 ~ 1)
     seekbar_between_timers = false,      -- moves the seekbar and progress bar between the timers
     seekbar_height = 2,                  -- height of the seekbar
     progress_bar_height = 16,            -- height of the progress bar
@@ -262,9 +261,9 @@ local user_opts = {
     sponsorblock_filler_color = "#7300FF",         -- color for filler content/tangents
 
     -- Experimental
-    show_youtube_comments = false,             -- EXPERIMENTAL - show youtube comments
+    show_youtube_comments = true,              -- EXPERIMENTAL - show youtube comments
     comments_path = "~/Pictures/mpv/comments", -- EXPERIMENTAL - the download path for the comment JSON file
-    FORCE_fix_not_ontop = true,                -- EXPERIMENTAL - try and mitigate https://github.com/zydezu/ModernX/issues/30, https://github.com/akiirui/mpv-handler/issues/48
+    FORCE_fix_not_ontop = false,               -- EXPERIMENTAL - try and mitigate https://github.com/zydezu/ModernX/issues/30, https://github.com/akiirui/mpv-handler/issues/48
 }
 -- read options from config and command-line
 require("mp.options").read_options(user_opts, 'modernx', function(list) update_options(list) end)
