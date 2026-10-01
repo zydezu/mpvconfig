@@ -1751,9 +1751,20 @@ local function startupevents()
     mp.set_property_bool("auto-window-resize", false)
 end
 
+local title_format = mp.get_property("options/title") or ""
+
+local function window_title_base()
+    local title = (title_format ~= "") and (mp.command_native({ "expand-text", title_format }) or "") or ""
+    if title == "" then title = mp.get_property("media-title") or "" end
+    return title
+end
+
 function check_title()
     local mediatitle = mp.get_property("media-title")
-    mp.set_property("title", mediatitle or "")
+    -- don't overwrite the `title` format from mpv.conf
+    if title_format == "" then
+        mp.set_property("title", mediatitle or "")
+    end
 
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamic_title then
         user_opts.title = "${media-title}"
@@ -2323,7 +2334,7 @@ function add_like_count_to_title()
         state.viewcount = add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)'))
         state.likecount = add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount ~= '' and state.likecount ~= '') then
-            mp.set_property("title", mp.get_property("media-title") ..
+            mp.set_property("title", window_title_base() ..
                 " | " .. icons.emoticon.view .. state.viewcount ..
                 " | " .. icons.emoticon.like .. state.likecount)
         end
@@ -4961,11 +4972,11 @@ if user_opts.key_bindings then
             if mp.get_property('ontop') == 'yes' then
                 show_message("Pinned window")
                 mp.commandv('set', 'border', "no")
-                mp.set_property("title", mp.get_property("media-title") .. " (Picture-in-Picture)")
+                mp.set_property("title", window_title_base() .. " (Picture-in-Picture)")
             else
                 show_message("Unpinned window")
                 mp.commandv('set', 'border', "yes")
-                mp.set_property("title", mp.get_property("media-title"))
+                mp.set_property("title", window_title_base())
             end
         end
     end);
