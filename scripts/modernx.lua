@@ -1750,20 +1750,27 @@ local function startupevents()
     mp.set_property_bool("auto-window-resize", false)
 end
 
+local mpv_default_title = "${?media-title:${media-title}}${!media-title:No file} - mpv"
 local title_format = mp.get_property("options/title") or ""
+local user_title_format = (title_format ~= "" and title_format ~= mpv_default_title) and title_format or nil
+local title_suffix = ""
 
 local function window_title_base()
-    local title = (title_format ~= "") and (mp.command_native({ "expand-text", title_format }) or "") or ""
-    if title == "" then title = mp.get_property("media-title") or "" end
-    return title
+    if user_title_format then
+        local title = mp.command_native({ "expand-text", user_title_format }) or ""
+        if title ~= "" then return title end
+    end
+    return mp.get_property("media-title") or ""
+end
+
+local function set_window_title()
+    mp.set_property("title", window_title_base() .. title_suffix)
 end
 
 function check_title()
     local mediatitle = mp.get_property("media-title")
-    -- don't overwrite the `title` format from mpv.conf
-    if title_format == "" then
-        mp.set_property("title", mediatitle or "")
-    end
+    title_suffix = ""
+    set_window_title()
 
     if (mp.get_property("filename") ~= mediatitle) and user_opts.dynamic_title then
         user_opts.title = "${media-title}"
@@ -2333,9 +2340,9 @@ function add_like_count_to_title()
         state.viewcount = add_commas_to_number(state.localDescriptionClick:match('Views: (%d+)'))
         state.likecount = add_commas_to_number(state.localDescriptionClick:match('Likes: (%d+)'))
         if (state.viewcount ~= '' and state.likecount ~= '') then
-            mp.set_property("title", window_title_base() ..
-                " | " .. icons.emoticon.view .. state.viewcount ..
-                " | " .. icons.emoticon.like .. state.likecount)
+            title_suffix = " | " .. icons.emoticon.view .. state.viewcount ..
+                " | " .. icons.emoticon.like .. state.likecount
+            set_window_title()
         end
     end
 end
@@ -4971,12 +4978,13 @@ if user_opts.key_bindings then
             if mp.get_property('ontop') == 'yes' then
                 show_message("Pinned window")
                 mp.commandv('set', 'border', "no")
-                mp.set_property("title", window_title_base() .. " (Picture-in-Picture)")
+                title_suffix = " (Picture-in-Picture)"
             else
                 show_message("Unpinned window")
                 mp.commandv('set', 'border', "yes")
-                mp.set_property("title", window_title_base())
+                title_suffix = ""
             end
+            set_window_title()
         end
     end);
 
@@ -5132,4 +5140,6 @@ mp.register_script_message("sponsorblock-done", make_sponsorblock_segments)
 
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
-mp.set_property("title", "mpv")
+if not user_title_format then
+    mp.set_property("title", "mpv")
+end
