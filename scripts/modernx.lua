@@ -5140,6 +5140,4 @@ mp.register_script_message("sponsorblock-done", make_sponsorblock_segments)
 
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
-if not user_title_format then
-    mp.set_property("title", "mpv")
-end
+mp.set_property("title", "mpv")
