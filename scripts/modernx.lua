@@ -1756,6 +1756,13 @@ local user_title_format = (title_format ~= "" and title_format ~= mpv_default_ti
 local title_suffix = ""
 
 local function window_title_base()
+    -- use the real video title (eg: the YouTube title) instead of the URL
+    if state.is_URL then
+        local media_title = mp.get_property("media-title")
+        if media_title and media_title ~= "" then
+            return media_title
+        end
+    end
     if user_title_format then
         local title = mp.command_native({ "expand-text", user_title_format }) or ""
         if title ~= "" then return title end
@@ -1995,10 +2002,11 @@ function check_path_url()
         path = string.gsub(path, "ytdl://", "https://") -- Replace "ytdl://" with "https://"
     end
 
-    if is_url(path) and path or nil then
+    if is_url(path) then
         state.is_URL = true
         state.url_path = path
         print("URL detected.")
+        set_window_title()
 
         if path:match("https?://[^/]*youtube%.com/") or path:match("https?://youtu%.be/") then
             if path:match("/watch%?v=") or path:match("/shorts/") then
