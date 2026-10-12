@@ -53,8 +53,7 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## To-Do
 
-- [x] Fix `mpvcut.lua` copying the resulting file
-- [x] Add folders as an option in `mpvcut.lua`
+- [ ] modernx "Continue from ??:??" prompt?
 
 ## Updates
 
