@@ -26,8 +26,8 @@ local options = {
 }
 
 if display_protocol == "wayland" then
-	options.linux_copy_command = { "wl-copy" }
-	options.linux_paste_command = { 'wl-paste' }
+    options.linux_copy_command = { "wl-copy" }
+    options.linux_paste_command = { 'wl-paste' }
 end
 
 (require "mp.options").read_options(options)
@@ -46,42 +46,46 @@ end
 
 local function file_exists(name)
     local f = io.open(name, "r")
-    if f ~= nil then io.close(f) return true else return false end
+    if f ~= nil then
+        io.close(f)
+        return true
+    else return false end
 end
 
 local function bind_keys(keys, name, func, opts)
-	if not keys then
-		mp.add_forced_key_binding(keys, name, func, opts)
-		return
-	end
+    if not keys then
+        mp.add_forced_key_binding(keys, name, func, opts)
+        return
+    end
 
-	for i = 1, #keys do
-		if i == 1 then
-			mp.add_forced_key_binding(keys[i], name, func, opts)
-		else
-			mp.add_forced_key_binding(keys[i], name .. i, func, opts)
-		end
-	end
+    for i = 1, #keys do
+        if i == 1 then
+            mp.add_forced_key_binding(keys[i], name, func, opts)
+        else
+            mp.add_forced_key_binding(keys[i], name .. i, func, opts)
+        end
+    end
 end
 
 local function handle_res(res, _)
-	if not res.error and res.status == 0 then
-		return res.stdout
-	else
-		print("Error obtaining clipboard!")
-	end
+    if not res.error and res.status == 0 then
+        return res.stdout
+    else
+        print("Error obtaining clipboard!")
+    end
 end
 
 local function set_clipboard(text)
     local pipe
     if device == "linux" then
-		local command = table.concat(options.linux_copy_command, " ")
-		pipe = assert(io.popen(command, "w"))
+        local command = table.concat(options.linux_copy_command, " ")
+        pipe = assert(io.popen(command, "w"))
         pipe:write(text)
         pipe:close()
     elseif device == "windows" then
-        mp.utils.subprocess({ args = {
-            "powershell", "-NoProfile", "-Command", string.format([[& {
+        mp.utils.subprocess({
+            args = {
+                "powershell", "-NoProfile", "-Command", string.format([[& {
                 Trap {
                     Write-Error -ErrorRecord $_
                     Exit 1
@@ -89,9 +93,10 @@ local function set_clipboard(text)
                 Add-Type -AssemblyName PresentationCore
                 [System.Windows.Clipboard]::SetText("%s")
             }]], text)
-        } })
+            }
+        })
     elseif device == "mac" then
-        pipe = assert(io.popen("pbcopy","w"))
+        pipe = assert(io.popen("pbcopy", "w"))
         pipe:write(text)
         pipe:close()
     end
@@ -100,7 +105,7 @@ end
 local function get_clipboard()
     if device == "linux" then
         local args = options.linux_paste_command
-		return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
+        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     elseif device == "windows" then
         local args = {
             "powershell", "-NoProfile", "-Command", [[& {
@@ -118,8 +123,8 @@ local function get_clipboard()
         }
         return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     elseif device == "mac" then
-		local args = { "pbpaste" }
-		return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
+        local args = { "pbpaste" }
+        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
     end
     return ""
 end
@@ -129,7 +134,11 @@ local function is_url(s)
     return string.match(s, url_pattern) ~= nil
 end
 
+local ignore_next_playlist_increase = false
+
 local function add_item(name, file)
+    ignore_next_playlist_increase = true
+    mp.add_timeout(1, function() ignore_next_playlist_increase = false end)
     if mp.get_property_number("playlist-count", 0) == 0 then
         mp.commandv("loadfile", file)
     else
@@ -270,6 +279,39 @@ local function open()
 
     mp.command_native_async({ name = "subprocess", args = args })
 end
+
+-- Drag-and-dropped links
+local last_playlist_count = mp.get_property_number("playlist-count", 0)
+
+mp.observe_property("playlist-count", "number", function(_, count)
+    if type(count) ~= "number" then return end
+
+    if ignore_next_playlist_increase then
+        ignore_next_playlist_increase = false
+        last_playlist_count = count
+        return
+    end
+
+    if count > last_playlist_count then
+        local playlist = mp.get_property_native("playlist")
+        if type(playlist) == "table" and #playlist > 0 then
+            local entry = playlist[#playlist]
+            local file = type(entry) == "table" and entry.filename or nil
+            if type(file) == "string" and is_url(file) then
+                local current_pos = mp.get_property_number("playlist-pos", -1)
+                local last_index = #playlist - 1
+                if current_pos ~= last_index or mp.get_property_bool("idle-active", false) then
+                    mp.set_property("playlist-pos", last_index)
+                end
+                if last_playlist_count > 0 then
+                    mp.osd_message("Added URL to playlist")
+                end
+            end
+        end
+    end
+
+    last_playlist_count = count
+end)
 
 bind_keys(options.copy_keybind, "copy", copy)
 bind_keys(options.paste_keybind, "paste", paste)
