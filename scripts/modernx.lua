@@ -138,9 +138,9 @@ local user_opts = {
     date_format = "%Y-%m-%d",      -- how dates should be formatted, when read from metadata (uses standard lua date formatting)
 
     -- Title bar settings
-    window_title = true,                      -- show window title in borderless/fullscreen mode
-    window_controls = true,                   -- show window controls (close, minimize, maximize) in borderless/fullscreen
-    window_controls_title = "${media-title}", -- same as title but for window_controls
+    window_title = true,                   -- show window title in borderless/fullscreen mode
+    window_controls = true,                -- show window controls (close, minimize, maximize) in borderless/fullscreen
+    window_controls_title = "${filename}", -- same as title but for window_controls
 
     -- Subtitle display settings
     raise_subtitles = true,      -- whether to raise subtitles above the osc when it's shown
@@ -3342,7 +3342,7 @@ layouts["reduced"] = function()
     -- Seekbar
     new_element('seekbarbg', 'box')
     lo = add_layout('seekbarbg')
-    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = 2 }
+    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.seekbar_height }
     lo.layer = 13
     lo.style = osc_styles.seekbar_bg
     lo.alpha[1] = 128
@@ -3352,13 +3352,14 @@ layouts["reduced"] = function()
     elements['seekbarbg'].visible = not (user_opts.show_chapter_markers and user_opts.chapter_marker_style == "gap")
 
     lo = add_layout('seekbar')
-    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = 16 }
+    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.progress_bar_height }
     lo.style = osc_styles.seekbar_fg
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
+    lo.layer = 100
 
-    if (user_opts.persistent_progress or user_opts.persistent_progresstoggle) then
+    if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         lo = add_layout('persistentseekbar')
         lo.geometry = { x = refX, y = refY, an = 5, w = osc_geo.w, h = user_opts.persistent_progress_height }
         lo.style = osc_styles.seekbar_fg
@@ -3387,9 +3388,9 @@ layouts["reduced"] = function()
     lo = add_layout("title")
     lo.geometry = geo
     lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
-        geo.y - geo.h, geo.x + osc_geo.w - 170, geo.y + geo.h)
+        geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
     lo.alpha[3] = 0
-    lo.button.maxchars = geo.w / 5
+    lo.button.maxchars = geo.w / 11
 
     -- Description
     if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
@@ -3397,9 +3398,9 @@ layouts["reduced"] = function()
         lo = add_layout("description")
         lo.geometry = geo
         lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.description,
-            geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
+            geo.y - geo.h, geo.x, geo.y + geo.h)
         lo.alpha[3] = 0
-        -- lo.button.maxchars = geo.w / 11
+        lo.button.maxchars = geo.w / 7
     end
 
     -- Volumebar
@@ -4512,7 +4513,8 @@ function adjust_subtitles(visible)
     if visible and user_opts.raise_subtitles and state.osc_visible == true and (state.fullscreen == false or user_opts.show_fullscreen) then
         local _, h = mp.get_osd_size()
         if h > 0 then
-            local subpos = math.floor((osc_param.playresy - (user_opts.raise_subtitle_amount - (user_opts.seekbar_between_timers and 25 or 0))) /
+            local between_timers = user_opts.seekbar_between_timers or user_opts.layout_option == "reduced"
+            local subpos = math.floor((osc_param.playresy - (user_opts.raise_subtitle_amount - (between_timers and 25 or 0))) /
                 osc_param.playresy * 100)
             if subpos < 0 then
                 subpos = 100                      -- out of screen, default to original position

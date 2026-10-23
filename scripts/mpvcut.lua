@@ -35,8 +35,8 @@ local options = {
     clip_resolution = 1080,        -- target resolution (height) when resolution cap is enabled
 
     -- CPU encoding quality
-    h264_crf = 23, -- lower crf = better quality
-    h265_crf = 28,
+    h264_crf = 28, -- lower crf = better quality
+    h265_crf = 32,
     av1_crf = 40,
     av1_preset = 6, -- trade-off between speed and size, higher = faster (also used for ENCODE_ANIMATED avif)
 
@@ -46,7 +46,7 @@ local options = {
     nvenc_preset = "p4",                  -- NVENC speed preset: p1 (fastest) to p7 (best quality)
     gpu_h264_cq = 25,                     -- GPU quality (CQ/QP), lower = better quality
     gpu_h265_cq = 30,
-    gpu_av1_cq = 42,                      -- please check your GPU for AV1 support
+    gpu_av1_cq = 38,                      -- please check your GPU for AV1 support
 
     -- COMPRESS action
     compress_size = 19.50, -- target file size in MB
@@ -500,14 +500,14 @@ local function build_encode_args(d, spec)
             if spec.bitrate then
                 table.insert(args, "-b:v"); table.insert(args, spec.bitrate)
             else
-                table.insert(args, "-crf"); table.insert(args, tostring(options.h265_crf or 28))
+                table.insert(args, "-crf"); table.insert(args, tostring(options.h265_crf or 32))
             end
         else
             table.insert(args, "-c:v"); table.insert(args, "libx264")
             if spec.bitrate then
                 table.insert(args, "-b:v"); table.insert(args, spec.bitrate)
             else
-                table.insert(args, "-crf"); table.insert(args, tostring(options.h264_crf or 23))
+                table.insert(args, "-crf"); table.insert(args, tostring(options.h264_crf or 28))
             end
         end
         table.insert(args, "-c:a"); table.insert(args, "copy")
