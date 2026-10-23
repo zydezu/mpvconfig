@@ -422,6 +422,7 @@ local language = {
         download_in_progress = "Download in progress",
         downloading = "Downloading",
         downloaded = "Already downloaded",
+        seedescription = "See description",
     }
 }
 local texts = language[user_opts.language] or language["en"]
@@ -3339,15 +3340,15 @@ layouts["reduced"] = function()
     local refX = osc_w / 2
     local refY = posY
 
-    -- Seekbar width is dynamic: grow/shrink with the timer labels (HH:MM:SS vs MM:SS)
+    -- Seekbar width is dynamic - grow/shrink with the timer labels (HH:MM:SS vs MM:SS)
     local remsec = mp.get_property_number("playtime-remaining", 0)
     local possec = mp.get_property_number("playback-time", 0)
     local dur = mp.get_property_number("duration", 0)
     local show_hours = possec >= 3600 or user_opts.time_format ~= "dynamic"
     local show_remhours = (state.tc_right_rem and remsec >= 3600) or (not state.tc_right_rem and dur >= 3600) or
         user_opts.time_format ~= "dynamic"
-    local left_margin = 65 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0)
-    local right_margin = 65 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0)
+    local left_margin = 70 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0)
+    local right_margin = 70 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0)
     local seekbar_w = osc_geo.w - left_margin - right_margin
     if seekbar_w < 100 then seekbar_w = 100 end
 
@@ -3404,16 +3405,8 @@ layouts["reduced"] = function()
     lo.alpha[3] = 0
     lo.button.maxchars = geo.w / 11
 
-    -- Description
-    if (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
-        geo = { x = osc_geo.w - 25, y = refY - 115, an = 9, w = 120, h = 19 }
-        lo = add_layout("description")
-        lo.geometry = geo
-        lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.description,
-            geo.y - geo.h, geo.x, geo.y + geo.h)
-        lo.alpha[3] = 0
-        lo.button.maxchars = geo.w / 7
-    end
+    -- Description button is intentionally omitted in reduced mode; the chapter
+    -- title takes its place in the top-right corner instead.
 
     -- Volumebar
     if user_opts.volume_control then
@@ -3503,7 +3496,7 @@ layouts["reduced"] = function()
     -- Chapter Title (next to timestamp)
     if user_opts.show_chapter_title then
         lo = add_layout("chapter_title")
-        lo.geometry = { x = 25, y = refY - 125, an = 1, w = 120, h = 19 }
+        lo.geometry = { x = osc_geo.w - 25, y = refY - 115, an = 9, w = 120, h = 19 }
         lo.style = osc_styles.chapter_title
     end
 
@@ -3662,7 +3655,11 @@ local function osc_init()
         return not (title == "") and title or "mpv"
     end
     ne.eventresponder["mbtn_left_up"] = function()
-        mp.commandv("script-binding", "stats/display-page-1")
+        if user_opts.layout_option == "reduced" and (state.localDescription ~= nil or state.is_URL) and user_opts.show_description then
+            check_description()
+        else
+            mp.commandv("script-binding", "stats/display-page-1")
+        end
     end
     ne.eventresponder["shift+mbtn_left_down"] = function()
         mp.commandv("show-text", mp.get_property_osd("media-title"))
@@ -3677,7 +3674,7 @@ local function osc_init()
     ne.visible = (state.localDescription ~= nil or state.is_URL) and user_opts.show_description
     ne.content = function()
         if #state.videoDescription > 25 and user_opts.layout_option == "reduced" then
-            return "View description"
+            return texts.seedescription
         end
 
         if state.is_URL then
@@ -4443,7 +4440,7 @@ local function osc_init()
         end
         return "" -- fallback
     end
-    ne.eventresponder["mbtn_left_up"] = function() show_message(get_chapterlist()) end
+    ne.eventresponder["mbtn_left_up"] = function() mp.commandv("script-binding", "select/select-chapter") end
 
     -- Total/remaining time display
     ne = new_element("tc_right", "button")
