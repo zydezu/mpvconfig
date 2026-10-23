@@ -3339,10 +3339,22 @@ layouts["reduced"] = function()
     local refX = osc_w / 2
     local refY = posY
 
+    -- Seekbar width is dynamic: grow/shrink with the timer labels (HH:MM:SS vs MM:SS)
+    local remsec = mp.get_property_number("playtime-remaining", 0)
+    local possec = mp.get_property_number("playback-time", 0)
+    local dur = mp.get_property_number("duration", 0)
+    local show_hours = possec >= 3600 or user_opts.time_format ~= "dynamic"
+    local show_remhours = (state.tc_right_rem and remsec >= 3600) or (not state.tc_right_rem and dur >= 3600) or
+        user_opts.time_format ~= "dynamic"
+    local left_margin = 65 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0)
+    local right_margin = 65 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0)
+    local seekbar_w = osc_geo.w - left_margin - right_margin
+    if seekbar_w < 100 then seekbar_w = 100 end
+
     -- Seekbar
     new_element('seekbarbg', 'box')
     lo = add_layout('seekbarbg')
-    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.seekbar_height }
+    lo.geometry = { x = refX, y = refY - 75, an = 5, w = seekbar_w, h = user_opts.seekbar_height }
     lo.layer = 13
     lo.style = osc_styles.seekbar_bg
     lo.alpha[1] = 128
@@ -3352,12 +3364,12 @@ layouts["reduced"] = function()
     elements['seekbarbg'].visible = not (user_opts.show_chapter_markers and user_opts.chapter_marker_style == "gap")
 
     lo = add_layout('seekbar')
-    lo.geometry = { x = refX, y = refY - 75, an = 5, w = osc_geo.w - 200, h = user_opts.progress_bar_height }
+    lo.geometry = { x = refX, y = refY - 75, an = 5, w = seekbar_w, h = user_opts.progress_bar_height }
     lo.style = osc_styles.seekbar_fg
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
-    lo.layer = 100
+    lo.layer = 40
 
     if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         lo = add_layout('persistentseekbar')
