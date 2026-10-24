@@ -13,7 +13,7 @@ Use `git clone https://github.com/zydezu/mpvconfig mpv`, and place it in the rel
 
 ### Linux Note
 
-For the clipboard functionality use in `copypaste.lua`, you many need to install the `xclip` or `wl-clipboard` package, depending on your session type.
+The scripts use mpv's native clipboard, which requires **mpv >= 0.41** (`copypaste.lua` needs it; `mpvcrop.lua`/`mpvcut.lua` and screenshot-to-clipboard additionally need the `wl-clipboard` or `xclip` package for image/uri-list copies).
 
 ### Flatpak Instructions (from https://github.com/zydezu/mpvconfig/issues/21)
 
@@ -39,7 +39,7 @@ Please note that many of these scripts have been slightly modified from their in
 | -------------- | --------------- |
 | [autoloop](https://github.com/zydezu/mpvconfig/blob/main/scripts/autoloop.lua) loops files by default that are smaller than a set duration | None |
 | [autolyrics](https://github.com/zydezu/mpvconfig/blob/main/scripts/autolyrics.lua) tries to download lyrics and display them for said file | **Alt+m** - Request lyrics from musixmatch then netease if that fails<br>**Alt+n** - Request lyrics only from netease<br>**Alt+o** - Set lyrics start point to the current timestamp (if lyrics need to be synced) |
-| [copypaste](https://github.com/zydezu/mpvconfig/blob/main/scripts/copypaste.lua) Copy and paste file paths, URLs and timestamps | **Ctrl+c** - Copy file path or URL to clipboard<br>**Ctrl+v** - Paste file path or URL and play it<br>**o** - Open file location or URL in browser |
+| [copypaste](https://github.com/zydezu/mpvconfig/blob/main/scripts/copypaste.lua) Copy and paste file paths, URLs and timestamps | **Ctrl+c** - Copy file path or URL to clipboard<br>**Ctrl+v** - Paste file path or URL to playlist (auto-plays only if the player is at the end of the current video)<br>**o** - Open file location or URL in browser |
 | [detectdualsubs](https://github.com/zydezu/mpvconfig/blob/main/scripts/detectdualsubs.lua) Detects if there are two existing subtitles, one being an original script and the other being a translation (eg: English and Japanese subtitles) and displays them both on screen | **Ctrl+x** - Toggle dual subs on or off |
 | [loadaudiotracks](https://github.com/zydezu/mpvconfig/blob/main/scripts/loadaudiotracks.lua) Allows multiple audio tracks to be selected and played together | **Ctrl+z** - Toggle another audio track |
 | [modernx](https://github.com/zydezu/modernx) a modern OSC for mpv with many additional features | **z** - Cycle through audio tracks <br>**x** - Cycle through subtitle tracks <br>**p** - Pin or unpin the window <br>**Tab** - Show chapter list <br>**Ctrl+s** - Shuffle the current playlist <br>For more: [See repository](https://github.com/zydezu/modernx#buttons) |
@@ -56,6 +56,10 @@ Please note that many of these scripts have been slightly modified from their in
 - [ ] modernx "Continue from ??:??" prompt?
 
 ## Updates
+
+### 2026-10-24
+
+- FEAT: dropped files and `copypaste.lua` pastes (Ctrl+v) no longer auto-play; they are appended to the playlist and only start playing if the player is idle or the current video has ended (with `keep-open=yes`). `mpv.conf` now sets `drag-and-drop=append`, and `copypaste.lua` uses mpv's native `clipboard/text` property (requires mpv >= 0.41, no external clipboard tools needed)
 
 ### 2026-07-19
 

@@ -7,8 +7,6 @@
 
 mp.utils = require("mp.utils")
 
-local display_protocol = os.getenv("XDG_SESSION_TYPE")
-
 local options = {
     -- Keybinds
     copy_keybind = [[
@@ -18,20 +16,20 @@ local options = {
         ["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
     ]],
     open_keybind = "o",
-
-    -- Copy and paste commands
-    linux_copy_command = { "xclip", "-silent", "-selection", "clipboard", "-in" },
-    linux_paste_command = { "xclip", "-selection", "clipboard", "-o" },
     copy_youtube_timestamp = true,
 }
 
-if display_protocol == "wayland" then
-    options.linux_copy_command = { "wl-copy" }
-    options.linux_paste_command = { 'wl-paste' }
-end
-
 (require "mp.options").read_options(options)
 
+-- Native clipboard via `clipboard/text`
+local native_clipboard = nil
+do
+    local ver = tonumber(((mp.get_property("mpv-version") or ""):match("v0%.(%d+)")))
+    native_clipboard = ver ~= nil and ver >= 41
+end
+if not native_clipboard then
+    mp.msg.warn("clipboard support requires mpv >= 0.41 - please update mpv")
+end
 -- File/URL pasting
 
 options.copy_keybind = mp.utils.parse_json(options.copy_keybind)
@@ -49,7 +47,9 @@ local function file_exists(name)
     if f ~= nil then
         io.close(f)
         return true
-    else return false end
+    else
+        return false
+    end
 end
 
 local function bind_keys(keys, name, func, opts)
@@ -67,65 +67,20 @@ local function bind_keys(keys, name, func, opts)
     end
 end
 
-local function handle_res(res, _)
-    if not res.error and res.status == 0 then
-        return res.stdout
-    else
-        print("Error obtaining clipboard!")
-    end
-end
-
 local function set_clipboard(text)
-    local pipe
-    if device == "linux" then
-        local command = table.concat(options.linux_copy_command, " ")
-        pipe = assert(io.popen(command, "w"))
-        pipe:write(text)
-        pipe:close()
-    elseif device == "windows" then
-        mp.utils.subprocess({
-            args = {
-                "powershell", "-NoProfile", "-Command", string.format([[& {
-                Trap {
-                    Write-Error -ErrorRecord $_
-                    Exit 1
-                }
-                Add-Type -AssemblyName PresentationCore
-                [System.Windows.Clipboard]::SetText("%s")
-            }]], text)
-            }
-        })
-    elseif device == "mac" then
-        pipe = assert(io.popen("pbcopy", "w"))
-        pipe:write(text)
-        pipe:close()
+    local ok, res = pcall(mp.set_property, "clipboard/text", text)
+    if not ok then
+        mp.msg.error("failed to copy: " .. tostring(res))
+        mp.osd_message("Copy failed (requires mpv >= 0.41)", 3)
     end
 end
 
 local function get_clipboard()
-    if device == "linux" then
-        local args = options.linux_paste_command
-        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
-    elseif device == "windows" then
-        local args = {
-            "powershell", "-NoProfile", "-Command", [[& {
-                Trap {
-                    Write-Error -ErrorRecord $_
-                    Exit 1
-                }
-                $clip = Get-Clipboard -Raw -Format Text -TextFormatType UnicodeText
-                if (-not $clip) {
-                    $clip = Get-Clipboard -Raw -Format FileDropList
-                }
-                $u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
-                [Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
-            }]]
-        }
-        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
-    elseif device == "mac" then
-        local args = { "pbpaste" }
-        return handle_res(mp.utils.subprocess({ args = args, cancellable = false }), args)
+    local ok, res = pcall(mp.get_property, "clipboard/text")
+    if ok and res ~= nil then
+        return res
     end
+    mp.msg.error("failed to paste: " .. tostring(res or "clipboard unavailable"))
     return ""
 end
 
@@ -136,15 +91,28 @@ end
 
 local ignore_next_playlist_increase = false
 
+local function start_last_added(index)
+    local idle = mp.get_property_bool("idle-active", false)
+    if not idle and not mp.get_property_bool("eof-reached", false) then
+        return
+    end
+    if mp.get_property_number("playlist-pos", -1) ~= index then
+        mp.set_property("playlist-pos", index)
+    end
+end
+
 local function add_item(name, file)
     ignore_next_playlist_increase = true
     mp.add_timeout(1, function() ignore_next_playlist_increase = false end)
     if mp.get_property_number("playlist-count", 0) == 0 then
         mp.commandv("loadfile", file)
-    else
-        mp.osd_message("Added " .. name .. " to playlist")
-        mp.commandv("loadfile", file, "append-play")
+        return
     end
+    -- Don't auto-play; only when the current video has ended
+    local index = mp.get_property_number("playlist-count", 0)
+    mp.commandv("loadfile", file, "append")
+    start_last_added(index)
+    mp.osd_message("Added " .. name .. " to playlist")
 end
 
 local function is_timestamp(str)
@@ -280,11 +248,31 @@ local function open()
     mp.command_native_async({ name = "subprocess", args = args })
 end
 
--- Drag-and-dropped links
+-- Drag-and-dropped files/links
 local last_playlist_count = mp.get_property_number("playlist-count", 0)
+-- Events during the initial launch load (e.g. autocreate-playlist expanding
+-- a command line file) shouldn't count as drops. Consider every drop once
+-- the player started a file, or immediately when launched into idle.
+local bootstrapped = false
+
+mp.register_event("start-file", function()
+    bootstrapped = true
+    last_playlist_count = mp.get_property_number("playlist-count", 0)
+end)
+
+mp.observe_property("idle-active", "bool", function(_, idle_active)
+    if idle_active and not bootstrapped then
+        bootstrapped = true
+        last_playlist_count = mp.get_property_number("playlist-count", 0)
+    end
+end)
 
 mp.observe_property("playlist-count", "number", function(_, count)
     if type(count) ~= "number" then return end
+    if not bootstrapped then
+        last_playlist_count = count
+        return
+    end
 
     if ignore_next_playlist_increase then
         ignore_next_playlist_increase = false
@@ -293,20 +281,22 @@ mp.observe_property("playlist-count", "number", function(_, count)
     end
 
     if count > last_playlist_count then
+        -- Items appended by drag-and-drop (--drag-and-drop=append): don't
+        -- auto-play, unless nothing is playing or the current video ended.
+        local first_added = last_playlist_count -- 0-based index of first new entry
+        local dropped = count - last_playlist_count
         local playlist = mp.get_property_native("playlist")
         if type(playlist) == "table" and #playlist > 0 then
-            local entry = playlist[#playlist]
+            local entry = playlist[first_added + 1]
             local file = type(entry) == "table" and entry.filename or nil
-            if type(file) == "string" and is_url(file) then
-                local current_pos = mp.get_property_number("playlist-pos", -1)
-                local last_index = #playlist - 1
-                if current_pos ~= last_index or mp.get_property_bool("idle-active", false) then
-                    mp.set_property("playlist-pos", last_index)
-                end
-                if last_playlist_count > 0 then
-                    mp.osd_message("Added URL to playlist")
+            if last_playlist_count > 0 then
+                if type(file) == "string" and is_url(file) then
+                    mp.osd_message(("Added %s to playlist"):format(dropped > 1 and dropped .. " URLs" or "URL"))
+                else
+                    mp.osd_message(("Added %s to playlist"):format(dropped > 1 and dropped .. " files" or "file"))
                 end
             end
+            start_last_added(first_added)
         end
     end
 
