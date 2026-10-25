@@ -1,5 +1,5 @@
 --[[
-    modernx.lua v0.4.7 by zydezu
+    modernx.lua v0.4.9 by zydezu
     (https://github.com/zydezu/ModernX)
 
     This script is a result of the original mpv-osc-modern by maoiscat
@@ -3251,17 +3251,20 @@ layouts["original"] = function()
 
     -- Chapter Title (next to timestamp)
     if user_opts.show_chapter_title then
+        local time_chars = (show_hours and 8 or 5) + (state.tc_ms and 4 or 0)
+        local time_width = time_chars * user_opts.time_font_size * 0.55
+        local sep_x = 25 + time_width + 5
         lo = add_layout("separator")
-        lo.geometry = { x = 65 + (state.tc_ms and 25 or 0) + (show_hours and 16 or 0), y = refY - 84, an = 7, w = 30, h = 20 }
+        lo.geometry = { x = sep_x, y = refY - 84, an = 7, w = 30, h = 20 }
         lo.style = osc_styles.time
 
         lo = add_layout("chapter_title")
+        local chapter_x = sep_x + 35
         lo.geometry = {
-            x = 77 + (state.tc_ms and 25 or 0) + (show_hours and 16 or 0),
+            x = chapter_x,
             y = refY - 84,
             an = 7,
-            w = osc_geo
-                .w - 200 - ((show_hours or state.tc_ms) and 60 or 0),
+            w = osc_geo.w - chapter_x - 25 - ((show_hours or state.tc_ms) and 60 or 0),
             h = 20
         }
         lo.style = osc_styles.chapter_title
@@ -3657,6 +3660,13 @@ local function osc_init()
     else
         scale = user_opts.scale_windowed
     end
+
+    -- Apply system HiDPI scale so the OSC adapts to high-DPI displays
+    local dpi_scale = mp.get_property_number("display-hidpi-scale", 1)
+    if not dpi_scale or dpi_scale <= 0 then
+        dpi_scale = 1
+    end
+    scale = scale * dpi_scale
 
     if user_opts.vid_scale then
         osc_param.unscaled_y = baseResY
