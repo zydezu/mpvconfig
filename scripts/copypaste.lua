@@ -281,21 +281,10 @@ mp.observe_property("playlist-count", "number", function(_, count)
     end
 
     if count > last_playlist_count then
-        -- Items appended by drag-and-drop (--drag-and-drop=append): don't
-        -- auto-play, unless nothing is playing or the current video ended.
+        -- Items appended by drag-and-drop
         local first_added = last_playlist_count -- 0-based index of first new entry
-        local dropped = count - last_playlist_count
         local playlist = mp.get_property_native("playlist")
         if type(playlist) == "table" and #playlist > 0 then
-            local entry = playlist[first_added + 1]
-            local file = type(entry) == "table" and entry.filename or nil
-            if last_playlist_count > 0 then
-                if type(file) == "string" and is_url(file) then
-                    mp.osd_message(("Added %s to playlist"):format(dropped > 1 and dropped .. " URLs" or "URL"))
-                else
-                    mp.osd_message(("Added %s to playlist"):format(dropped > 1 and dropped .. " files" or "file"))
-                end
-            end
             start_last_added(first_added)
         end
     end

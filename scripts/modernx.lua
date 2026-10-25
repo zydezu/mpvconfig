@@ -238,27 +238,29 @@ local user_opts = {
     ytdl_format = "",           -- optional parameteres for yt-dlp downloading, eg: '-f bestvideo+bestaudio/best'
 
     -- SponsorBlock - these SponsorBlock features need https://github.com/zydezu/mpvconfig/blob/main/scripts/sponsorblock.lua specifically to function
-    show_sponsorblock_segments = true,             -- show SponsorBlock segments on the progress bar
-    add_sponsorblock_chapters = false,             -- add SponsorBlock chapters to the chapter list
-    sponsorblock_seek_range_alpha = 75,            -- transparency of SponsorBlock segments
-    sponsor_types = {                              -- what categories to show in the progress bar
-        "sponsor",                                 -- all categories: sponsor, intro, outro,
-        "intro",                                   -- interaction, selfpromo, preview, music_offtopic, filler
-        "outro",                                   -- video outro
-        "interaction",                             -- interaction reminders such as liking and subscribing
-        "selfpromo",                               -- self promotion of socials or other channels
-        "preview",                                 -- video preview
-        "music_offtopic",                          -- silence in music videos
-        "filler"                                   -- filler content/tangents
+    show_sponsorblock_segments = true,                               -- show SponsorBlock segments on the progress bar
+    add_sponsorblock_chapters = false,                               -- add SponsorBlock chapters to the chapter list
+    sponsorblock_seek_range_alpha = 75,                              -- transparency of SponsorBlock segments
+    sponsor_types = {                                                -- what categories to show in the progress bar
+        "sponsor",                                                   -- all categories: sponsor, intro, outro,
+        "intro",                                                     -- interaction, selfpromo, preview, music_offtopic, filler
+        "outro",                                                     -- video outro
+        "interaction",                                               -- interaction reminders such as liking and subscribing
+        "selfpromo",                                                 -- self promotion of socials or other channels
+        "preview",                                                   -- video preview
+        "music_offtopic",                                            -- silence in music videos
+        "filler"                                                     -- filler content/tangents
     },
-    sponsorblock_sponsor_color = "#00D400",        -- color for sponsors
-    sponsorblock_intro_color = "#00FFFF",          -- color for intermission/intro animations
-    sponsorblock_outro_color = "#0202ED",          -- color for endcards/credits
-    sponsorblock_interaction_color = "#CC00FF",    -- color for interaction reminders (reminders to subscribe)
-    sponsorblock_selfpromo_color = "#FFFF00",      -- color for unpaid/self promotion
-    sponsorblock_preview_color = "#008FD6",        -- color for unpaid/self promotion
-    sponsorblock_music_offtopic_color = "#FF9900", -- color for unpaid/self promotion
-    sponsorblock_filler_color = "#7300FF",         -- color for filler content/tangents
+    sponsorblock_sponsor_color = "#00D400",                          -- color for sponsors
+    sponsorblock_intro_color = "#00FFFF",                            -- color for intermission/intro animations
+    sponsorblock_outro_color = "#0202ED",                            -- color for endcards/credits
+    sponsorblock_interaction_color = "#CC00FF",                      -- color for interaction reminders (reminders to subscribe)
+    sponsorblock_selfpromo_color = "#FFFF00",                        -- color for unpaid/self promotion
+    sponsorblock_preview_color = "#008FD6",                          -- color for unpaid/self promotion
+    sponsorblock_music_offtopic_color = "#FF9900",                   -- color for unpaid/self promotion
+    sponsorblock_filler_color = "#7300FF",                           -- color for filler content/tangents
+    show_sponsorblock_segment_name_on_hover = false,                 -- show the SponsorBlock segment type name under the seekbar hover time/thumbnail
+    show_sponsorblock_segment_name_in_chapter_title_on_hover = true, -- temporarily show the SponsorBlock segment type name where the chapter title would be while hovering
 
     -- Experimental
     show_youtube_comments = true,              -- EXPERIMENTAL - show youtube comments
@@ -622,6 +624,30 @@ local state = {
     message_text = nil, -- TODO: needs to be removed
     message_hide_timer = nil, ---@type mp.Timer? -- TODO: needs to be removed
 }
+
+local function get_sponsor_segment_name(pos)
+    if not user_opts.show_sponsorblock_segment_name_on_hover then
+        return nil
+    end
+    if not user_opts.show_sponsorblock_segments then
+        return nil
+    end
+    if type(state.sponsor_segments) ~= "table" then
+        return nil
+    end
+    for category, segments in pairs(state.sponsor_segments) do
+        if type(segments) == "table" then
+            for _, seg in ipairs(segments) do
+                if type(seg) == "table" and seg.start and seg["end"] then
+                    if pos >= seg.start and pos <= seg["end"] then
+                        return (tostring(category):gsub("^%l", string.upper):gsub("_", " "))
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
 
 local logo_lines = {
     -- White border
@@ -1377,17 +1403,26 @@ function render_elements(master_ass)
     -- because thumbfast will render it above the thumbnail instead
     if thumbfast.disabled then
         if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar
-            and (user_opts.chapter_hover_title or user_opts.chapter_hover_subtitle) then
-            local dur = mp.get_property_number("duration", 0)
-            if dur > 0 then
-                local ch = get_chapter(state.sliderpos * dur / 100)
-                if ch and ch.title and ch.title ~= "" then
-                    local formatted = string.format(user_opts.chapter_fmt, ch.title)
-                    if user_opts.chapter_hover_subtitle then
-                        state.forced_chapter_title = formatted
-                    end
-                    if user_opts.chapter_hover_title then
-                        state.forced_title = formatted
+            and (user_opts.chapter_hover_title or user_opts.chapter_hover_subtitle
+                or user_opts.show_sponsorblock_segment_name_in_chapter_title_on_hover) then
+            local sponsor_name = user_opts.show_sponsorblock_segment_name_in_chapter_title_on_hover
+                and get_sponsor_segment_name(state.sliderpos)
+            if sponsor_name then
+                if user_opts.chapter_hover_subtitle or user_opts.show_sponsorblock_segment_name_in_chapter_title_on_hover then
+                    state.forced_chapter_title = string.format(user_opts.chapter_fmt, sponsor_name)
+                end
+            else
+                local dur = mp.get_property_number("duration", 0)
+                if dur > 0 then
+                    local ch = get_chapter(state.sliderpos * dur / 100)
+                    if ch and ch.title and ch.title ~= "" then
+                        local formatted = string.format(user_opts.chapter_fmt, ch.title)
+                        if user_opts.chapter_hover_subtitle then
+                            state.forced_chapter_title = formatted
+                        end
+                        if user_opts.chapter_hover_title then
+                            state.forced_title = formatted
+                        end
                     end
                 end
             end
@@ -1537,15 +1572,26 @@ function render_elements(master_ass)
                                 if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
                                     local dur = mp.get_property_number("duration", 0)
                                     if dur > 0 then
-                                        local ch = get_chapter(state.sliderpos * dur / 100)
-                                        if ch and ch.title and ch.title ~= "" then
+                                        local sponsor_name = user_opts
+                                            .show_sponsorblock_segment_name_in_chapter_title_on_hover
+                                            and get_sponsor_segment_name(state.sliderpos)
+                                        local title_text = nil
+                                        if sponsor_name then
+                                            title_text = sponsor_name
+                                        else
+                                            local ch = get_chapter(state.sliderpos * dur / 100)
+                                            if ch and ch.title and ch.title ~= "" then
+                                                title_text = ch.title
+                                            end
+                                        end
+                                        if title_text then
                                             elem_ass:new_event()
                                             elem_ass:pos((thumbX + thumbfast.width / 2) * r_w,
                                                 thumbY * r_h - user_opts.time_font_size / 2)
                                             elem_ass:an(an)
                                             elem_ass:append(slider_lo.tooltip_style)
                                             ass_append_alpha(elem_ass, slider_lo.alpha, 0)
-                                            elem_ass:append(string.format(user_opts.chapter_fmt, ch.title))
+                                            elem_ass:append(string.format(user_opts.chapter_fmt, title_text))
                                         end
                                     end
                                 end
@@ -4184,6 +4230,11 @@ local function osc_init()
             -- If video is less than 1 hour, and the time format is not fixed, strip the "00:" prefix
             if possec < 3600 and user_opts.time_format ~= "fixed" then
                 time = time:gsub("^00:", "")
+            end
+            -- Show SponsorBlock segment type name under the hover time when applicable
+            local sponsor_name = get_sponsor_segment_name(pos)
+            if sponsor_name then
+                time = time .. "\\N" .. sponsor_name
             end
             return time
         else
