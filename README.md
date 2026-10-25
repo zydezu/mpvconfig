@@ -57,9 +57,13 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-10-25
+
+- FEAT: add `show_sponsorblock_segment_name_on_hover` and `show_sponsorblock_segment_name_in_chapter_title_on_hover` in `modernx.lua`
+
 ### 2026-10-24
 
-- FEAT: dropped files and `copypaste.lua` pastes (Ctrl+v) no longer auto-play; they are appended to the playlist and only start playing if the player is idle or the current video has ended (with `keep-open=yes`). `mpv.conf` now sets `drag-and-drop=append`, and `copypaste.lua` uses mpv's native `clipboard/text` property (requires mpv >= 0.41, no external clipboard tools needed)
+- FEAT: fix copying and pasting and dragging and dropping
 
 ### 2026-07-19
 
