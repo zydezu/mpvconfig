@@ -3475,48 +3475,52 @@ layouts["reduced"] = function()
         lo.slider.tooltip_an = 2
     end
 
+    -- slightly smaller button icons in reduced mode
+    local control_1_small = osc_styles.control_1:gsub("\\fs%d+", "\\fs26")
+    local control_2_small = osc_styles.control_2:gsub("\\fs%d+", "\\fs20")
+
     -- buttons
     if track_nextprev_buttons then
         lo = add_layout('pl_prev')
-        lo.geometry = { x = refX - (60 + (chapter_skip_buttons and 60 or 0)) - offset, y = refY - 40, an = 5, w = 30, h = 24 }
-        lo.style = osc_styles.control_2
+        lo.geometry = { x = refX - (60 + (chapter_skip_buttons and 60 or 0)) - offset, y = refY - 40, an = 5, w = 22, h = 18 }
+        lo.style = control_2_small
     end
 
     if chapter_skip_buttons then
         lo = add_layout('skipback')
-        lo.geometry = { x = refX - 60 - offset, y = refY - 40, an = 5, w = 30, h = 24 }
-        lo.style = osc_styles.control_2
+        lo.geometry = { x = refX - 60 - offset, y = refY - 40, an = 5, w = 22, h = 18 }
+        lo.style = control_2_small
     end
 
     if jump_buttons then
         lo = add_layout('jumpback')
-        lo.geometry = { x = refX - 60, y = refY - 40, an = 5, w = 30, h = 24 }
-        lo.style = osc_styles.control_2
+        lo.geometry = { x = refX - 60, y = refY - 40, an = 5, w = 22, h = 18 }
+        lo.style = control_2_small
     end
 
     lo = add_layout("play_pause")
-    lo.geometry = { x = refX, y = refY - 40, an = 5, w = 45, h = 45 }
-    lo.style = osc_styles.control_1
+    lo.geometry = { x = refX, y = refY - 40, an = 5, w = 34, h = 34 }
+    lo.style = control_1_small
 
     if jump_buttons then
         lo = add_layout('jumpfrwd')
-        lo.geometry = { x = refX + 60, y = refY - 40, an = 5, w = 30, h = 24 }
+        lo.geometry = { x = refX + 60, y = refY - 40, an = 5, w = 22, h = 18 }
         -- HACK: jumpfrwd's icon must be mirrored for nonstandard # of seconds
         -- as the font only has an icon without a number for rewinding
         lo.style = (user_opts.jump_icon_number and icons.jumpicons[user_opts.jump_amount] ~= nil) and
-            osc_styles.control_2 or osc_styles.control_2_flip
+            control_2_small or osc_styles.control_2_flip
     end
 
     if chapter_skip_buttons then
         lo = add_layout('skipfrwd')
-        lo.geometry = { x = refX + 60 + offset, y = refY - 40, an = 5, w = 30, h = 24 }
-        lo.style = osc_styles.control_2
+        lo.geometry = { x = refX + 60 + offset, y = refY - 40, an = 5, w = 22, h = 18 }
+        lo.style = control_2_small
     end
 
     if track_nextprev_buttons then
         lo = add_layout('pl_next')
         lo.geometry = { x = refX + (60 + (chapter_skip_buttons and 60 or 0)) + offset, y = refY - 40, an = 5, w = 30, h = 24 }
-        lo.style = osc_styles.control_2
+        lo.style = control_2_small
     end
 
     -- Time
