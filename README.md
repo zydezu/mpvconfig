@@ -64,6 +64,7 @@ Please note that many of these scripts have been slightly modified from their in
 ### 2026-10-24
 
 - FEAT: fix copying and pasting and dragging and dropping
+- FIX: improve `layout_option=reduced` in `modernx.lua`
 
 ### 2026-07-19
 
