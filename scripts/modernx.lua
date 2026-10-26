@@ -3423,7 +3423,7 @@ layouts["reduced"] = function()
     lo.slider.gap = 7
     lo.slider.tooltip_style = osc_styles.tooltip
     lo.slider.tooltip_an = 2
-    lo.layer = 40
+    lo.layer = 100
 
     if (user_opts.persistent_progress_default or user_opts.persistent_progress_toggle) then
         lo = add_layout('persistentseekbar')
@@ -3537,6 +3537,7 @@ layouts["reduced"] = function()
     lo = add_layout("tc_left")
     lo.geometry = { x = 25, y = refY - 84, an = 7, w = 35 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0), h = 20 }
     lo.style = osc_styles.time
+    lo.layer = 150
 
     local show_remhours = (state.tc_right_rem and remsec >= 3600) or (not state.tc_right_rem and dur >= 3600) or
         user_opts.time_format ~= "dynamic"
@@ -3550,12 +3551,14 @@ layouts["reduced"] = function()
         h = 20
     }
     lo.style = osc_styles.time
+    lo.layer = 150
 
     -- Chapter Title (next to timestamp)
     if user_opts.show_chapter_title then
         lo = add_layout("chapter_title")
         lo.geometry = { x = osc_geo.w - 25, y = refY - 108, an = 9, w = 120, h = 19 }
         lo.style = osc_styles.chapter_title
+        lo.layer = 150
     end
 
     -- Audio/Subtitle
