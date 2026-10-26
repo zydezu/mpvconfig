@@ -160,6 +160,7 @@ local user_opts = {
     track_nextprev_buttons = true,  -- show next/previous playlist track buttons
 
     volume_control = true,          -- show mute button and volume slider
+    volume_slider = true,           -- show the volume slider (requires volume_control)
     volume_control_type = "linear", -- volume scale type: "linear" or "logarithmic"
 
     info_button = false,            -- show info button
@@ -3165,7 +3166,7 @@ layouts["original"] = function()
     end
 
     -- Volumebar
-    if user_opts.volume_control then
+    if user_opts.volume_control and user_opts.volume_slider then
         lo = new_element("volumebarbg", "box")
         lo.visible = (osc_param.playresx >= 900 - outeroffset) and user_opts.volume_control
         lo = add_layout("volumebarbg")
@@ -3352,6 +3353,9 @@ layouts["reduced"] = function()
     -- origin of the controllers, left/bottom corner
     local posX = 0
     local posY = osc_param.playresy
+    if user_opts.compact_mode then
+        posY = posY + 10
+    end
 
     osc_param.areas = {} -- delete areas
 
@@ -3446,10 +3450,11 @@ layouts["reduced"] = function()
     local outeroffset = (chapter_skip_buttons and 0 or 100) + (jump_buttons and 0 or 100)
 
     -- Title
-    geo = { x = 25, y = refY - 97, an = 1, w = osc_geo.w - 170, h = 35 }
+    geo = { x = 25, y = refY - 94, an = 1, w = osc_geo.w - 170, h = 35 }
     lo = add_layout("title")
     lo.geometry = geo
-    lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", osc_styles.title,
+    local title_style_small = osc_styles.title:gsub("\\fs%d+", "\\fs26")
+    lo.style = string.format("%s{\\clip(0,%f,%f,%f)}", title_style_small,
         geo.y - geo.h, geo.x + geo.w, geo.y + geo.h)
     lo.alpha[3] = 0
     lo.button.maxchars = geo.w / 11
@@ -3458,7 +3463,7 @@ layouts["reduced"] = function()
     -- title takes its place in the top-right corner instead.
 
     -- Volumebar
-    if user_opts.volume_control then
+    if user_opts.volume_control and user_opts.volume_slider then
         lo = new_element("volumebarbg", "box")
         lo.visible = (osc_param.playresx >= 900 - outeroffset) and user_opts.volume_control
         lo = add_layout("volumebarbg")
@@ -3549,7 +3554,7 @@ layouts["reduced"] = function()
     -- Chapter Title (next to timestamp)
     if user_opts.show_chapter_title then
         lo = add_layout("chapter_title")
-        lo.geometry = { x = osc_geo.w - 25, y = refY - 115, an = 9, w = 120, h = 19 }
+        lo.geometry = { x = osc_geo.w - 25, y = refY - 108, an = 9, w = 120, h = 19 }
         lo.style = osc_styles.chapter_title
     end
 
@@ -4352,7 +4357,7 @@ local function osc_init()
         end
 
     --volumebar
-    if user_opts.volume_control then
+    if user_opts.volume_control and user_opts.volume_slider then
         local volume_max_setting = mp.get_property_number("volume-max")
         local volume_max = volume_max_setting and volume_max_setting > 0 and volume_max_setting or 100
         ne = new_element("volumebar", "slider")

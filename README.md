@@ -57,6 +57,11 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-10-26
+
+- FEAT: add `volume_slider` option
+- FIX: improve compact mode
+
 ### 2026-10-25
 
 - FEAT: add `show_sponsorblock_segment_name_on_hover` and `show_sponsorblock_segment_name_in_chapter_title_on_hover` in `modernx.lua`
