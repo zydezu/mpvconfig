@@ -3401,7 +3401,7 @@ layouts["reduced"] = function()
     local show_remhours = (state.tc_right_rem and remsec >= 3600) or (not state.tc_right_rem and dur >= 3600) or
         user_opts.time_format ~= "dynamic"
     local left_margin = 70 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0)
-    local right_margin = 70 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0)
+    local right_margin = 70 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0) + (state.is_live and 40 or 0)
     local seekbar_w = osc_geo.w - left_margin - right_margin
     if seekbar_w < 100 then seekbar_w = 100 end
 
