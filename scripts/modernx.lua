@@ -3401,7 +3401,7 @@ layouts["reduced"] = function()
     local show_remhours = (state.tc_right_rem and remsec >= 3600) or (not state.tc_right_rem and dur >= 3600) or
         user_opts.time_format ~= "dynamic"
     local left_margin = 70 + (state.tc_ms and 30 or 0) + (show_hours and 20 or 0)
-    local right_margin = 70 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0) + (state.is_live and 40 or 0)
+    local right_margin = 70 + (state.tc_ms and 30 or 0) + (show_remhours and 25 or 0)
     local seekbar_w = osc_geo.w - left_margin - right_margin
     if seekbar_w < 100 then seekbar_w = 100 end
 
@@ -4526,7 +4526,10 @@ local function osc_init()
         if time_to_display < 0 then time_to_display = 0 end
         local prefix = state.tc_right_rem and (user_opts.unicode_minus and unicode_minus_symbol or "-") or ""
 
-        return prefix .. format_time(time_to_display) .. (state.is_live and " • LIVE" or "")
+        if state.is_live then
+            return "LIVE"
+        end
+        return prefix .. format_time(time_to_display)
     end
     ne.eventresponder["mbtn_left_up"] = function()
         state.tc_right_rem = not state.tc_right_rem
