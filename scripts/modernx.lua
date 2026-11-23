@@ -61,6 +61,7 @@ local function validate_user_opts() end
 local function update_options(_) end
 local function show_osc() end
 local function hide_osc() end
+local function hide_osc_for_menu() end
 local function osc_visible(_) end
 local function adjust_subtitles(_) end
 local function pause_state() end
@@ -575,6 +576,7 @@ local state = {
     idle = false,
     enabled = true,
     input_enabled = true,
+    console_open = false, -- true while mpv's console/selector UI is open
     showhide_enabled = false,
 
     border = true,
@@ -4185,6 +4187,8 @@ local function osc_init()
     ne.tooltipF = texts.statsinfo
     ne.eventresponder['mbtn_left_up'] =
         function() mp.commandv('script-binding', 'stats/display-stats-toggle') end
+    ne.eventresponder['mbtn_right_up'] =
+        function() mp.commandv('script-binding', 'select/menu') end
 
     --tog_ontop
     ne = new_element('tog_ontop', 'button')
@@ -4553,6 +4557,8 @@ end
 function show_osc()
     -- show when disabled can happen (e.g. mouse_move) due to async/delayed unbinding
     if not state.enabled then return end
+    -- don't draw over mpv's selector UI (eg: select/menu)
+    if state.console_open then return end
 
     mp.msg.trace('show_osc')
     --remember last time of invocation (mouse move)
@@ -4581,6 +4587,19 @@ function hide_osc()
     else
         osc_visible(false)
     end
+    if thumbfast.available then
+        mp.commandv("script-message-to", "thumbfast", "clear")
+    end
+end
+
+-- Clear our OSD overlay when another script's selector (eg: select/menu) is
+-- about to draw, otherwise the two ASS overlays fight and the selector can end
+-- up invisible. This is what stock osc.lua does with its osc-hide message.
+function hide_osc_for_menu()
+    state.anitype = nil
+    state.animation = nil
+    osc_visible(false)
+    render_wipe()
     if thumbfast.available then
         mp.commandv("script-message-to", "thumbfast", "clear")
     end
@@ -5067,6 +5086,14 @@ if user_opts.key_bindings then
         mp.commandv("script-binding", "select/select-chapter")
     end)
 
+    mp.add_key_binding("MENU", "context_menu", function()
+        mp.commandv("script-binding", "select/menu")
+    end)
+
+    mp.add_key_binding("ctrl+p", "command_palette", function()
+        mp.commandv("script-binding", "select/menu")
+    end)
+
     mp.add_key_binding("p", "pinwindow", function()
         mp.commandv("cycle", "ontop")
         if state.initialborder == 'yes' then
@@ -5137,6 +5164,17 @@ mp.observe_property('idle-active', 'bool',
         request_tick()
     end
 )
+-- mpv 0.40+: keep the OSC hidden while the console/selector UI is open
+mp.observe_property('user-data/mpv/console/open', 'bool',
+    function(_, val)
+        state.console_open = val == true
+        if state.console_open then
+            hide_osc_for_menu()
+        elseif user_opts.visibility == 'always' then
+            show_osc()
+        end
+    end
+)
 mp.observe_property('pause', 'bool', pause_state)
 mp.observe_property('demuxer-cache-state', 'native', cache_state)
 mp.observe_property('vo-configured', 'bool', function(_, _)
@@ -5153,12 +5191,16 @@ end)
 mp.observe_property("display-fps", "number", set_tick_delay)
 -- mouse show/hide bindings
 mp.set_key_bindings({
-    { 'mouse_move',  function(_) process_event('mouse_move', nil) end },
-    { 'mouse_leave', mouse_leave },
+    { 'mouse_move',     function(_) process_event('mouse_move', nil) end },
+    { 'mouse_leave',    mouse_leave },
+    -- right click is used by the info button; a quick second click is reported
+    -- as a double click, so ignore it instead of logging "no key binding"
+    { 'mbtn_right_dbl', 'ignore' },
 }, 'showhide', 'force')
 mp.set_key_bindings({
-    { 'mouse_move',  function(_) process_event('mouse_move', nil) end },
-    { 'mouse_leave', mouse_leave },
+    { 'mouse_move',     function(_) process_event('mouse_move', nil) end },
+    { 'mouse_leave',    mouse_leave },
+    { 'mbtn_right_dbl', 'ignore' },
 }, 'showhide_wc', 'force')
 do_enable_key_bindings()
 
@@ -5199,6 +5241,7 @@ mp.enable_key_bindings('input')
 mp.set_key_bindings({
     { 'mbtn_left', function(_) process_event('mbtn_left', 'up') end,
         function(_) process_event('mbtn_left', 'down') end },
+    { 'mbtn_right_dbl', 'ignore' },
 }, 'window-controls', 'force')
 mp.enable_key_bindings('window-controls')
 
