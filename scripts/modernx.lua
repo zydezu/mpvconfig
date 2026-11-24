@@ -117,8 +117,8 @@ local user_opts = {
 
     show_chapter_title = true,     -- show chapter title alongside timestamp (below seekbar)
     chapter_fmt = "%s",            -- format for chapter display on seekbar hover (set to "no" to disable)
-    chapter_hover_title = false,   -- show the hovered chapter's name in place of the main title while scrubbing (only applies when thumbfast isn't available)
-    chapter_hover_subtitle = true, -- show the hovered chapter's name in the chapter title text below the seekbar instead of the main title (only applies when thumbfast isn't available)
+    chapter_hover_title = false,   -- show the hovered chapter's name in place of the main title while scrubbing (only applies when no thumbnailer is active)
+    chapter_hover_subtitle = true, -- show the hovered chapter's name in the chapter title text below the seekbar instead of the main title (only applies when no thumbnailer is active)
     show_chapter_markers = true,   -- show chapter markers on the seekbar
     chapter_marker_style = "gap",  -- shape of chapter markers: "triangle", "bar", "single-bar", or "gap"
     show_top_mark = true,          -- show the top part of the chapter marker (only for the "triangle" chapter_marker_style)
@@ -200,7 +200,7 @@ local user_opts = {
     playpause_color = "#FFFFFF",              -- color of the play/pause button
     held_element_color = "#999999",           -- color of the element when held down (pressed)
     hover_effect_color = "#FFFFFF",           -- color of a hovered button when hover_effect includes "color"
-    thumbnail_border_color = "#FFFFFF",       -- color of the border for thumbnails (with thumbfast)
+    thumbnail_border_color = "#FFFFFF",       -- color of the border for preview thumbnails
     thumbnail_border_outline = "#000000",     -- color of the border outline for thumbnails
 
     fade_alpha = 100,                         -- alpha of the title bar background box
@@ -209,8 +209,10 @@ local user_opts = {
     window_fade_alpha = 100,                  -- alpha of the window title bar
     window_fade_blur_strength = 75,           -- blur strength for the window title bar. higher values have a smoother fade effect
     window_fade_transparency_strength = 0,    -- use with "window_fade_blur_strength = 0" to create a transparency box
-    thumbnail_border = 1,                     -- width of the thumbnail border (for thumbfast)
+    thumbnail_border = 1,                     -- width of the preview thumbnail border
     thumbnail_border_radius = 5,              -- rounded corner radius for thumbnail border (0 to disable)
+    use_osc_preview_api = true,               -- publish user-data/osc/draw-preview (mpv 0.42+) for thumbnailer scripts
+    max_thumb_size = 200,                     -- max display size of preview thumbnails
 
     -- Button hover effects
     hover_effect = "size,glow,color", -- active button hover effects: "glow", "size", "color"; can use multiple separated by commas
@@ -449,13 +451,6 @@ local function contains(list, item)
     return false
 end
 
-local thumbfast = {
-    width = 0,
-    height = 0,
-    disabled = true,
-    available = false
-}
-
 local sponsorblock_color_map = {
     sponsor = user_opts.sponsorblock_sponsor_color,
     intro = user_opts.sponsorblock_intro_color,
@@ -589,6 +584,9 @@ local state = {
     looping = false,
     sliderpos = 0,
     touchingprogressbar = false, -- if the mouse is touching the progress bar
+    preview_active = false,      -- true while user-data/osc/draw-preview is set
+    preview_request = nil,       -- last published preview request
+    thumbnailer_enabled = false, -- set by a thumbnailer via user-data/osc/thumbnailer-enabled
     initialborder = mp.get_property('border'),
     playingWhilstSeeking = false,
     playingWhilstSeekingWaitingForEnd = false,
@@ -627,6 +625,72 @@ local state = {
     message_text = nil, -- TODO: needs to be removed
     message_hide_timer = nil, ---@type mp.Timer? -- TODO: needs to be removed
 }
+
+-- OSC Preview API (mpv 0.42+)
+local function clear_preview()
+    if not state.preview_active then return end
+    state.preview_active = false
+    state.preview_request = nil
+    mp.set_property_native("user-data/osc/hover-sec", nil)
+    mp.set_property_native("user-data/osc/draw-preview", nil)
+end
+
+-- Display size for a preview, derived from the video like stock osc.lua.
+local function preview_size()
+    local vop = mp.get_property_native("video-out-params")
+    local osd_w, osd_h = mp.get_osd_size()
+    if not vop or not osd_w or not osd_h or osd_w <= 0 or osd_h <= 0 then
+        return nil
+    end
+    local dw, dh = vop.dw, vop.dh
+    if not dw or not dh or dw <= 0 or dh <= 0 then
+        return nil
+    end
+    local max_size = math.min(user_opts.max_thumb_size, math.min(osd_w, osd_h) * 0.25)
+    local scale = max_size / math.max(dw, dh)
+    return math.floor(dw * scale + 0.5), math.floor(dh * scale + 0.5)
+end
+
+-- Border/background decoration, in OSD coordinates.
+local function preview_ass(x, y, w, h)
+    local pad = user_opts.thumbnail_border
+    local radius = math.min(user_opts.thumbnail_border_radius or 0, pad)
+    local ass = mp.assdraw.ass_new()
+    ass:new_event()
+    ass:pos(x, y)
+    ass:an(7)
+    ass:append(osc_styles.thumbnail)
+    ass:draw_start()
+    if radius > 0 then
+        ass:round_rect_cw(-pad, -pad, w + pad, h + pad, radius)
+    else
+        ass:rect_cw(-pad, -pad, w + pad, h + pad)
+    end
+    ass:draw_stop()
+    return ass.text
+end
+
+local function publish_preview(x, y, w, h, hover_sec)
+    local prev = state.preview_request
+    -- Don't wake up thumbnailers when nothing meaningful changed.
+    if state.preview_active and prev and prev.x == x and prev.y == y
+        and prev.w == w and prev.h == h
+        and math.abs(prev["hover-sec"] - hover_sec) < 0.5 then
+        return
+    end
+    local req = {
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+        ["hover-sec"] = hover_sec,
+        ass = preview_ass(x, y, w, h),
+    }
+    state.preview_active = true
+    state.preview_request = req
+    mp.set_property_native("user-data/osc/hover-sec", hover_sec)
+    mp.set_property_native("user-data/osc/draw-preview", req)
+end
 
 local function get_sponsor_segment_name(pos)
     if not user_opts.show_sponsorblock_segment_name_on_hover then
@@ -1402,9 +1466,9 @@ function render_elements(master_ass)
     state.forced_title = nil
     state.forced_chapter_title = nil
 
-    -- disable displaying chapter name in title when thumbfast is available
-    -- because thumbfast will render it above the thumbnail instead
-    if thumbfast.disabled then
+    -- disable displaying chapter name in title when a thumbnailer is active,
+    -- because it is rendered above the thumbnail instead
+    if not state.thumbnailer_enabled then
         if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar
             and (user_opts.chapter_hover_title or user_opts.chapter_hover_subtitle
                 or user_opts.show_sponsorblock_segment_name_in_chapter_title_on_hover) then
@@ -1520,56 +1584,42 @@ function render_elements(master_ass)
                             state.sliderpos = sliderpos
                         end
 
-                        -- thumbfast
-                        if element.thumbnailable and not thumbfast.disabled then
-                            local osd_w = mp.get_property_number("osd-width")
+                        -- OSC Preview API (mpv 0.42+)
+                        if element.thumbnailable then
+                            local hover_sec = 0
+                            local duration = mp.get_property_number("duration")
+                            if duration then
+                                hover_sec = duration * sliderpos / 100
+                            end
+
                             local r_w, r_h = get_virt_scale_factor()
+                            local thumb_x, thumb_y, thumb_w, thumb_h
 
-                            if osd_w then
-                                local hover_sec = 0
-                                if mp.get_property_number("duration") then
-                                    hover_sec = mp.get_property_number("duration") *
-                                        sliderpos / 100
+                            if user_opts.use_osc_preview_api then
+                                local osd_w = mp.get_osd_size()
+                                local preview_w, preview_h = preview_size()
+                                if osd_w > 0 and preview_w and preview_h then
+                                    local thumbPad = user_opts.thumbnail_border
+                                    local thumbMarginX = 18 / r_w
+                                    local thumbMarginY = user_opts.time_font_size + thumbPad + 2 / r_h
+                                    thumb_x = math.min(osd_w - preview_w - thumbMarginX,
+                                        math.max(thumbMarginX, tx / r_w - preview_w / 2))
+                                    thumb_y = (ty - thumbMarginY) / r_h - preview_h
+                                    thumb_w, thumb_h = preview_w, preview_h
+                                    thumb_x = math.floor(thumb_x + 0.5)
+                                    thumb_y = math.floor(thumb_y + 0.5)
+                                    publish_preview(thumb_x, thumb_y, thumb_w, thumb_h, hover_sec)
+                                else
+                                    clear_preview()
                                 end
-                                local thumbPad = user_opts.thumbnail_border
-                                local thumbMarginX = 18 / r_w
-                                local thumbMarginY = user_opts.time_font_size + thumbPad + 2 / r_h
-                                local thumbX = math.min(osd_w - thumbfast.width - thumbMarginX,
-                                    math.max(thumbMarginX, tx / r_w - thumbfast.width / 2))
-                                local thumbY = (ty - thumbMarginY) / r_h - thumbfast.height
+                            else
+                                clear_preview()
+                            end
 
-                                thumbX = math.floor(thumbX + 0.5)
-                                thumbY = math.floor(thumbY + 0.5)
-
-                                if state.anitype == nil then
-                                    elem_ass:new_event()
-                                    elem_ass:append("{\\rDefault}")
-                                    elem_ass:pos(thumbX * r_w, ty - thumbMarginY - thumbfast.height * r_h)
-                                    elem_ass:an(7)
-                                    elem_ass:append(osc_styles.thumbnail)
-                                    elem_ass:draw_start()
-                                    -- the thumbnail image itself is a plain rectangle (drawn separately by thumbfast,
-                                    -- not by this script) and can't be clipped to a rounded shape, so the radius is
-                                    -- capped to the border padding to avoid rounding into the image and exposing its
-                                    -- square corners past the curve
-                                    local radius = math.min(user_opts.thumbnail_border_radius or 0, thumbPad)
-                                    if radius > 0 then
-                                        elem_ass:round_rect_cw(-thumbPad * r_w, -thumbPad * r_h,
-                                            (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h,
-                                            radius)
-                                    else
-                                        elem_ass:rect_cw(-thumbPad * r_w, -thumbPad * r_h,
-                                            (thumbfast.width + thumbPad) * r_w, (thumbfast.height + thumbPad) * r_h)
-                                    end
-                                    elem_ass:draw_stop()
-
-                                    -- force tooltip to be centered on the thumb, even at far left/right of screen
-                                    tx = (thumbX + thumbfast.width / 2) * r_w
-                                    an = 2
-
-                                    mp.commandv("script-message-to", "thumbfast", "thumb", hover_sec, thumbX, thumbY)
-                                end
-
+                            -- Center the tooltip/chapter title on the thumbnail.
+                            if thumb_x and state.thumbnailer_enabled then
+                                tx = (thumb_x + thumb_w / 2) * r_w
+                                an = 2
 
                                 -- chapter title
                                 if user_opts.chapter_fmt ~= "no" and state.touchingprogressbar then
@@ -1589,8 +1639,8 @@ function render_elements(master_ass)
                                         end
                                         if title_text then
                                             elem_ass:new_event()
-                                            elem_ass:pos((thumbX + thumbfast.width / 2) * r_w,
-                                                thumbY * r_h - user_opts.time_font_size / 2)
+                                            elem_ass:pos((thumb_x + thumb_w / 2) * r_w,
+                                                thumb_y * r_h - user_opts.time_font_size / 2)
                                             elem_ass:an(an)
                                             elem_ass:append(slider_lo.tooltip_style)
                                             ass_append_alpha(elem_ass, slider_lo.alpha, 0)
@@ -1608,8 +1658,8 @@ function render_elements(master_ass)
                         elem_ass:append(slider_lo.tooltip_style)
                         ass_append_alpha(elem_ass, slider_lo.alpha, 0)
                         elem_ass:append(tooltiplabel)
-                    elseif element.thumbnailable and thumbfast.available then
-                        mp.commandv("script-message-to", "thumbfast", "clear")
+                    elseif element.thumbnailable then
+                        clear_preview()
                     end
                 end
             end
@@ -1772,6 +1822,7 @@ end
 
 local function newfilereset()
     request_init()
+    clear_preview()
     state.downloaded_once = false
     state.videoDescription = "Loading description..."
     state.file_size_normalized = "Approximating size..."
@@ -4577,6 +4628,7 @@ function hide_osc()
         -- typically hide happens at render() from tick(), but now tick() is
         -- no-op and won't render again to remove the osc, so do that manually.
         state.osc_visible = false
+        clear_preview()
         adjust_subtitles(false)
         render_wipe()
     elseif (user_opts.fade_duration > 0) then
@@ -4586,9 +4638,6 @@ function hide_osc()
         end
     else
         osc_visible(false)
-    end
-    if thumbfast.available then
-        mp.commandv("script-message-to", "thumbfast", "clear")
     end
 end
 
@@ -4600,15 +4649,15 @@ function hide_osc_for_menu()
     state.animation = nil
     osc_visible(false)
     render_wipe()
-    if thumbfast.available then
-        mp.commandv("script-message-to", "thumbfast", "clear")
-    end
 end
 
 function osc_visible(visible)
     if state.osc_visible ~= visible then
         state.osc_visible = visible
         adjust_subtitles(true) -- raise subtitles
+        if not visible then
+            clear_preview()
+        end
     end
     request_tick()
 end
@@ -5001,6 +5050,7 @@ end
 
 mp.register_event('start-file', newfilereset)
 mp.register_event("file-loaded", startupevents)
+mp.register_event("shutdown", clear_preview)
 mp.observe_property('track-list', nil, request_init)
 mp.observe_property('playlist', nil, request_init)
 mp.observe_property("chapter-list", "native", function(_, list) -- chapter list changes
@@ -5177,6 +5227,10 @@ mp.observe_property('user-data/mpv/console/open', 'bool',
 )
 mp.observe_property('pause', 'bool', pause_state)
 mp.observe_property('demuxer-cache-state', 'native', cache_state)
+-- thumbnailers use this to announce preview support
+mp.observe_property('user-data/osc/thumbnailer-enabled', 'bool',
+    function(_, val) state.thumbnailer_enabled = val == true end
+)
 mp.observe_property('vo-configured', 'bool', function(_, _)
     request_tick()
 end)
@@ -5264,15 +5318,6 @@ function visibility_mode(mode)
     state.input_enabled = false
     request_tick()
 end
-
-mp.register_script_message("thumbfast-info", function(json)
-    local data = mp.utils.parse_json(json)
-    if type(data) ~= "table" or not data.width or not data.height then
-        mp.msg.error("thumbfast-info: received json didn't produce a table with thumbnail information")
-    else
-        thumbfast = data
-    end
-end)
 
 mp.register_script_message("sponsorblock-done", make_sponsorblock_segments)
 

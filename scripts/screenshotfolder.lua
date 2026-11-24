@@ -13,6 +13,8 @@ local options = {
 
     -- Screenshot settings
     file_ext = "png",
+    image_quality = 80,  -- 0-100, quality for lossy formats (jpg, webp, jxl, avif)
+    png_compression = 7, -- 0-9, png only: lower is faster/bigger, higher is slower/smaller
     save_location = "~/Pictures/mpv/screenshots/",
     time_stamp_format = "%tY-%tm-%td_%tH-%tM-%tS",
 
@@ -27,7 +29,6 @@ local options = {
 
     -- Clipboard settings
     copy_to_clipboard = true,
-    clipboard_filename = "mpvscreenshot.png",
 }
 (require "mp.options").read_options(options)
 
@@ -36,45 +37,43 @@ local chaptername = ""
 local last_timestamp = ""
 local count = 0
 local current_format = options.file_ext
-local file, cmd
 
 ---@diagnostic disable-next-line: deprecated
 local unpack = table.unpack or unpack
 
 local platform = mp.get_property_native('platform')
-if platform == 'windows' then
-    file = os.getenv('TEMP') .. '\\' .. options.clipboard_filename
-    cmd = {
-        'powershell', '-NoProfile', '-Command',
-        'Add-Type -Assembly System.Windows.Forms, System.Drawing;',
-        string.format(
-            "[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile('%s'))",
-            file:gsub("'", "''")
+
+-- Build the command that puts the image file in the clipboard
+local function clipboard_command(path)
+    if platform == 'windows' then
+        return {
+            'powershell', '-NoProfile', '-Command',
+            'Add-Type -Assembly System.Windows.Forms, System.Drawing;',
+            string.format(
+                "[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile('%s'))",
+                path:gsub("'", "''")
+            )
+        }
+    elseif platform == 'darwin' then
+        -- png: «class PNGf»
+        local type = options.file_ext ~= '' and options.file_ext or 'PNG picture'
+        return {
+            'osascript', '-e', string.format(
+            'set the clipboard to (read (POSIX file %q) as %s)',
+            path, type
         )
-    }
-elseif platform == 'darwin' then
-    file = os.getenv('TMPDIR') .. '/' .. options.clipboard_filename
-    -- png: «class PNGf»
-    local type = options.file_ext ~= '' and options.file_ext or 'PNG picture'
-    cmd = {
-        'osascript', '-e', string.format(
-        'set the clipboard to (read (POSIX file %q) as %s)',
-        file, type
-    )
-    }
-else
-    file = '/tmp/' .. options.clipboard_filename
-    if os.getenv('XDG_SESSION_TYPE') == 'wayland' then
-        cmd = { 'sh', '-c', ('wl-copy < %q'):format(file) }
+        }
+    elseif os.getenv('XDG_SESSION_TYPE') == 'wayland' then
+        return { 'sh', '-c', ('wl-copy < %q'):format(path) }
     else
         local type = options.file_ext ~= '' and options.file_ext or 'image/png'
-        cmd = { 'xclip', '-sel', 'c', '-t', type, '-i', file }
+        return { 'xclip', '-sel', 'c', '-t', type, '-i', path }
     end
 end
 
-local function clipshot(arg)
-    mp.commandv('screenshot-to-file', file, arg)
-    mp.command_native_async({ 'run', unpack(cmd) }, function(suc, _, err)
+-- Copy an already saved screenshot to the clipboard
+local function clipshot(path)
+    mp.command_native_async({ 'run', unpack(clipboard_command(path)) }, function(suc, _, err)
         print(suc and 'Copied screenshot to clipboard' or err)
     end)
 end
@@ -90,8 +89,33 @@ local function extract_youtube_id(filename)
         or ""
 end
 
+-- Apply the image quality for the currently selected screenshot format
+local function set_image_quality()
+    local quality = math.max(0, math.min(100, options.image_quality))
+
+    if current_format == "jpg" or current_format == "jpeg" then
+        mp.set_property_number("screenshot-jpeg-quality", quality)
+    elseif current_format == "webp" then
+        mp.set_property_number("screenshot-webp-quality", quality)
+    elseif current_format == "png" then
+        mp.set_property_number("screenshot-png-compression",
+            math.max(0, math.min(9, options.png_compression)))
+    elseif current_format == "jxl" then
+        -- jxl uses a "distance" instead of a quality: 0 is lossless, 15 is worst
+        mp.set_property_number("screenshot-jxl-distance", (100 - quality) / 100 * 15)
+    elseif current_format == "avif" then
+        -- avif uses CRF instead of a quality: 0 is best, 63 is worst
+        local crf = math.floor((100 - quality) * 63 / 100 + 0.5)
+        local opts = mp.get_property("screenshot-avif-opts") or ""
+        opts = opts:gsub("%s*crf=[^,]*", ""):gsub(",,+", ","):gsub("^,", ""):gsub(",$", "")
+        mp.set_property("screenshot-avif-opts",
+            (opts ~= "" and opts .. "," or "") .. "crf=" .. crf)
+    end
+end
+
 local function set_screenshot_template()
     mp.set_property("screenshot-format", current_format)
+    set_image_quality()
     mp.set_property("screenshot-directory", options.save_location .. title .. "/")
 
     local timestamp = mp.command_native({ "expand-text", options.time_stamp_format })
@@ -121,7 +145,7 @@ local function init()
     if path:match("^[%w]+://") then
         local youtube_id = extract_youtube_id(mp.get_property("filename"))
         filename = media:sub(1, 100):gsub("^%s*(.-)%s*$", "%1") ..
-        (youtube_id ~= "" and (" [" .. youtube_id .. "]") or "")
+            (youtube_id ~= "" and (" [" .. youtube_id .. "]") or "")
     end
 
     title = sanitize_filename(filename)
@@ -132,9 +156,14 @@ end
 local function screenshot_done()
     local sub_pos = mp.get_property("sub-pos")
     mp.set_property("sub-pos", 100)
-    mp.commandv("screenshot")
-    if options.copy_to_clipboard then clipshot("subtitles") end
+    local res = mp.command_native({ "screenshot" })
     mp.set_property("sub-pos", sub_pos)
+
+    -- Reuse the file that was just written instead of taking a second
+    -- screenshot for the clipboard, so both get the same frame.
+    if options.copy_to_clipboard and res and res.filename then
+        clipshot(res.filename)
+    end
 
     local msg = options.short_saved_message
         and "Screenshot saved"

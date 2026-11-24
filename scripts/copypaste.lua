@@ -23,9 +23,13 @@ local options = {
 
 -- Native clipboard via `clipboard/text`
 local native_clipboard = nil
+local clipboard_refresh = nil
 do
     local ver = tonumber(((mp.get_property("mpv-version") or ""):match("v0%.(%d+)")))
     native_clipboard = ver ~= nil and ver >= 41
+    -- mpv 0.42+ no longer polls the clipboard unless --clipboard-monitor=yes,
+    -- so reads must ask for a refresh with the `update-clipboard` command.
+    clipboard_refresh = ver ~= nil and ver >= 42
 end
 if not native_clipboard then
     mp.msg.warn("clipboard support requires mpv >= 0.41 - please update mpv")
@@ -76,6 +80,14 @@ local function set_clipboard(text)
 end
 
 local function get_clipboard()
+    if clipboard_refresh then
+        local ok, refreshed = pcall(mp.command_native, { "update-clipboard", "text", 100 })
+        if not ok then
+            mp.msg.verbose("clipboard refresh failed: " .. tostring(refreshed))
+        elseif refreshed == false then
+            mp.msg.verbose("clipboard refresh timed out")
+        end
+    end
     local ok, res = pcall(mp.get_property, "clipboard/text")
     if ok and res ~= nil then
         return res

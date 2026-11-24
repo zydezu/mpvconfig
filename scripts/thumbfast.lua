@@ -51,7 +51,11 @@ local options = {
     direct_io = false,
 
     -- Custom path to the mpv executable
-    mpv_path = "mpv"
+    mpv_path = "mpv",
+
+    -- Consume the OSC Preview API (mpv 0.42+). This is the only drawing path;
+    -- set to false to disable thumbnails entirely.
+    use_osc_preview_api = true
 }
 
 mp.utils = require("mp.utils")
@@ -147,13 +151,16 @@ local dirty = false
 local x, y
 local last_x, last_y
 
+-- Display size requested by the OSC Preview API. When unset (legacy
+-- thumb/clear messages), the thumbnail is displayed at its natural size
+-- multiplied by scale_factor.
+local display_w, display_h
+local last_display_w, last_display_h
+
 local last_seek_time
 
 local effective_w, effective_h = options.max_width, options.max_height
 local real_w, real_h
-local last_real_w, last_real_h
-
-local script_name
 
 local show_thumbnail = false
 
@@ -394,12 +401,12 @@ end
 
 local info_timer = nil
 
-local function info(w, h)
+local function update_disabled()
     local rotate = properties["video-params"] and properties["video-params"]["rotate"]
     local image = properties["current-tracks/video"] and properties["current-tracks/video"]["image"]
     local albumart = image and properties["current-tracks/video"]["albumart"]
 
-    disabled = (w or 0) == 0 or (h or 0) == 0 or
+    disabled = effective_w == 0 or effective_h == 0 or
         has_vid == 0 or
         (properties["demuxer-via-network"] and not options.network) or
         (albumart and not options.audio) or
@@ -410,14 +417,13 @@ local function info(w, h)
         info_timer:kill()
         info_timer = nil
     elseif has_vid == 0 or (rotate == nil and not disabled) then
-        info_timer = mp.add_timeout(0.05, function() info(w, h) end)
+        info_timer = mp.add_timeout(0.05, update_disabled)
     end
 
-    local json, _ = mp.utils.format_json({width=w * options.scale_factor, height=h * options.scale_factor, scale_factor=options.scale_factor, disabled=disabled, available=true, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
-    if pre_0_30_0 then
-        mp.command_native({"script-message", "thumbfast-info", json})
-    else
-        mp.command_native_async({"script-message", "thumbfast-info", json}, function() end)
+    -- Tell the OSC that a preview thumbnailer is active, so it can render the
+    -- chapter title/tooltip around the preview.
+    if options.use_osc_preview_api then
+        mp.set_property_native("user-data/osc/thumbnailer-enabled", not disabled)
     end
 end
 
@@ -524,7 +530,7 @@ local function spawn(time)
                             else -- ImPlay not in path
                                 if os_name ~= "darwin" then
                                     force_disabled = true
-                                    info(real_w or effective_w, real_h or effective_h)
+                                    update_disabled()
                                 end
                                 -- mp.commandv("show-text", "thumbfast: ERROR! cannot create mpv subprocess", 5000)
                                 mp.commandv("script-message-to", "implay", "show-message", "thumbfast initial setup", "Set mpv_path=PATH_TO_ImPlay in thumbfast config:\n" .. string.gsub(mp.command_native({"expand-path", "~~/script-opts/thumbfast.conf"}), "[/\\]", path_separator).."\nand restart ImPlay")
@@ -592,18 +598,38 @@ local function run(command)
     end
 end
 
-local function draw(w, h, script)
-    if not w or not show_thumbnail then return end
-    if x ~= nil then
-        local scale_w, scale_h = options.scale_factor ~= 1 and (w * options.scale_factor) or nil, options.scale_factor ~= 1 and (h * options.scale_factor) or nil
-        if pre_0_30_0 then
-            mp.command_native({"overlay-add", options.overlay_id, x, y, options.thumbnail..".bgra", 0, "bgra", w, h, (4*w), scale_w, scale_h})
-        else
-            mp.command_native_async({"overlay-add", options.overlay_id, x, y, options.thumbnail..".bgra", 0, "bgra", w, h, (4*w), scale_w, scale_h}, function() end)
-        end
-    elseif script then
-        local json, _ = mp.utils.format_json({width=w, height=h, scale_factor=options.scale_factor, x=x, y=y, socket=options.socket, thumbnail=options.thumbnail, overlay_id=options.overlay_id})
-        mp.commandv("script-message-to", script, "thumbfast-render", json)
+-- OSC Preview API decorations (borders etc.) are drawn by the OSC as an ASS
+-- string in OSD coordinates. Render them in their own overlay, on top of the
+-- image overlay.
+local preview_ass_overlay
+if options.use_osc_preview_api and mp.create_osd_overlay then
+    preview_ass_overlay = mp.create_osd_overlay("ass-events")
+end
+
+local function draw_preview_ass(ass)
+    if not preview_ass_overlay then return end
+    ass = ass or ""
+    local res_x, res_y = mp.get_osd_size()
+    if res_x and res_y and res_x > 0 and res_y > 0 then
+        preview_ass_overlay.res_x = res_x
+        preview_ass_overlay.res_y = res_y
+    elseif ass ~= "" or preview_ass_overlay.data == "" then
+        -- Nothing to draw yet, or nothing to clear.
+        return
+    end
+    preview_ass_overlay.data = ass
+    preview_ass_overlay:update()
+end
+
+local function draw(w, h)
+    if not w or not show_thumbnail or x == nil then return end
+
+    -- The OSC owns layout and tells us how large to display the thumbnail.
+    local scale_w, scale_h = display_w, display_h
+    if pre_0_30_0 then
+        mp.command_native({"overlay-add", options.overlay_id, x, y, options.thumbnail..".bgra", 0, "bgra", w, h, (4*w), scale_w, scale_h})
+    else
+        mp.command_native_async({"overlay-add", options.overlay_id, x, y, options.thumbnail..".bgra", 0, "bgra", w, h, (4*w), scale_w, scale_h}, function() end)
     end
 end
 
@@ -692,10 +718,6 @@ local function check_new_thumb()
         move_file(tmp, options.thumbnail..".bgra")
 
         real_w, real_h = w, h
-        if real_w and (real_w ~= last_real_w or real_h ~= last_real_h) then
-            last_real_w, last_real_h = real_w, real_h
-            info(real_w, real_h)
-        end
         if not show_thumbnail then
             file_timer:kill()
         end
@@ -707,7 +729,7 @@ end
 
 file_timer = mp.add_periodic_timer(file_check_period, function()
     if check_new_thumb() then
-        draw(real_w, real_h, script_name)
+        draw(real_w, real_h)
     end
 end)
 file_timer:kill()
@@ -725,7 +747,9 @@ local function clear()
     show_thumbnail = false
     last_x = nil
     last_y = nil
-    if script_name then return end
+    last_display_w = nil
+    last_display_h = nil
+    draw_preview_ass(nil)
     if pre_0_30_0 then
         mp.command_native({"overlay-remove", options.overlay_id})
     else
@@ -748,23 +772,23 @@ end
 activity_timer = mp.add_timeout(options.quit_after_inactivity, quit)
 activity_timer:kill()
 
-local function thumb(time, r_x, r_y, script)
+local function thumb(time, r_x, r_y, r_w, r_h)
     if disabled then return end
 
-    time = tonumber(time)
-    if time == nil then return end
+    time, r_x, r_y = tonumber(time), tonumber(r_x), tonumber(r_y)
+    r_w, r_h = tonumber(r_w), tonumber(r_h)
+    if not time or not r_x or not r_y or not r_w or not r_h then return end
 
-    if r_x == "" or r_y == "" then
-        x, y = nil, nil
-    else
-        x, y = math.floor(r_x + 0.5), math.floor(r_y + 0.5)
-    end
+    x, y = math.floor(r_x + 0.5), math.floor(r_y + 0.5)
+    display_w, display_h = math.floor(r_w + 0.5), math.floor(r_h + 0.5)
 
-    script_name = script
-    if last_x ~= x or last_y ~= y or not show_thumbnail then
+    if last_x ~= x or last_y ~= y or
+        last_display_w ~= display_w or last_display_h ~= display_h or
+        not show_thumbnail then
         show_thumbnail = true
         last_x, last_y = x, y
-        draw(real_w, real_h, script)
+        last_display_w, last_display_h = display_w, display_h
+        draw(real_w, real_h)
     end
 
     if options.quit_after_inactivity > 0 then
@@ -801,9 +825,9 @@ local function watch_changes()
 
     if resized then
         last_rotate = rotate
-        info(effective_w, effective_h)
+        update_disabled()
     elseif last_has_vid ~= has_vid and has_vid ~= 0 then
-        info(effective_w, effective_h)
+        update_disabled()
     end
 
     if spawned then
@@ -871,7 +895,7 @@ local function sync_changes(prop, val)
         if prop == "vid" then
             has_vid = 0
             last_has_vid = 0
-            info(effective_w, effective_h)
+            update_disabled()
             clear()
             return
         end
@@ -892,7 +916,6 @@ local function file_load()
     clear()
     spawned = false
     real_w, real_h = nil, nil
-    last_real_w, last_real_h = nil, nil
     last_tone_mapping = nil
     last_seek_time = nil
     if info_timer then
@@ -901,7 +924,7 @@ local function file_load()
     end
 
     calc_dimensions()
-    info(effective_w, effective_h)
+    update_disabled()
 end
 
 local function shutdown()
@@ -942,8 +965,28 @@ mp.observe_property("vid", "native", sync_changes)
 mp.observe_property("edition", "native", sync_changes)
 mp.observe_property("duration", "native", on_duration)
 
-mp.register_script_message("thumb", thumb)
-mp.register_script_message("clear", clear)
+-- OSC Preview API (mpv 0.42+). The OSC sets draw-preview to a table describing
+-- where and what to draw, and clears it (nil) when the preview should go away.
+local function on_draw_preview(_, req)
+    if not options.use_osc_preview_api then return end
+
+    if type(req) ~= "table" or not req["hover-sec"] or
+        not req.x or not req.y or not req.w or not req.h then
+        clear()
+        return
+    end
+
+    if disabled then return end
+
+    thumb(req["hover-sec"], req.x, req.y, req.w, req.h)
+    if req.ass then
+        draw_preview_ass(req.ass)
+    end
+end
+
+if options.use_osc_preview_api then
+    mp.observe_property("user-data/osc/draw-preview", "native", on_draw_preview)
+end
 
 mp.register_event("file-loaded", file_load)
 mp.register_event("shutdown", shutdown)

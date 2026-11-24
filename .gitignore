@@ -1,3 +1,4 @@
 watch_later/
-script-opts/modernx.conf
 changerefresh.lua
+script-opts/modernx.conf
+script-opts/screenshotfolder.conf
