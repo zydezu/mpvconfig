@@ -47,7 +47,8 @@ Please note that many of these scripts have been slightly modified from their in
 | [screenshotfolder](https://github.com/zydezu/mpvconfig/blob/main/scripts/screenshotfolder.lua) saves screenshots to a designated folder | **s** - Take a screenshot |
 | [selectformat](https://github.com/koonix/mpv-selectformat) allows you to change the quality of internet videos on the fly | **Ctrl+f** - Open format menu <br> Use up and down to choose a resolution, and fold and unfold selections with the arrow keys to see more codec options |
 | [sponsorblock](https://github.com/po5/mpv_sponsorblock) a fully-featured port of SponsorBlock for mpv | [See repository](https://github.com/po5/mpv_sponsorblock?tab=readme-ov-file#usage) |
-| [thumbfast](https://github.com/po5/thumbfast) show thumbnails when hovering the progress bar | None |
+| [thumbfast](https://github.com/po5/thumbfast) show thumbnails when hovering the progress bar (requires mpv >= 0.42 for the OSC Preview API) | None |
+| [thumbyt](https://codeberg.org/NRK/mpv-toolbox/src/branch/master/thumbyt/thumbyt.lua) storyboard-based thumbnails for YouTube and other yt-dlp supported sites (requires mpv >= 0.42, `curl` and `ffmpeg`) | None |
 | [unpauseonplaylistchange](https://github.com/zydezu/mpvconfig/blob/main/scripts/unpauseonplaylistchange.lua) automatically resumes playback when moving to another item in the playlist while paused | None |
 | [input.conf](https://github.com/zydezu/mpvconfig/blob/main/input.conf) an input configuration file | **-** - Decrease subtitle font size <br> **+** - Increase subtitle font size <br> **Scroll wheel** - Change volume |
 
@@ -57,10 +58,43 @@ Please note that many of these scripts have been slightly modified from their in
 
 ## Updates
 
+### 2026-11-24
+
+- FEAT: add `thumbyt.lua`, which uses yt-dlp storyboards for previews on YouTube and other supported sites
+- FEAT: rewrite `thumbfast.lua` as an OSC Preview API consumer (mpv 0.42+); the legacy `thumb`/`clear` messages have been removed
+- FEAT: add `use_osc_preview_api` and `max_thumb_size` options to `modernx.lua`; the OSC now publishes `user-data/osc/draw-preview` with the border ASS and renders the tooltip/chapter title around the preview
+- FIX: refresh the clipboard with `update-clipboard` on mpv 0.42+ in `copypaste.lua` before reading `clipboard/text`
+- FEAT: add `image_quality` and `png_compression` options to `screenshotfolder.lua`; clipboard copies now reuse the saved screenshot instead of taking a second one
+- FIX: add the `tv-autoplay` profile to `mpvwindows.conf` to match `mpv.conf`
+- FIX: ignore `script-opts/screenshotfolder.conf` in `.gitignore`
+
+### 2026-11-23
+
+- FEAT: implement [ModernX PR 81](https://github.com/zydezu/ModernX/pull/81): open the selector menu with the info button's right click, `MENU` or `Ctrl+p`, and keep the OSC hidden while mpv's console/selector UI is open
+- FIX: unbind right click from pause and ignore `mbtn_right_dbl` so the info button can use right click
+
+### 2026-11-01
+
+- FIX: show a plain `LIVE` indicator in `modernx.lua` instead of appending `• LIVE` to the time
+
+### 2026-10-30
+
+- FIX: change `keep-open` to `always` and add a `tv-autoplay` profile in `mpv.conf` to auto-advance TV episodes
+- FIX: increase `demuxer-max-bytes` and `demuxer-max-back-bytes` for smoother network playback
+
+### 2026-10-28
+
+- FIX: account for the live indicator when calculating the seekbar width in `modernx.lua`
+
+### 2026-10-27
+
+- FIX: sync `mpvwindows.conf` with `mpv.conf` (`save-watch-history`, `drag-and-drop`, ytdl extractor args, screenshot format and subtitle settings)
+
 ### 2026-10-26
 
 - FEAT: add `volume_slider` option
 - FIX: improve compact mode
+- FIX: correct the element layers in `layout_option=reduced` so timestamps and the chapter title draw above the seekbar
 
 ### 2026-10-25
 
